@@ -11,6 +11,11 @@ Frontend estatico con estetica Commodore 64 / terminal CRT. La vision objetivo e
 - `front/content.jsx`: textos, servicios, casos, stack, diagnostico y comandos mostrados al usuario.
 - `front/assets/`, `front/uploads/`: imagenes.
 
+## Consulta de documentacion
+- Antes de implementar, modificar arquitectura o responder sobre el funcionamiento del proyecto, revisar la documentacion relevante en `docs/`.
+- Priorizar `docs/ingenio-agentic-site-spec.md`, `docs/backend-specification.md`, `docs/backend-tutorial.md` y `docs/agent-specifications.md` segun la tarea.
+- Si una decision tecnica contradice `docs/`, actualizar la documentacion en el mismo cambio o explicar explicitamente la desviacion.
+
 ## Convenciones
 - Responder y escribir documentacion en espanol neutro.
 - Preservar el tono visual retro: uppercase, mensajes cortos, monoespaciado y comandos tipo terminal.

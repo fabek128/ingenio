@@ -10,6 +10,9 @@ Este proyecto mantiene instrucciones equivalentes para tres entornos de agentes:
 ## Regla de mantenimiento
 Cuando una instruccion afecte como deben trabajar los agentes en este repo, debe agregarse o actualizarse en los tres archivos. Esto evita comportamientos distintos entre herramientas.
 
+## Regla de consulta de documentacion
+Todo agente debe buscar primero en `docs/` la documentacion relevante antes de implementar, modificar arquitectura o responder sobre el funcionamiento del proyecto. Si cambia una decision documentada, debe actualizar el documento correspondiente en el mismo cambio.
+
 ## Documentos relacionados
 - `docs/ingenio-agentic-site-spec.md`: analisis del proyecto, vision de producto, arquitectura objetivo y plan de backend local con Ollama.
 - `docs/backend-tutorial.md`: guia paso a paso para construir y operar el backend pequeno.

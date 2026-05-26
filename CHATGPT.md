@@ -11,8 +11,13 @@ Mantener y evolucionar INGENIO/64, un sitio personal con UI de terminal retro in
 - `front/content.jsx`: fuente principal de contenido editable.
 - `front/assets/` y `front/uploads/`: recursos graficos.
 
+## Consulta de documentacion
+- Antes de implementar, modificar arquitectura o responder sobre el funcionamiento del proyecto, revisar la documentacion relevante en `docs/`.
+- Priorizar `docs/ingenio-agentic-site-spec.md`, `docs/backend-specification.md`, `docs/backend-tutorial.md` y `docs/agent-specifications.md` segun la tarea.
+- Si una decision tecnica contradice `docs/`, actualizar la documentacion en el mismo cambio o explicar explicitamente la desviacion.
+
 ## Forma de trabajo
-1. Inspeccionar primero el estado local (`git status`, archivos relevantes y diffs existentes).
+1. Inspeccionar primero el estado local (`git status`, archivos relevantes, `docs/` y diffs existentes).
 2. Respetar cambios no commiteados del usuario.
 3. Implementar cambios concretos con diffs pequenos.
 4. Documentar todo cambio funcional.

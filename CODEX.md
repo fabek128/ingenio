@@ -12,8 +12,13 @@ Mantener y evolucionar INGENIO/64, un sitio personal con UI de terminal retro in
 - `front/assets/` y `front/uploads/`: recursos graficos.
 - `docs/`: documentacion del proyecto y notas operativas.
 
+## Consulta de documentacion
+- Antes de implementar, modificar arquitectura o responder sobre el funcionamiento del proyecto, revisar la documentacion relevante en `docs/`.
+- Priorizar `docs/ingenio-agentic-site-spec.md`, `docs/backend-specification.md`, `docs/backend-tutorial.md` y `docs/agent-specifications.md` segun la tarea.
+- Si una decision tecnica contradice `docs/`, actualizar la documentacion en el mismo cambio o explicar explicitamente la desviacion.
+
 ## Forma de trabajo para Codex
-1. Inspeccionar primero contexto local: `git status`, archivos relevantes, README/docs e instrucciones de agentes.
+1. Inspeccionar primero contexto local: `git status`, archivos relevantes, `docs/`, README e instrucciones de agentes.
 2. Respetar cambios no commiteados del usuario; no sobrescribirlos sin confirmacion.
 3. Implementar cambios concretos con diffs pequenos y revisables.
 4. Documentar todo cambio funcional en `docs/` o en las instrucciones locales si afecta a agentes.

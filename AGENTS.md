@@ -15,6 +15,11 @@ Este archivo aplica a OpenCode y a cualquier agente compatible con `AGENTS.md` t
 - `front/content.jsx`: contenido editable del sitio: servicios, casos, stack, about, diagnostico y metadata de comandos.
 - `front/assets/` y `front/uploads/`: imagenes usadas por la web.
 
+## Consulta de documentacion
+- Antes de implementar, modificar arquitectura o responder sobre el funcionamiento del proyecto, revisar la documentacion relevante en `docs/`.
+- Priorizar `docs/ingenio-agentic-site-spec.md`, `docs/backend-specification.md`, `docs/backend-tutorial.md` y `docs/agent-specifications.md` segun la tarea.
+- Si una decision tecnica contradice `docs/`, actualizar la documentacion en el mismo cambio o explicar explicitamente la desviacion.
+
 ## Reglas de implementacion
 1. Mantener cambios pequenos y alineados al patron existente.
 2. No agregar bundlers, frameworks, dependencias npm ni servicios externos sin aprobacion explicita.
