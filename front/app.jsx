@@ -561,9 +561,23 @@ function StackBlock() {
 
 /* ---------- ABOUT ---------- */
 function AboutBlock() {
+  const [state, setState] = useState({ status: "loading", source: "" });
+
+  useEffect(() => {
+    let active = true;
+    fetch(ABOUT_SECTION.markdownPath, { cache: "no-cache" })
+      .then((res) => {
+        if (!res.ok) throw new Error("ABOUT_MD_NOT_FOUND");
+        return res.text();
+      })
+      .then((source) => { if (active) setState({ status: "ready", source }); })
+      .catch(() => { if (active) setState({ status: "error", source: "" }); });
+    return () => { active = false; };
+  }, []);
+
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-      {/* Top: profile card with photo + meta */}
+      {/* Photo card — solo el path de la foto viene del JS */}
       <div className="about-card">
         <div className="about-photo-wrap">
           <div className="about-photo-frame">
@@ -584,41 +598,18 @@ function AboutBlock() {
             <span style={{ color: "var(--fg-dim)" }}>  240x240  RGB</span>
           </div>
         </div>
-
-        <div className="about-meta">
-          <div className="about-title">{ABOUT_PROFILE.title}</div>
-          <div className="about-rows">
-            {[
-              ["NAME",    ABOUT_PROFILE.name],
-              ["ROLE",    ABOUT_PROFILE.role],
-              ["COMPANY", ABOUT_PROFILE.company],
-              ["SINCE",   ABOUT_PROFILE.since],
-              ["STACK",   ABOUT_PROFILE.stack],
-              ["STATUS",  <><span className="status-dot"/> ONLINE — LISTO PARA CONSTRUIR</>],
-            ].map(([k, v]) => (
-              <React.Fragment key={k}>
-                <div className="about-k">{k}</div>
-                <div className="about-v">{v}</div>
-              </React.Fragment>
-            ))}
-          </div>
-        </div>
       </div>
 
-      {/* Bio paragraphs */}
+      {/* Markdown content */}
       <div className="about-bio">
-        {ABOUT_PROFILE.bio.map((p, i) => (
-          <p key={i}>
-            <span className="bio-mark">{">"}</span>
-            {p}
-          </p>
-        ))}
+        {state.status === "loading" && <div className="module-body">LEYENDO /SECCIONES/ABOUT/ABOUT.MD...</div>}
+        {state.status === "error" && (
+          <div className="module-body" style={{ color: "var(--error-color)" }}>
+            NO PUDE CARGAR EL ARCHIVO ABOUT. VERIFICAR front/secciones/about/about.md.
+          </div>
+        )}
+        {state.status === "ready" && <MarkdownDocument source={state.source} />}
       </div>
-
-      {/* Footer technical sheet */}
-      <pre className="about-footer">
-{ABOUT_LINES.join("\n")}
-      </pre>
     </div>
   );
 }
