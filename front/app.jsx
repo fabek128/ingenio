@@ -1018,6 +1018,16 @@ function ResponseView({ title, body, ctas = [], busy = false, typewriter = false
   );
 }
 
+function AnimatedPending({ text }) {
+  const base = text.replace(/\.+$/, "").replace(/\s+$/, "");
+  const [dots, setDots] = useState(1);
+  useEffect(() => {
+    const t = setInterval(() => setDots((d) => (d % 3) + 1), 400);
+    return () => clearInterval(t);
+  }, []);
+  return <>{base}{".".repeat(dots)}</>;
+}
+
 function AgentMessage({ message, typing, onTypedDone }) {
   const rendered = useTyped(message.text || "", typingSpeedMs(), typing);
   const done = rendered.length >= (message.text || "").length;
@@ -1028,9 +1038,9 @@ function AgentMessage({ message, typing, onTypedDone }) {
 
   return (
     <div className={"agent-message " + message.role + " " + (message.status || "done")}>
-      <div className="agent-message-role">{message.role === "user" ? "PROMPT" : "AGENT"}</div>
+      <div className={"agent-message-role" + (message.status === "pending" ? " pending" : "")}>{message.role === "user" ? "PROMPT" : "AGENT"}</div>
       <div className="agent-message-body">
-        <span className="console-output">{rendered}</span>
+        <span className="console-output">{message.status === "pending" ? <AnimatedPending text={message.text} /> : rendered}</span>
         {(message.status === "pending" || (typing && !done)) && <span className="console-cursor" aria-hidden="true" />}
       </div>
     </div>
@@ -1125,7 +1135,7 @@ function App() {
     if (!cleanQuestion) return;
 
     const userMessage = createAgentMessage("user", cleanQuestion);
-    const assistantMessage = createAgentMessage("assistant", "STATUS: CONECTANDO CON BACKEND...", "pending");
+    const assistantMessage = createAgentMessage("assistant", "CONECTANDO", "pending");
 
     setIsPromptBusy(true);
     setTypingMessageId(null);

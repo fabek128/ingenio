@@ -1311,6 +1311,13 @@ body {
   letter-spacing: 0.12em;
   margin-bottom: 6px;
 }
+.agent-message-role.pending {
+  animation: pulseRole 0.8s ease-in-out infinite alternate;
+}
+@keyframes pulseRole {
+  from { opacity: 0.5; }
+  to   { opacity: 1;   }
+}
 .agent-message.user .agent-message-role {
   color: var(--fg-bright);
 }
