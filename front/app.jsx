@@ -577,7 +577,7 @@ function AboutBlock() {
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-      {/* Photo card — solo el path de la foto viene del JS */}
+      {/* Photo + meta card */}
       <div className="about-card">
         <div className="about-photo-wrap">
           <div className="about-photo-frame">
@@ -598,9 +598,28 @@ function AboutBlock() {
             <span style={{ color: "var(--fg-dim)" }}>  240x240  RGB</span>
           </div>
         </div>
+
+        <div className="about-meta">
+          <div className="about-title">{ABOUT_PROFILE.title}</div>
+          <div className="about-rows">
+            {[
+              ["NAME",    ABOUT_PROFILE.name],
+              ["ROLE",    ABOUT_PROFILE.role],
+              ["COMPANY", ABOUT_PROFILE.company],
+              ["SINCE",   ABOUT_PROFILE.since],
+              ["STACK",   ABOUT_PROFILE.stack],
+              ["STATUS",  <><span className="status-dot"/> ONLINE — LISTO PARA CONSTRUIR</>],
+            ].map(([k, v]) => (
+              <React.Fragment key={k}>
+                <div className="about-k">{k}</div>
+                <div className="about-v">{v}</div>
+              </React.Fragment>
+            ))}
+          </div>
+        </div>
       </div>
 
-      {/* Markdown content */}
+      {/* Bio + footer desde .md */}
       <div className="about-bio">
         {state.status === "loading" && <div className="module-body">LEYENDO /SECCIONES/ABOUT/ABOUT.MD...</div>}
         {state.status === "error" && (

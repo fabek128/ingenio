@@ -92,6 +92,11 @@ const STACK = [
 const ABOUT_PROFILE = {
   photo: "assets/fabian-profile.jpg",
   name: "FABIAN",
+  role: "SENIOR PROGRAMMER / TECH LEAD",
+  company: "ASAP CONSULTING S.A.  //  INGENIO UNO",
+  since: "COMMODORE 64 BASIC",
+  stack: ".NET → JAVA → NODE.JS → PYTHON → AI",
+  title: "ACERCA DE MI.",
 };
 
 const ABOUT_SECTION = {
