@@ -105,6 +105,20 @@ function agentErrorMessage(error) {
   return map[code] || map.AGENT_FAILED;
 }
 
+function formatAgentResponse(question, data) {
+  const model = data?.model || "UNKNOWN";
+  const reply = data?.reply || "SIN RESPUESTA DEL MODELO.";
+  return [
+    "PROMPT:",
+    "> " + question,
+    "",
+    "MODEL: " + model,
+    "",
+    "RESPUESTA:",
+    reply,
+  ].join("\n");
+}
+
 /* ============================================================
    BOOT SCREEN
    ============================================================ */
@@ -798,7 +812,7 @@ function ContactBlock({ onCommand, prefill }) {
 /* ============================================================
    COMMAND BAR (input + quick buttons + autocomplete)
    ============================================================ */
-function CommandBar({ onSubmit, value, setValue, history, setHistory }) {
+function CommandBar({ onSubmit, value, setValue, history, setHistory, disabled = false }) {
   const [hIdx, setHIdx] = useState(-1);
   const [active, setActive] = useState(-1);
   const inputRef = useRef(null);
@@ -822,7 +836,7 @@ function CommandBar({ onSubmit, value, setValue, history, setHistory }) {
 
   const submit = (cmd) => {
     const c = (cmd || value).trim();
-    if (!c) return;
+    if (!c || disabled) return;
     onSubmit(c);
     setValue("");
     setHistory((h) => [c, ...h].slice(0, 50));
@@ -873,7 +887,7 @@ function CommandBar({ onSubmit, value, setValue, history, setHistory }) {
     <div className="command-bar">
       <div className="quick-row" role="toolbar" aria-label="Quick commands">
         {quickButtons.map((q) => (
-          <button key={q} className="quick-btn" onClick={() => submit(q)}>
+          <button key={q} className="quick-btn" onClick={() => submit(q)} disabled={disabled}>
             <span className="k">&gt;</span>{q}
           </button>
         ))}
@@ -901,13 +915,14 @@ function CommandBar({ onSubmit, value, setValue, history, setHistory }) {
           value={value}
           onChange={(e) => { setValue(e.target.value); setHIdx(-1); setActive(-1); }}
           onKeyDown={onKey}
-          placeholder="ESCRIBI UN COMANDO O PREGUNTA... (TAB AUTOCOMPLETA)"
+          disabled={disabled}
+          placeholder={disabled ? "ESPERANDO RESPUESTA DEL MODELO..." : "ESCRIBI TU PROMPT O UN COMANDO... (TAB AUTOCOMPLETA)"}
           autoComplete="off"
           spellCheck="false"
           autoFocus
         />
         {!value && <span className="fake-cursor" />}
-        <span className="submit-hint">[ENTER]</span>
+        <span className="submit-hint">{disabled ? "[WAIT]" : "[ENTER]"}</span>
       </div>
     </div>
   );
@@ -969,10 +984,10 @@ function HomeView({ onCommand }) {
 /* ============================================================
    GENERIC AGENT-RESPONSE VIEW (for non-module commands)
    ============================================================ */
-function ResponseView({ title, body, ctas = [], onCommand, onClose }) {
+function ResponseView({ title, body, ctas = [], busy = false, onCommand, onClose }) {
   return (
     <ViewShell tag="MSG" title={title} onClose={onClose}>
-      <div className="view-intro">
+      <div className="view-intro" aria-busy={busy ? "true" : "false"}>
         <span className="role">AGENT:</span>
         <span style={{ whiteSpace: "pre-wrap" }}>{body}</span>
       </div>
@@ -1001,6 +1016,7 @@ function App() {
   const [history, setHistory] = useState([]);
   const [sound, setSound] = useState(false);
   const [model, setModel] = useState("deepseek-v4-flash-free");
+  const [isPromptBusy, setIsPromptBusy] = useState(false);
 
   // Apply theme to <html>
   useEffect(() => {
@@ -1047,7 +1063,7 @@ function App() {
 
   const handleCommand = async (rawInput, opts = {}) => {
     const raw = (rawInput || "").trim();
-    if (!raw) return;
+    if (!raw || isPromptBusy) return;
     const upper = raw.toUpperCase();
     if (sound) beep(1200, 0.025, 0.025);
     const first = upper.split(/\s+/)[0];
@@ -1058,6 +1074,42 @@ function App() {
   };
 
   const closeView = () => setView({ kind: "home" });
+
+  const submitPromptToModel = async (question) => {
+    const cleanQuestion = (question || "").trim();
+    if (!cleanQuestion) return;
+    setIsPromptBusy(true);
+    setView({
+      kind: "response",
+      title: "AGENT LINK",
+      body: "PROMPT:\n> " + cleanQuestion + "\n\nSTATUS: CONECTANDO CON BACKEND...",
+      busy: true,
+    });
+    try {
+      const data = await askBackendAgent(cleanQuestion);
+      return setView({
+        kind: "response",
+        title: "AGENT LINK",
+        body: formatAgentResponse(cleanQuestion, data),
+        ctas: [
+          { cmd: "EXPERIENCIAS", label: "EXPERIENCIAS", primary: true },
+          { cmd: "PROYECTOS", label: "PROYECTOS" },
+        ],
+      });
+    } catch (e) {
+      return setView({
+        kind: "response",
+        title: "AGENT ERROR",
+        body: "PROMPT:\n> " + cleanQuestion + "\n\n" + agentErrorMessage(e),
+        ctas: [
+          { cmd: "HELP", label: "HELP", primary: true },
+          { cmd: "HOME", label: "HOME" },
+        ],
+      });
+    } finally {
+      setIsPromptBusy(false);
+    }
+  };
 
   const runCommand = async (cmd, raw, opts = {}) => {
     if (sound) beep(660, 0.025, 0.025);
@@ -1076,19 +1128,7 @@ function App() {
 
       case "AGENT": {
         const question = (raw || "").replace(/^AGENT\s*/i, "").trim() || "Como usas IA todos los dias?";
-        setView({ kind: "response", title: "AGENT LINK", body: "CONECTANDO CON BACKEND...\n\n> " + question });
-        try {
-          const data = await askBackendAgent(question);
-          return setView({ kind: "response", title: "AGENT LINK", body: data.reply, ctas: [
-            { cmd: "EXPERIENCIAS", label: "EXPERIENCIAS", primary: true },
-            { cmd: "PROYECTOS", label: "PROYECTOS" },
-          ] });
-        } catch (e) {
-          return setView({ kind: "response", title: "AGENT ERROR", body: agentErrorMessage(e), ctas: [
-            { cmd: "HELP", label: "HELP", primary: true },
-            { cmd: "HOME", label: "HOME" },
-          ] });
-        }
+        return submitPromptToModel(question);
       }
       case "MODEL": {
         try {
@@ -1175,21 +1215,8 @@ function App() {
         setView({ kind: "home" });
         return;
 
-      default: {
-        setView({ kind: "response", title: "AGENT LINK", body: "CONSULTA LIBRE DETECTADA.\nCONECTANDO CON BACKEND...\n\n> " + raw });
-        try {
-          const data = await askBackendAgent(raw);
-          return setView({ kind: "response", title: "AGENT LINK", body: data.reply, ctas: [
-            { cmd: "EXPERIENCIAS", label: "EXPERIENCIAS", primary: true },
-            { cmd: "HELP", label: "HELP" },
-          ] });
-        } catch (e) {
-          return setView({ kind: "response", title: "AGENT ERROR", body: agentErrorMessage(e), ctas: [
-            { cmd: "HELP", label: "HELP", primary: true },
-            { cmd: "HOME", label: "HOME" },
-          ] });
-        }
-      }
+      default:
+        return submitPromptToModel(raw);
     }
   };
 
@@ -1247,6 +1274,7 @@ function App() {
           title={view.title}
           body={view.body}
           ctas={view.ctas}
+          busy={view.busy}
           onCommand={programmatic}
           onClose={closeView}
         />;
@@ -1270,6 +1298,7 @@ function App() {
               onSubmit={(cmd) => handleCommand(cmd)}
               history={history}
               setHistory={setHistory}
+              disabled={isPromptBusy}
             />
           </>
         )}

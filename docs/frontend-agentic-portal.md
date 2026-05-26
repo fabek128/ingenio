@@ -20,6 +20,43 @@ Redisenar el frontend existente para que INGENIO/64 sea un sitio personal tipo c
 - En produccion, la API se llama por mismo origen usando `/api/*`.
 - La seccion `PROYECTOS` lee `front/secciones/proyectos/proyectos.md` en runtime con `fetch`, para editar contenido sin tocar componentes React.
 
+## Integracion prompt -> backend -> web
+
+La entrada inferior funciona como prompt y como consola de comandos:
+
+1. El usuario escribe texto en la barra inferior.
+2. Si el primer token coincide con un comando local (`HELP`, `PROYECTOS`, `MODEL`, etc.), se abre la vista local.
+3. Si el texto no coincide con un comando, el frontend lo trata como prompt libre.
+4. El frontend llama `GET /api/session` si todavia no tiene CSRF en memoria.
+5. El frontend llama `POST /api/chat` con:
+
+```http
+Content-Type: application/json
+X-Ingenio-CSRF: <token-en-memoria>
+Cookie: ingenio_session=<cookie-httponly>
+```
+
+Body:
+
+```json
+{"message":"<prompt del usuario>"}
+```
+
+6. Mientras espera respuesta, la entrada inferior queda bloqueada y la vista muestra `STATUS: CONECTANDO CON BACKEND`.
+7. Cuando responde el backend, la web renderiza:
+
+```text
+PROMPT:
+> <texto del usuario>
+
+MODEL: <modelo reportado por backend>
+
+RESPUESTA:
+<respuesta del modelo>
+```
+
+El comando explícito `AGENT <pregunta>` usa el mismo flujo. `AGENT` sin argumentos usa una pregunta por defecto.
+
 ## Seguridad
 
 - El frontend no contiene API keys ni secretos.
