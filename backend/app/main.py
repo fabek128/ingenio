@@ -70,6 +70,7 @@ class ChatRequest(BaseModel):
 class ChatResponse(BaseModel):
     reply: str
     model: str
+    usage: dict[str, int] | None = None
 
 
 def _b64url_encode(data: bytes) -> str:
@@ -314,4 +315,9 @@ async def chat(
     if not reply:
         raise HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail="model_empty_response")
 
-    return ChatResponse(reply=reply, model=settings.ingenio_llm_model)
+    usage = data.get("usage")
+    usage_dict: dict[str, int] | None = None
+    if usage and isinstance(usage, dict):
+        usage_dict = {k: int(v) for k, v in usage.items() if isinstance(v, (int, float))}
+
+    return ChatResponse(reply=reply, model=settings.ingenio_llm_model, usage=usage_dict)

@@ -143,9 +143,7 @@ function formatAgentResponse(question, data) {
 const AGENT_CHAT_STORAGE_KEY = "ingenio_agent_chat_v1";
 
 function formatAgentHistoryResponse(data) {
-  const model = data?.model || "UNKNOWN";
-  const reply = data?.reply || "SIN RESPUESTA DEL MODELO.";
-  return ["MODEL: " + model, "", "RESPUESTA:", reply].join("\n");
+  return data?.reply || "SIN RESPUESTA DEL MODELO.";
 }
 
 function createAgentMessage(role, text, status = "done") {
@@ -1082,6 +1080,7 @@ function App() {
   const [isPromptBusy, setIsPromptBusy] = useState(false);
   const [agentMessages, setAgentMessages] = useState(() => loadAgentMessages());
   const [typingMessageId, setTypingMessageId] = useState(null);
+  const [agentUsage, setAgentUsage] = useState(null);
 
   // Apply theme to <html>
   useEffect(() => {
@@ -1136,6 +1135,7 @@ function App() {
     try {
       const data = await askBackendAgent(cleanQuestion);
       const text = formatAgentHistoryResponse(data);
+      setAgentUsage(data?.usage || null);
       setAgentMessages((messages) => messages.map((m) => (
         m.id === assistantMessage.id ? { ...m, text, status: "done" } : m
       )));
@@ -1267,8 +1267,10 @@ function App() {
     switch (view.kind) {
       case "home":
         return <HomeView onCommand={programmatic} />;
-      case "agent":
-        return <ViewShell tag="AGT" title="AGENT SESSION" path="/AGT/SESSION" onClose={closeView}>
+      case "agent": {
+        const usageStr = agentUsage ? ("CTX: " + (agentUsage.total_tokens || "?") + " TOKENS") : "";
+        const title = usageStr ? ("AGENT SESSION  |  " + usageStr) : "AGENT SESSION";
+        return <ViewShell tag="AGT" title={title} path="/AGT/SESSION" onClose={closeView}>
           <AgentSessionView
             messages={agentMessages}
             typingMessageId={typingMessageId}
