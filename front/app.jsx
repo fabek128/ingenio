@@ -1,0 +1,1039 @@
+/* ============================================================
+   INGENIO/64 — App
+   ============================================================ */
+
+const { useState, useEffect, useRef, useCallback, useMemo } = React;
+
+/* ---------- Audio: tiny beep generator (no assets) ---------- */
+let _audioCtx = null;
+function beep(freq = 880, dur = 0.04, vol = 0.04, type = "square") {
+  try {
+    if (!_audioCtx) _audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const ctx = _audioCtx;
+    if (ctx.state === "suspended") ctx.resume();
+    const o = ctx.createOscillator();
+    const g = ctx.createGain();
+    o.type = type;
+    o.frequency.value = freq;
+    g.gain.value = vol;
+    o.connect(g); g.connect(ctx.destination);
+    o.start();
+    g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + dur);
+    o.stop(ctx.currentTime + dur);
+  } catch (e) {}
+}
+
+/* ---------- Typewriter hook: typed-out text reveal ---------- */
+function useTyped(text, speed = 12, enabled = true) {
+  const [out, setOut] = useState(enabled ? "" : text);
+  useEffect(() => {
+    if (!enabled) { setOut(text); return; }
+    setOut("");
+    let i = 0;
+    const t = setInterval(() => {
+      i++;
+      setOut(text.slice(0, i));
+      if (i >= text.length) clearInterval(t);
+    }, speed);
+    return () => clearInterval(t);
+  }, [text, speed, enabled]);
+  return out;
+}
+
+/* ============================================================
+   BOOT SCREEN
+   ============================================================ */
+function BootScreen({ onDone, onSkip, theme }) {
+  const lines = [
+    { t: "INGENIO/64 KERNEL ROM v1.0.4 — BOOT SEQUENCE", cls: "bright" },
+    { t: "(C) 2025 INGENIO/64. ALL RIGHTS RESERVED.", cls: "dim" },
+    { t: "" },
+    { t: "[ OK ] CPU.....................6510 @ 1.023 MHZ", cls: "" },
+    { t: "[ OK ] MEMORY..................64K RAM", cls: "" },
+    { t: "[ OK ] STORAGE.................VECTOR DB MOUNTED", cls: "" },
+    { t: "[ OK ] AGENT CORE..............LOADED", cls: "" },
+    { t: "[ OK ] AUTOMATION ENGINE.......LOADED", cls: "" },
+    { t: "[ OK ] KNOWLEDGE BASE..........38911 ENTRIES", cls: "" },
+    { t: "[ OK ] INTERFACE LAYER.........CRT MODE", cls: "" },
+    { t: "" },
+    { t: "READY.", cls: "bright" },
+  ];
+
+  const [shownCount, setShownCount] = useState(0);
+  const [progress, setProgress] = useState(0);
+
+  useEffect(() => {
+    let i = 0;
+    const interval = setInterval(() => {
+      i++;
+      setShownCount(i);
+      setProgress(Math.min(100, Math.round((i / lines.length) * 100)));
+      if (i >= lines.length) {
+        clearInterval(interval);
+        setTimeout(() => onDone(), 600);
+      }
+    }, 180);
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <div className="boot">
+      <button className="boot-skip" onClick={onSkip}>SKIP &gt;&gt;</button>
+      <div className="boot-banner">{HERO.banner}</div>
+      <div className="boot-subline">{HERO.ram}</div>
+      <div className="boot-progress" aria-hidden="true">
+        <div className="boot-progress-fill" style={{ width: progress + "%" }} />
+      </div>
+      <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+        {lines.slice(0, shownCount).map((l, i) => (
+          <div key={i} className={"boot-line " + (l.cls || "")}>
+            {l.t || "\u00A0"}
+          </div>
+        ))}
+        {shownCount < lines.length && <span className="boot-cursor" />}
+      </div>
+    </div>
+  );
+}
+
+/* ============================================================
+   HEADER
+   ============================================================ */
+function SysHeader({ theme, onTheme, model, onModel }) {
+  const themes = [
+    { id: "c64", label: "C64" },
+    { id: "dark", label: "DARK" },
+    { id: "amber", label: "AMBER" },
+    { id: "light", label: "LIGHT" },
+  ];
+  const [modelOpen, setModelOpen] = useState(false);
+  const modelRef = useRef(null);
+
+  useEffect(() => {
+    if (!modelOpen) return;
+    const close = (e) => {
+      if (modelRef.current && !modelRef.current.contains(e.target)) setModelOpen(false);
+    };
+    document.addEventListener("mousedown", close);
+    document.addEventListener("keydown", (e) => { if (e.key === "Escape") setModelOpen(false); });
+    return () => document.removeEventListener("mousedown", close);
+  }, [modelOpen]);
+
+  const current = MODELS.find((m) => m.id === model) || MODELS[0];
+
+  return (
+    <div className="sys-header">
+      <div className="brand">
+        <span className="brand-mark" />
+        INGENIO/64
+      </div>
+      <div className="status-group">
+        <div className="stat essential">
+          <span className="dot" />
+          <span className="label">AGENT</span>
+          <span className="val">ONLINE</span>
+        </div>
+        <div className="stat model-stat" ref={modelRef}>
+          <span className="label">MODEL</span>
+          <button
+            className="model-trigger"
+            onClick={() => setModelOpen((o) => !o)}
+            aria-expanded={modelOpen}
+            aria-haspopup="listbox"
+          >
+            <span className="val">{current.label}</span>
+            <span className="chev">{modelOpen ? "▲" : "▼"}</span>
+          </button>
+          {modelOpen && (
+            <div className="model-menu" role="listbox">
+              <div className="model-menu-title">SELECT LLM MODEL</div>
+              {MODELS.map((m) => (
+                <button
+                  key={m.id}
+                  className={"model-item " + (m.id === current.id ? "active" : "")}
+                  role="option"
+                  aria-selected={m.id === current.id}
+                  onClick={() => { onModel(m.id); setModelOpen(false); }}
+                >
+                  <span className="model-check">{m.id === current.id ? "■" : "□"}</span>
+                  <span className="model-name">{m.label}</span>
+                  <span className="model-vendor">{m.vendor}</span>
+                  <span className="model-desc">{m.desc}</span>
+                </button>
+              ))}
+              <div className="model-menu-footer">
+                ↑↓ NAVEGAR — ENTER CONFIRMAR — ESC CERRAR
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+      <div className="theme-pill" role="group" aria-label="Theme">
+        {themes.map((t) => (
+          <button
+            key={t.id}
+            aria-pressed={theme === t.id}
+            onClick={() => onTheme(t.id)}
+          >{t.label}</button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/* ============================================================
+   FEED LINES + INLINE BLOCKS
+   ============================================================ */
+
+function FeedLine({ entry, onCommand }) {
+  // entries can be: {type:'user'|'sys'|'agent'|'ok'|'error'|'dim', text, typed}
+  // or {type:'block', kind:'services'|'cases'|'stack'|'about'|'hero'|'diag'|'contact'|'help', data}
+  if (entry.type === "block") {
+    return <BlockRenderer entry={entry} onCommand={onCommand} />;
+  }
+  const cls = "line " + entry.type;
+  const text = entry.text || "";
+  const typedText = entry.typed ? useTyped(text, entry.type === "agent" ? 8 : 4, true) : text;
+  if (entry.type === "user") {
+    return <div className={cls}><span className="prompt-mark">&gt;</span>{text}</div>;
+  }
+  if (entry.type === "agent") {
+    return <div className={cls}><span className="role">AGENT:</span><br/>{typedText}</div>;
+  }
+  if (entry.type === "sys") {
+    return <div className={cls}>{typedText}</div>;
+  }
+  return <div className={cls}>{text}</div>;
+}
+
+function BlockRenderer({ entry, onCommand }) {
+  switch (entry.kind) {
+    case "hero": return <HeroBlock onCommand={onCommand} />;
+    case "help": return <HelpBlock />;
+    case "services": return <ServicesBlock onCommand={onCommand} />;
+    case "cases": return <CasesBlock />;
+    case "stack": return <StackBlock />;
+    case "about": return <AboutBlock />;
+    case "diag": return <DiagnosticBlock onCommand={onCommand} initial={entry.initial} />;
+    case "contact": return <ContactBlock onCommand={onCommand} prefill={entry.prefill} />;
+    default: return null;
+  }
+}
+
+/* ---------- Hero (post-boot) ---------- */
+function HeroBlock({ onCommand }) {
+  return (
+    <div className="hero-banner">
+      <div className="stars">{"* ".repeat(28).trim()}</div>
+      <div className="title">{HERO.title}</div>
+      <div className="sub">{HERO.sub}</div>
+      <div className="hero-ctas">
+        <button className="hero-cta primary" onClick={() => onCommand("DIAGNOSE")}>&gt; INICIAR_DIAGNOSTICO</button>
+        <button className="hero-cta" onClick={() => onCommand("SERVICES")}>&gt; VER_SERVICIOS</button>
+        <button className="hero-cta" onClick={() => onCommand("CONTACT")}>&gt; CONTACTAR</button>
+      </div>
+      <div className="stars" style={{ marginTop: 16 }}>{"* ".repeat(28).trim()}</div>
+    </div>
+  );
+}
+
+/* ---------- HELP ---------- */
+function HelpBlock() {
+  return (
+    <div className="block">
+      <div className="block-title"><span className="badge">HELP</span>COMANDOS DISPONIBLES</div>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 2fr", gap: "4px 18px", fontSize: 20 }}>
+        {COMMANDS_META.map((c) => (
+          <React.Fragment key={c.cmd}>
+            <div style={{ color: "var(--fg-bright)", fontWeight: 600 }}>&gt; {c.cmd}</div>
+            <div style={{ color: "var(--fg-dim)" }}>{c.desc}</div>
+          </React.Fragment>
+        ))}
+      </div>
+      <div style={{ marginTop: 14, color: "var(--fg-dim)", fontSize: 16, fontFamily: "var(--font-ui)", letterSpacing: "0.06em" }}>
+        TIP: PODES USAR FLECHA ARRIBA/ABAJO PARA NAVEGAR EL HISTORIAL. TAB AUTOCOMPLETA.
+      </div>
+    </div>
+  );
+}
+
+/* ---------- SERVICES ---------- */
+function ServicesBlock({ onCommand }) {
+  return (
+    <div className="block">
+      <div className="block-title"><span className="badge">LOAD</span>SERVICE_MODULES.SYS</div>
+      <div style={{ color: "var(--fg-dim)", fontSize: 16, marginBottom: 8, fontFamily: "var(--font-ui)" }}>
+        LOADING 5 MODULES... DONE.
+      </div>
+      <div className="modules">
+        {SERVICES.map((s) => (
+          <div key={s.id} className="module" onClick={() => onCommand("DIAGNOSE")}>
+            <div className="module-header">
+              <span className="module-id">[{s.id}]</span>
+              <span className="module-title">{s.title}</span>
+            </div>
+            <div className="module-body">{s.body}</div>
+            <div className="module-meta">
+              {s.tags.map((t) => <span key={t} className="tag">{t}</span>)}
+            </div>
+          </div>
+        ))}
+      </div>
+      <div style={{ marginTop: 14, color: "var(--fg-dim)", fontSize: 16, fontFamily: "var(--font-ui)" }}>
+        ESCRIBI &gt; DIAGNOSE PARA UN DIAGNOSTICO RAPIDO. &nbsp;O &gt; CONTACT PARA HABLAR.
+      </div>
+    </div>
+  );
+}
+
+/* ---------- CASES (expandable) ---------- */
+function CasesBlock() {
+  const [open, setOpen] = useState({});
+  return (
+    <div className="block">
+      <div className="block-title"><span className="badge">DB</span>USE_CASE_DATABASE.IDX</div>
+      <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+        {CASES.map((c) => {
+          const isOpen = open[c.id];
+          return (
+            <div key={c.id} style={{ borderBottom: "1px dashed color-mix(in srgb, var(--border) 30%, transparent)", paddingBottom: 6 }}>
+              <button
+                onClick={() => setOpen({ ...open, [c.id]: !isOpen })}
+                style={{
+                  width: "100%", textAlign: "left", background: "transparent",
+                  border: "none", color: "var(--fg-bright)", fontFamily: "var(--font-mono)",
+                  fontSize: 22, cursor: "pointer", padding: "4px 0",
+                  display: "flex", gap: 10, alignItems: "baseline"
+                }}
+              >
+                <span style={{ color: "var(--fg-dim)" }}>{isOpen ? "[-]" : "[+]"}</span>
+                <span className="module-id">[{c.id}]</span>
+                <span>{c.title}</span>
+              </button>
+              {isOpen && (
+                <div style={{ padding: "6px 0 10px 50px", color: "var(--fg)" }}>
+                  <div style={{ marginBottom: 8 }}>{c.body}</div>
+                  <div style={{ display: "flex", gap: 6 }}>
+                    {c.tags.map((t) => <span key={t} className="tag">{t}</span>)}
+                  </div>
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+/* ---------- STACK ---------- */
+function StackBlock() {
+  return (
+    <div className="block">
+      <div className="block-title"><span className="badge">SYS</span>TECH_STACK_DETECTED</div>
+      <div style={{ display: "grid", gridTemplateColumns: "minmax(140px, max-content) 1fr", gap: "4px 18px", fontSize: 22 }}>
+        {STACK.map(([k, v]) => (
+          <React.Fragment key={k}>
+            <div style={{ color: "var(--fg-dim)", fontFamily: "var(--font-ui)", fontSize: 13, alignSelf: "center", letterSpacing: "0.08em" }}>{k}</div>
+            <div style={{ color: "var(--fg-bright)" }}>{v}</div>
+          </React.Fragment>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/* ---------- ABOUT ---------- */
+function AboutBlock() {
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+      {/* Top: profile card with photo + meta */}
+      <div className="about-card">
+        <div className="about-photo-wrap">
+          <div className="about-photo-frame">
+            <img
+              src={ABOUT_PROFILE.photo}
+              alt={ABOUT_PROFILE.name}
+              className="about-photo"
+              draggable="false"
+            />
+            <div className="about-photo-scan" aria-hidden="true" />
+            <div className="about-photo-corners" aria-hidden="true">
+              <span/><span/><span/><span/>
+            </div>
+          </div>
+          <div className="about-photo-caption">
+            <span style={{ color: "var(--fg-dim)" }}>FILE://</span>
+            <span style={{ color: "var(--fg-bright)" }}>PROFILE.IMG</span>
+            <span style={{ color: "var(--fg-dim)" }}>  240x240  RGB</span>
+          </div>
+        </div>
+
+        <div className="about-meta">
+          <div className="about-title">{ABOUT_PROFILE.title}</div>
+          <div className="about-rows">
+            {[
+              ["NAME",    ABOUT_PROFILE.name],
+              ["ROLE",    ABOUT_PROFILE.role],
+              ["COMPANY", ABOUT_PROFILE.company],
+              ["SINCE",   ABOUT_PROFILE.since],
+              ["STACK",   ABOUT_PROFILE.stack],
+              ["STATUS",  <><span className="status-dot"/> ONLINE — LISTO PARA CONSTRUIR</>],
+            ].map(([k, v]) => (
+              <React.Fragment key={k}>
+                <div className="about-k">{k}</div>
+                <div className="about-v">{v}</div>
+              </React.Fragment>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Bio paragraphs */}
+      <div className="about-bio">
+        {ABOUT_PROFILE.bio.map((p, i) => (
+          <p key={i}>
+            <span className="bio-mark">{">"}</span>
+            {p}
+          </p>
+        ))}
+      </div>
+
+      {/* Footer technical sheet */}
+      <pre className="about-footer">
+{ABOUT_LINES.join("\n")}
+      </pre>
+    </div>
+  );
+}
+
+/* ---------- DIAGNOSTIC WIZARD ---------- */
+function DiagnosticBlock({ onCommand }) {
+  const [stepIdx, setStepIdx] = useState(0);
+  const [answers, setAnswers] = useState([]);
+  const [multiSel, setMultiSel] = useState([]); // for the multi-select step
+  const [done, setDone] = useState(false);
+
+  if (done) {
+    const res = buildDiagnosis(answers);
+    return (
+      <div className="block">
+        <div className="block-title"><span className="badge">DIAG</span>DIAGNOSTIC COMPLETE</div>
+        <div style={{ marginBottom: 10 }}>
+          <span style={{ color: "var(--ok-color)", fontWeight: 600 }}>DIAGNOSTICO COMPLETO.</span>
+        </div>
+        <div style={{ marginBottom: 6, color: "var(--fg-dim)", fontFamily: "var(--font-ui)", fontSize: 13, letterSpacing: "0.08em" }}>POSIBLE SOLUCION:</div>
+        <div style={{ color: "var(--fg-bright)", fontSize: 24, marginBottom: 14 }}>&gt; {res.primary}</div>
+
+        <div style={{ marginBottom: 6, color: "var(--fg-dim)", fontFamily: "var(--font-ui)", fontSize: 13, letterSpacing: "0.08em" }}>INTEGRACIONES SUGERIDAS:</div>
+        <ul style={{ margin: "0 0 14px 0", padding: 0, listStyle: "none" }}>
+          {res.integrations.map((i) => <li key={i} style={{ color: "var(--fg)" }}>- {i}</li>)}
+        </ul>
+
+        <div style={{ marginBottom: 6, color: "var(--fg-dim)", fontFamily: "var(--font-ui)", fontSize: 13, letterSpacing: "0.08em" }}>{res.timeline}</div>
+
+        <div style={{ marginTop: 16, color: "var(--fg-bright)" }}>SIGUIENTE PASO:</div>
+        <div className="hero-ctas">
+          <button className="hero-cta primary" onClick={() => onCommand("CONTACT", { prefill: { que: res.primary } })}>&gt; ENVIAR_CONSULTA</button>
+          <button className="hero-cta" onClick={() => onCommand("AGENDAR")}>&gt; AGENDAR_LLAMADA</button>
+          <button className="hero-cta" onClick={() => onCommand("WHATSAPP")}>&gt; WHATSAPP</button>
+        </div>
+      </div>
+    );
+  }
+
+  const step = DIAGNOSTIC.steps[stepIdx];
+  const pickOpt = (key) => {
+    if (step.multi) {
+      setMultiSel((sel) => sel.includes(key) ? sel.filter((k) => k !== key) : [...sel, key]);
+      return;
+    }
+    const next = [...answers, key];
+    if (stepIdx + 1 >= DIAGNOSTIC.steps.length) {
+      setAnswers(next);
+      setDone(true);
+    } else {
+      setAnswers(next);
+      setStepIdx(stepIdx + 1);
+    }
+  };
+  const confirmMulti = () => {
+    const next = [...answers, multiSel.slice()];
+    setMultiSel([]);
+    if (stepIdx + 1 >= DIAGNOSTIC.steps.length) {
+      setAnswers(next); setDone(true);
+    } else {
+      setAnswers(next); setStepIdx(stepIdx + 1);
+    }
+  };
+
+  return (
+    <div className="block">
+      <div className="block-title"><span className="badge">DIAG</span>DIAGNOSTICO INTERACTIVO &nbsp;{step.step}</div>
+      {stepIdx === 0 && (
+        <div style={{ color: "var(--fg)", marginBottom: 10 }}>
+          {DIAGNOSTIC.intro.map((l, i) => <div key={i}>{l}</div>)}
+        </div>
+      )}
+      <div style={{ color: "var(--fg-bright)", fontSize: 24, marginBottom: 4 }}>
+        <span style={{ color: "var(--fg-dim)", fontFamily: "var(--font-ui)", fontSize: 14, marginRight: 8, letterSpacing: "0.08em" }}>{step.step} —</span>
+        {step.q}
+      </div>
+      <div className="wizard-options">
+        {step.options.map((o) => {
+          const selected = step.multi && multiSel.includes(o.key);
+          return (
+            <button
+              key={o.key}
+              className="wizard-option"
+              onClick={() => pickOpt(o.key)}
+              style={selected ? { background: "var(--selection)", color: "var(--selection-fg)" } : {}}
+            >
+              <span className="key" style={selected ? { background: "var(--selection-fg)", color: "var(--selection)" } : {}}>{o.key}</span>
+              <span>{o.label}</span>
+              {selected && <span style={{ marginLeft: "auto" }}>[X]</span>}
+            </button>
+          );
+        })}
+      </div>
+      {step.multi && (
+        <div className="confirm-row">
+          <button className="btn-confirm" onClick={confirmMulti} disabled={multiSel.length === 0} style={multiSel.length === 0 ? { opacity: 0.5, cursor: "not-allowed" } : {}}>
+            CONFIRMAR [{multiSel.length}]
+          </button>
+          <div style={{ color: "var(--fg-dim)", fontFamily: "var(--font-ui)", fontSize: 12, letterSpacing: "0.06em" }}>
+            ELEGI TODAS LAS QUE APLIQUEN
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ---------- CONTACT FORM ---------- */
+function ContactBlock({ onCommand, prefill }) {
+  const [form, setForm] = useState({
+    nombre: "", email: "", empresa: "", que: prefill?.que || "", presupuesto: "",
+  });
+  const [submitted, setSubmitted] = useState(false);
+  const [confirmStage, setConfirmStage] = useState(false);
+
+  const setF = (k, v) => setForm((f) => ({ ...f, [k]: v }));
+  const filled = form.nombre.trim() && form.email.trim() && form.que.trim();
+
+  if (submitted) {
+    return (
+      <div className="block">
+        <div className="block-title"><span className="badge">SENT</span>CONTACT_MODULE.LOG</div>
+        <div style={{ color: "var(--ok-color)", fontSize: 24 }}>&gt; TRANSMISION COMPLETA.</div>
+        <div style={{ marginTop: 8 }}>RECIBIMOS TU CONSULTA. RESPONDEMOS EN MENOS DE 24HS HABILES.</div>
+        <div style={{ marginTop: 8, color: "var(--fg-dim)" }}>
+          ID DE TICKET: <span style={{ color: "var(--fg-bright)" }}>#{Math.random().toString(36).slice(2, 8).toUpperCase()}</span>
+        </div>
+        <div className="hero-ctas">
+          <button className="hero-cta" onClick={() => onCommand("AGENDAR")}>&gt; AGENDAR_LLAMADA</button>
+          <button className="hero-cta" onClick={() => onCommand("WHATSAPP")}>&gt; WHATSAPP</button>
+          <button className="hero-cta" onClick={() => onCommand("CLEAR")}>&gt; CLEAR</button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="block">
+      <div className="block-title"><span className="badge">FORM</span>CONTACT_MODULE</div>
+      <div className="console-form">
+        {[
+          ["nombre", "NOMBRE", "JUAN PEREZ"],
+          ["email", "EMAIL", "JUAN@EMPRESA.COM"],
+          ["empresa", "EMPRESA", "ACME S.A. (OPCIONAL)"],
+        ].map(([k, label, ph]) => (
+          <div className="field" key={k}>
+            <div className="field-label">{label}:</div>
+            <input
+              value={form[k]}
+              onChange={(e) => setF(k, e.target.value)}
+              placeholder={ph}
+              autoComplete="off"
+              spellCheck="false"
+            />
+          </div>
+        ))}
+        <div className="field">
+          <div className="field-label">QUE NECESITAS?:</div>
+          <textarea
+            value={form.que}
+            onChange={(e) => setF("que", e.target.value)}
+            placeholder="CONTAME BREVEMENTE..."
+            rows={2}
+          />
+        </div>
+        <div className="field">
+          <div className="field-label">PRESUPUESTO?:</div>
+          <input
+            value={form.presupuesto}
+            onChange={(e) => setF("presupuesto", e.target.value)}
+            placeholder="OPCIONAL — USD"
+          />
+        </div>
+      </div>
+
+      {!confirmStage ? (
+        <div className="confirm-row">
+          <button
+            className="btn-confirm"
+            disabled={!filled}
+            style={!filled ? { opacity: 0.5, cursor: "not-allowed" } : {}}
+            onClick={() => setConfirmStage(true)}
+          >REVISAR Y ENVIAR</button>
+          <div style={{ color: "var(--fg-dim)", fontFamily: "var(--font-ui)", fontSize: 12 }}>
+            CAMPOS REQUERIDOS: NOMBRE, EMAIL, QUE NECESITAS
+          </div>
+        </div>
+      ) : (
+        <div style={{ marginTop: 12 }}>
+          <div style={{ color: "var(--fg-bright)" }}>ENVIAR? [Y/N]</div>
+          <div className="confirm-row">
+            <button className="btn-confirm" onClick={() => setSubmitted(true)}>[Y] CONFIRMAR</button>
+            <button className="btn-confirm ghost" onClick={() => setConfirmStage(false)}>[N] EDITAR</button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ============================================================
+   COMMAND BAR (input + quick buttons + autocomplete)
+   ============================================================ */
+function CommandBar({ onSubmit, value, setValue, history, setHistory }) {
+  const [hIdx, setHIdx] = useState(-1);
+  const [active, setActive] = useState(-1);
+  const inputRef = useRef(null);
+
+  // Focus input on click anywhere in screen (but not on form fields)
+  useEffect(() => {
+    const handler = (e) => {
+      const tag = (e.target.tagName || "").toLowerCase();
+      if (tag === "input" || tag === "textarea" || tag === "button") return;
+      inputRef.current?.focus();
+    };
+    document.addEventListener("click", handler);
+    return () => document.removeEventListener("click", handler);
+  }, []);
+
+  const suggestions = useMemo(() => {
+    if (!value) return [];
+    const v = value.toUpperCase().trim();
+    return COMMANDS_META.filter((c) => c.cmd.startsWith(v) && c.cmd !== v).slice(0, 6);
+  }, [value]);
+
+  const submit = (cmd) => {
+    const c = (cmd || value).trim();
+    if (!c) return;
+    onSubmit(c);
+    setValue("");
+    setHistory((h) => [c, ...h].slice(0, 50));
+    setHIdx(-1);
+    setActive(-1);
+  };
+
+  const onKey = (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      if (active >= 0 && suggestions[active]) {
+        submit(suggestions[active].cmd);
+      } else {
+        submit();
+      }
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      if (suggestions.length) {
+        setActive((a) => (a <= 0 ? suggestions.length - 1 : a - 1));
+      } else if (history.length) {
+        const ni = Math.min(hIdx + 1, history.length - 1);
+        setHIdx(ni); setValue(history[ni] || "");
+      }
+    } else if (e.key === "ArrowDown") {
+      e.preventDefault();
+      if (suggestions.length) {
+        setActive((a) => (a >= suggestions.length - 1 ? 0 : a + 1));
+      } else if (hIdx > 0) {
+        const ni = hIdx - 1; setHIdx(ni); setValue(history[ni] || "");
+      } else {
+        setHIdx(-1); setValue("");
+      }
+    } else if (e.key === "Tab") {
+      e.preventDefault();
+      if (suggestions.length) {
+        setValue(suggestions[0].cmd);
+        setActive(-1);
+      }
+    } else if (e.key === "Escape") {
+      setValue("");
+      setActive(-1);
+    }
+  };
+
+  const quickButtons = ["HOME", "HELP", "SERVICES", "DIAGNOSE", "CASES", "STACK", "ABOUT", "CONTACT"];
+
+  return (
+    <div className="command-bar">
+      <div className="quick-row" role="toolbar" aria-label="Quick commands">
+        {quickButtons.map((q) => (
+          <button key={q} className="quick-btn" onClick={() => submit(q)}>
+            <span className="k">&gt;</span>{q}
+          </button>
+        ))}
+      </div>
+      <div className="input-row" style={{ position: "relative" }}>
+        {suggestions.length > 0 && (
+          <div className="suggest">
+            {suggestions.map((s, i) => (
+              <div
+                key={s.cmd}
+                className={"suggest-item " + (i === active ? "active" : "")}
+                onMouseEnter={() => setActive(i)}
+                onMouseDown={(e) => { e.preventDefault(); submit(s.cmd); }}
+              >
+                <span style={{ fontWeight: 600 }}>&gt; {s.cmd}</span>
+                <span className="desc">{s.desc}</span>
+              </div>
+            ))}
+          </div>
+        )}
+        <span className="prompt-glyph">&gt;</span>
+        <input
+          ref={inputRef}
+          className="cmd"
+          value={value}
+          onChange={(e) => { setValue(e.target.value); setHIdx(-1); setActive(-1); }}
+          onKeyDown={onKey}
+          placeholder="ESCRIBI UN COMANDO O PREGUNTA... (TAB AUTOCOMPLETA)"
+          autoComplete="off"
+          spellCheck="false"
+          autoFocus
+        />
+        {!value && <span className="fake-cursor" />}
+        <span className="submit-hint">[ENTER]</span>
+      </div>
+    </div>
+  );
+}
+
+/* ============================================================
+   VIEW SHELL — chrome around each module
+   ============================================================ */
+function ViewShell({ tag, title, path, onClose, children }) {
+  return (
+    <div className="view">
+      <div className="view-bar">
+        <div className="view-tag">[{tag}]</div>
+        <div className="view-title">{title}</div>
+        {path && <div className="view-path">{path}</div>}
+        <button className="view-close" onClick={onClose} title="Volver al inicio (ESC)">
+          <span className="x">X</span>
+          <span>CLOSE / ESC</span>
+        </button>
+      </div>
+      <div className="view-body">
+        <div className="view-content">{children}</div>
+      </div>
+    </div>
+  );
+}
+
+/* ============================================================
+   HOME VIEW
+   ============================================================ */
+function HomeView({ onCommand }) {
+  return (
+    <div className="home">
+      <div className="home-body">
+        <div className="home-content">
+          <div style={{ color: "var(--sys-color)" }}>{HERO.banner}</div>
+          <div style={{ color: "var(--sys-color)" }}>{HERO.ram}</div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 2, fontSize: 18 }}>
+            {HERO.modules.map(([name, st]) => (
+              <div key={name} style={{ color: "var(--fg-dim)", fontFamily: "var(--font-ui)" }}>
+                <span style={{ color: "var(--ok-color)" }}>[ {st} ]</span>{" "}{name}
+              </div>
+            ))}
+          </div>
+          <div style={{ color: "var(--ok-color)", marginTop: 4, fontWeight: 600 }}>READY.</div>
+          <HeroBlock onCommand={onCommand} />
+          <div className="view-intro" style={{ marginTop: 10 }}>
+            <span className="role">AGENT:</span>
+            HOLA. SOY EL AGENTE DEL SISTEMA.
+            <br/>PODES ESCRIBIR UN COMANDO O HACER UNA PREGUNTA EN LENGUAJE NATURAL.
+            <br/>PROBA CON <span style={{ color: "var(--fg-bright)" }}>&gt; SERVICES</span> O <span style={{ color: "var(--fg-bright)" }}>&gt; DIAGNOSE</span>.
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ============================================================
+   GENERIC AGENT-RESPONSE VIEW (for non-module commands)
+   ============================================================ */
+function ResponseView({ title, body, ctas = [], onCommand, onClose }) {
+  return (
+    <ViewShell tag="MSG" title={title} onClose={onClose}>
+      <div className="view-intro">
+        <span className="role">AGENT:</span>
+        <span style={{ whiteSpace: "pre-wrap" }}>{body}</span>
+      </div>
+      {ctas.length > 0 && (
+        <div className="hero-ctas">
+          {ctas.map((c) => (
+            <button key={c.cmd} className={"hero-cta " + (c.primary ? "primary" : "")} onClick={() => onCommand(c.cmd)}>
+              &gt; {c.label}
+            </button>
+          ))}
+        </div>
+      )}
+    </ViewShell>
+  );
+}
+
+/* ============================================================
+   MAIN APP
+   ============================================================ */
+
+function App() {
+  const [theme, setTheme] = useState("c64");
+  const [phase, setPhase] = useState("boot"); // boot | main
+  const [view, setView] = useState({ kind: "home" });
+  const [value, setValue] = useState("");
+  const [history, setHistory] = useState([]);
+  const [sound, setSound] = useState(false);
+  const [model, setModel] = useState("claude-sonnet-4-5");
+
+  // Apply theme to <html>
+  useEffect(() => {
+    document.documentElement.setAttribute("data-theme", theme);
+  }, [theme]);
+
+  // ESC closes view → home
+  useEffect(() => {
+    const onKey = (e) => {
+      if (e.key === "Escape" && view.kind !== "home" && phase === "main") {
+        setView({ kind: "home" });
+      }
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [view.kind, phase]);
+
+  const enterMain = useCallback(() => {
+    setPhase("main");
+    setView({ kind: "home" });
+  }, []);
+
+  // Heuristic intent detection for natural-language inputs
+  const inferIntent = (raw) => {
+    const t = raw.toUpperCase();
+    if (/SERVIC|QUE OFRECE|QUE HACEN|PUEDEN HACER/.test(t)) return "SERVICES";
+    if (/DIAGNOST|DIAGNOSE|AYUD.*ELEGIR|NO SE/.test(t)) return "DIAGNOSE";
+    if (/CASO|EJEMPLO|MUESTRA/.test(t)) return "CASES";
+    if (/STACK|TECNOL|HERRAMIENT|CON QUE/.test(t)) return "STACK";
+    if (/QUIEN|SOBRE|ABOUT|EQUIPO/.test(t)) return "ABOUT";
+    if (/CONTACT|HABLAR|ESCRIB|MAIL|EMAIL|FORMULARIO/.test(t)) return "CONTACT";
+    if (/WHATSAPP|WSP/.test(t)) return "WHATSAPP";
+    if (/AGEND|LLAMAD|MEET|CALL/.test(t)) return "AGENDAR";
+    if (/CHATBOT|BOT/.test(t)) return "CHATBOT_INFO";
+    if (/AUTOMATIZ/.test(t)) return "AUTO_INFO";
+    if (/PRECIO|CUANTO|COSTO/.test(t)) return "PRICING";
+    if (/HOLA|HEY|HI|BUENAS/.test(t)) return "GREET";
+    if (/^HOME$|VOLVER|INICIO|^MENU$/.test(t)) return "HOME";
+    return null;
+  };
+
+  const handleCommand = (rawInput, opts = {}) => {
+    const raw = (rawInput || "").trim();
+    if (!raw) return;
+    const upper = raw.toUpperCase();
+    if (sound) beep(1200, 0.025, 0.025);
+    const first = upper.split(/\s+/)[0];
+    const cmds = new Set(COMMANDS_META.map((c) => c.cmd).concat(["HOME"]));
+    let cmd = cmds.has(first) ? first : null;
+    if (!cmd) cmd = inferIntent(raw);
+    runCommand(cmd, raw, opts);
+  };
+
+  const closeView = () => setView({ kind: "home" });
+
+  const runCommand = (cmd, raw, opts = {}) => {
+    if (sound) beep(660, 0.025, 0.025);
+    switch (cmd) {
+      case "HELP":     return setView({ kind: "help" });
+      case "SERVICES": return setView({ kind: "services" });
+      case "CASES":    return setView({ kind: "cases" });
+      case "STACK":    return setView({ kind: "stack" });
+      case "ABOUT":    return setView({ kind: "about" });
+      case "DIAGNOSE": return setView({ kind: "diag" });
+      case "CONTACT":  return setView({ kind: "contact", prefill: opts.prefill });
+      case "HOME":     return setView({ kind: "home" });
+
+      case "WHATSAPP":
+        return setView({ kind: "response", title: "WHATSAPP",
+          body: "ABRIENDO WHATSAPP EN UNA NUEVA PESTANA...\n\n(EN PROD: WA.ME/549XXXXXXXX)\n\nMIENTRAS TANTO PODES DEJARNOS UN MENSAJE EN EL MODULO DE CONTACTO.",
+          ctas: [
+            { cmd: "CONTACT", label: "CONTACT", primary: true },
+            { cmd: "HOME", label: "HOME" },
+          ],
+        });
+      case "AGENDAR":
+        return setView({ kind: "response", title: "AGENDAR LLAMADA",
+          body: "ABRIENDO CALENDARIO PARA UNA LLAMADA DE 30 MIN.\n\n(EN PROD: CAL.COM/INGENIO64)\n\nO DEJANOS TUS DATOS EN EL MODULO DE CONTACTO Y TE ESCRIBIMOS.",
+          ctas: [
+            { cmd: "CONTACT", label: "CONTACT", primary: true },
+            { cmd: "HOME", label: "HOME" },
+          ],
+        });
+      case "CHATBOT_INFO":
+        return setView({ kind: "response", title: "SOBRE CHATBOTS",
+          body: "PODEMOS DESARROLLAR CHATBOTS PARA WEB, WHATSAPP, INSTAGRAM Y TELEGRAM, CON HANDOFF A HUMANOS Y CONEXION A TU CRM.\n\nINCLUYE: ENTRENAMIENTO CON TUS DATOS, MENSAJES PROACTIVOS, METRICAS Y PANEL DE ADMINISTRACION.",
+          ctas: [
+            { cmd: "DIAGNOSE", label: "DIAGNOSTICO RAPIDO", primary: true },
+            { cmd: "SERVICES", label: "VER SERVICIOS" },
+          ],
+        });
+      case "AUTO_INFO":
+        return setView({ kind: "response", title: "AUTOMATIZACIONES",
+          body: "AUTOMATIZAMOS FLUJOS REPETITIVOS:\n- ALTA DE CLIENTES\n- REPORTES PERIODICOS\n- ETL ENTRE SISTEMAS\n- EMAILS Y NOTIFICACIONES\n- FACTURACION Y COBRANZAS\n\nSE INTEGRA CON SHEETS, NOTION, CRMS, ERPS, APIS Y WEBHOOKS.",
+          ctas: [
+            { cmd: "DIAGNOSE", label: "DIAGNOSTICO", primary: true },
+            { cmd: "CASES", label: "VER CASOS" },
+          ],
+        });
+      case "PRICING":
+        return setView({ kind: "response", title: "RANGO ORIENTATIVO",
+          body: "RANGOS DE INVERSION (USD):\n\n- AUTOMATIZACION SIMPLE...... 1.500 -  3.000\n- CHATBOT / AGENTE BASICO.... 3.000 -  8.000\n- SISTEMA A MEDIDA........... 8.000 - 30.000+\n\nCADA PROYECTO SE COTIZA SEGUN ALCANCE.\nESCRIBI > DIAGNOSE PARA UNA ESTIMACION MAS PRECISA.",
+          ctas: [
+            { cmd: "DIAGNOSE", label: "DIAGNOSTICO", primary: true },
+            { cmd: "CONTACT", label: "CONTACTO" },
+          ],
+        });
+      case "GREET":
+        return setView({ kind: "response", title: "HOLA",
+          body: "HOLA. AGENTE ONLINE.\nPODES ESCRIBIR > HELP PARA VER LOS COMANDOS, O DIRECTAMENTE CONTARME QUE NECESITAS.",
+          ctas: [
+            { cmd: "HELP", label: "HELP", primary: true },
+            { cmd: "DIAGNOSE", label: "DIAGNOSTICO" },
+          ],
+        });
+
+      case "THEME": {
+        const arg = (raw || "").toUpperCase().split(/\s+/)[1];
+        const map = { C64: "c64", DARK: "dark", AMBER: "amber", LIGHT: "light" };
+        if (map[arg]) {
+          setTheme(map[arg]);
+        } else {
+          return setView({ kind: "response", title: "THEME",
+            body: "USO: > THEME C64 | DARK | AMBER | LIGHT\n\nTAMBIEN PODES USAR EL SELECTOR EN LA BARRA SUPERIOR.",
+            ctas: [{ cmd: "HOME", label: "HOME", primary: true }],
+          });
+        }
+        return;
+      }
+      case "SOUND":
+        setSound((s) => !s);
+        return;
+      case "CLEAR":
+      case "REBOOT":
+        if (cmd === "REBOOT") {
+          setPhase("boot");
+        }
+        setView({ kind: "home" });
+        return;
+
+      default:
+        return setView({ kind: "response", title: "?SYNTAX ERROR",
+          body: "?SYNTAX ERROR  —  COMANDO O FRASE NO RECONOCIDA.\n\nPROBA ASI:\n> HELP             VER COMANDOS\n> SERVICES         VER QUE HACEMOS\n> DIAGNOSE         DIAGNOSTICO RAPIDO\n\nO SIMPLEMENTE CONTAME QUE NECESITAS EN LENGUAJE NATURAL.",
+          ctas: [
+            { cmd: "HELP", label: "HELP", primary: true },
+            { cmd: "HOME", label: "HOME" },
+          ],
+        });
+    }
+  };
+
+  const programmatic = (cmd, opts) => handleCommand(cmd, opts);
+
+  const renderView = () => {
+    switch (view.kind) {
+      case "home":
+        return <HomeView onCommand={programmatic} />;
+      case "help":
+        return <ViewShell tag="HELP" title="COMANDOS DISPONIBLES" path="/SYS/HELP" onClose={closeView}>
+          <HelpBlock />
+        </ViewShell>;
+      case "services":
+        return <ViewShell tag="LOAD" title="SERVICE MODULES" path="/SYS/SERVICES.SYS" onClose={closeView}>
+          <div className="view-intro"><span className="role">AGENT:</span>CARGANDO MODULOS DE SERVICIO... DONE.</div>
+          <ServicesBlock onCommand={programmatic} />
+        </ViewShell>;
+      case "cases":
+        return <ViewShell tag="DB" title="USE CASE DATABASE" path="/DB/CASES.IDX" onClose={closeView}>
+          <div className="view-intro"><span className="role">AGENT:</span>ABRIENDO BASE DE CASOS. TOCA CADA UNO PARA EXPANDIR.</div>
+          <CasesBlock />
+        </ViewShell>;
+      case "stack":
+        return <ViewShell tag="SYS" title="TECH STACK DETECTED" path="/SYS/STACK" onClose={closeView}>
+          <div className="view-intro"><span className="role">AGENT:</span>ESTE ES EL STACK QUE USAMOS POR DEFECTO. SE ADAPTA AL PROYECTO.</div>
+          <StackBlock />
+        </ViewShell>;
+      case "about":
+        return <ViewShell tag="FILE" title="ABOUT_OPERATOR.TXT" path="/USR/ABOUT.TXT" onClose={closeView}>
+          <AboutBlock />
+        </ViewShell>;
+      case "diag":
+        return <ViewShell tag="DIAG" title="DIAGNOSTICO INTERACTIVO" path="/AGT/DIAGNOSE" onClose={closeView}>
+          <div className="view-intro"><span className="role">AGENT:</span>{DIAGNOSTIC.intro.join("\n")}</div>
+          <DiagnosticBlock onCommand={programmatic} />
+        </ViewShell>;
+      case "contact":
+        return <ViewShell tag="FORM" title="CONTACT MODULE" path="/IO/CONTACT" onClose={closeView}>
+          <div className="view-intro"><span className="role">AGENT:</span>COMPLETA EL FORMULARIO. CAMPOS REQUERIDOS: NOMBRE, EMAIL Y BREVE DESCRIPCION.</div>
+          <ContactBlock onCommand={programmatic} prefill={view.prefill} />
+        </ViewShell>;
+      case "response":
+        return <ResponseView
+          title={view.title}
+          body={view.body}
+          ctas={view.ctas}
+          onCommand={programmatic}
+          onClose={closeView}
+        />;
+      default:
+        return <HomeView onCommand={programmatic} />;
+    }
+  };
+
+  return (
+    <div className="bezel">
+      <div className="crt-screen">
+        <SysHeader theme={theme} onTheme={setTheme} model={model} onModel={setModel} />
+        {phase === "boot" ? (
+          <BootScreen onDone={enterMain} onSkip={enterMain} theme={theme} />
+        ) : (
+          <>
+            {renderView()}
+            <CommandBar
+              value={value}
+              setValue={setValue}
+              onSubmit={(cmd) => handleCommand(cmd)}
+              history={history}
+              setHistory={setHistory}
+            />
+          </>
+        )}
+        <div className="crt-noise" aria-hidden="true" />
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
