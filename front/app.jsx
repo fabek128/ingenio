@@ -1277,6 +1277,7 @@ function App() {
             onTypedDone={(id) => setTypingMessageId((current) => current === id ? null : current)}
           />
         </ViewShell>;
+      }
       case "help":
         return <ViewShell tag="HELP" title="COMANDOS DISPONIBLES" path="/SYS/HELP" onClose={closeView}>
           <HelpBlock />
