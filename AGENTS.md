@@ -4,6 +4,7 @@ Este archivo aplica a OpenCode y a cualquier agente compatible con `AGENTS.md` t
 
 ## Contexto del proyecto
 - Sitio frontend estatico de INGENIO/64.
+- Vision objetivo documentada en `docs/ingenio-agentic-site-spec.md`: sitio personal tipo consola agentica para compartir experiencias diarias con IA, con backend basico y modelo local via Ollama.
 - Estetica principal: terminal retro Commodore 64 / CRT.
 - Idioma visible para usuarios: espanol neutro, preferentemente sin tildes cuando el texto forme parte de la estetica terminal/uppercase existente.
 - Stack actual: HTML standalone + React cargado en navegador (`app.jsx`, `content.jsx`) sin bundler visible.
@@ -25,7 +26,14 @@ Este archivo aplica a OpenCode y a cualquier agente compatible con `AGENTS.md` t
    - Registrar ayuda/metadata en `COMMANDS_META` dentro de `front/content.jsx`.
    - Verificar que funcione por click y por comando escrito cuando aplique.
 7. Mantener accesibilidad basica: labels, `aria-*` en controles custom, foco visible y contraste razonable en todos los temas.
-8. No hardcodear secretos, tokens, URLs privadas ni credenciales. Usar variables de entorno o configuracion externa si alguna vez se incorpora backend/build.
+8. No hardcodear secretos, tokens, URLs privadas, passwords ni credenciales. Usar variables de entorno o configuracion externa si alguna vez se incorpora backend/build.
+
+## Secretos y credenciales
+- Jamas exponer keys, tokens, passwords, credenciales, URLs privadas ni datos sensibles en archivos versionados, prompts, logs, commits, PRs o respuestas.
+- Usar `.env` solo para configuracion local/desarrollo y mantenerlo ignorado por Git.
+- Versionar solamente nombres de variables y valores no sensibles en `.env.example`.
+- Si se detecta un secreto en texto plano, no reproducirlo: indicar archivo/riesgo y recomendar rotacion.
+- Para secretos sensibles o productivos, preferir secret manager o `/Users/fabian/.agent-secrets/with-secrets.sh` segun `/Users/fabian/docs/agent-secret-management.md`.
 
 ## Verificacion minima
 - Abrir `front/index.html` localmente o servir `front/` con un servidor estatico.
@@ -35,4 +43,4 @@ Este archivo aplica a OpenCode y a cualquier agente compatible con `AGENTS.md` t
 
 ## Documentacion
 - Todo cambio funcional debe actualizar esta especificacion o agregar documentacion en `docs/` cuando corresponda.
-- Si se modifica el comportamiento esperado para agentes, sincronizar tambien `CLAUDE.md` y `CHATGPT.md`.
+- Si se modifica el comportamiento esperado para agentes, sincronizar tambien `CLAUDE.md`, `CODEX.md` y, si se conserva como alias, `CHATGPT.md`.

@@ -1,9 +1,9 @@
 # Claude - INGENIO/64
 
-Instrucciones para Claude Code trabajando en este repo. Mantener sincronizado con `AGENTS.md` y `CHATGPT.md`.
+Instrucciones para Claude Code trabajando en este repo. Mantener sincronizado con `AGENTS.md`, `CODEX.md` y, si se conserva como alias, `CHATGPT.md`.
 
 ## Proyecto
-Frontend estatico con estetica Commodore 64 / terminal CRT para presentar servicios de IA, agentes, automatizacion y software a medida.
+Frontend estatico con estetica Commodore 64 / terminal CRT. La vision objetivo esta en `docs/ingenio-agentic-site-spec.md`: sitio personal tipo consola agentica para compartir experiencias diarias con IA, conectado a un backend basico con modelo local via Ollama.
 
 ## Archivos clave
 - `front/index.html`: documento principal, CSS y carga de scripts.
@@ -20,7 +20,11 @@ Frontend estatico con estetica Commodore 64 / terminal CRT para presentar servic
 - Mantener componentes simples, sin abstracciones innecesarias.
 
 ## Seguridad
-- No commitear secretos, tokens, claves API, URLs internas ni datos personales sensibles.
+- Jamas commitear ni exponer keys, tokens, passwords, credenciales, URLs internas ni datos personales sensibles.
+- Usar `.env` solo para configuracion local/desarrollo y mantenerlo ignorado por Git.
+- Versionar solamente nombres de variables y valores no sensibles en `.env.example`.
+- Si se detecta un secreto en texto plano, no reproducirlo: indicar archivo/riesgo y recomendar rotacion.
+- Para secretos sensibles o productivos, preferir secret manager o `/Users/fabian/.agent-secrets/with-secrets.sh` segun `/Users/fabian/docs/agent-secret-management.md`.
 - Validar toda entrada de usuario antes de reutilizarla en enlaces, HTML o integraciones futuras.
 - No usar `dangerouslySetInnerHTML` salvo necesidad justificada y sanitizacion explicita.
 - Para acciones destructivas, deploys o cambios de infraestructura, pedir confirmacion previa.
@@ -31,4 +35,4 @@ Frontend estatico con estetica Commodore 64 / terminal CRT para presentar servic
 3. `front/index.html` probado localmente o mediante servidor estatico.
 4. Comandos afectados probados manualmente.
 5. Consola del navegador sin errores nuevos.
-6. Si cambian reglas para agentes, actualizar tambien `AGENTS.md` y `CHATGPT.md`.
+6. Si cambian reglas para agentes, actualizar tambien `AGENTS.md`, `CODEX.md` y, si se conserva como alias, `CHATGPT.md`.

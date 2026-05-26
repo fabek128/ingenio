@@ -1,9 +1,9 @@
 # ChatGPT Codex - INGENIO/64
 
-Instrucciones locales para ChatGPT Codex en este repo. Mantener sincronizadas con `AGENTS.md` y `CLAUDE.md`.
+Alias historico para ChatGPT Codex. La especificacion principal de Codex es `CODEX.md`; mantener este archivo sincronizado con `AGENTS.md`, `CLAUDE.md` y `CODEX.md` mientras exista.
 
 ## Objetivo
-Mantener y evolucionar un sitio frontend estatico llamado INGENIO/64, con UI de terminal retro inspirada en Commodore 64, orientado a servicios de IA, agentes, automatizacion y software a medida.
+Mantener y evolucionar INGENIO/64, un sitio personal con UI de terminal retro inspirada en Commodore 64. La vision objetivo esta en `docs/ingenio-agentic-site-spec.md`: consola agentica para compartir experiencias diarias con IA, conectada a un backend basico con modelo local via Ollama.
 
 ## Mapa rapido
 - `front/index.html`: estructura HTML, estilos CSS, root y carga de React/scripts.
@@ -26,7 +26,11 @@ Mantener y evolucionar un sitio frontend estatico llamado INGENIO/64, con UI de 
 - Mantener la experiencia accesible: teclado, foco, contraste y atributos ARIA en controles custom.
 
 ## Seguridad
-- No exponer secretos ni informacion sensible.
+- Jamas exponer keys, tokens, passwords, credenciales, URLs privadas ni informacion sensible en el repo, prompts, logs, commits, PRs o respuestas.
+- Usar `.env` solo para configuracion local/desarrollo y mantenerlo ignorado por Git.
+- Versionar solamente nombres de variables y valores no sensibles en `.env.example`.
+- Si se detecta un secreto en texto plano, no reproducirlo: indicar archivo/riesgo y recomendar rotacion.
+- Para secretos sensibles o productivos, preferir secret manager o `/Users/fabian/.agent-secrets/with-secrets.sh` segun `/Users/fabian/docs/agent-secret-management.md`.
 - Evitar HTML dinamico inseguro; no introducir `dangerouslySetInnerHTML` sin sanitizacion.
 - Revisar enlaces externos, formularios y cualquier futura integracion para evitar fuga de datos o inyeccion.
 - Pedir confirmacion antes de deploys, borrados, rotacion de secretos, cambios de permisos o acciones contra produccion.
@@ -35,4 +39,5 @@ Mantener y evolucionar un sitio frontend estatico llamado INGENIO/64, con UI de 
 Si se agrega una nueva regla, feature esperada o comportamiento requerido para agentes, actualizar en el mismo cambio:
 - `AGENTS.md` para OpenCode/agentes compatibles.
 - `CLAUDE.md` para Claude Code.
-- `CHATGPT.md` para ChatGPT Codex.
+- `CODEX.md` para ChatGPT Codex.
+- `CHATGPT.md` como alias historico si se conserva.
