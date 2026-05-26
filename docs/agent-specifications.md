@@ -12,6 +12,8 @@ Cuando una instruccion afecte como deben trabajar los agentes en este repo, debe
 
 ## Documentos relacionados
 - `docs/ingenio-agentic-site-spec.md`: analisis del proyecto, vision de producto, arquitectura objetivo y plan de backend local con Ollama.
+- `docs/backend-tutorial.md`: guia paso a paso para construir y operar el backend pequeno.
+- `docs/backend-specification.md`: requisitos, arquitectura y seguridad del backend agentico.
 
 ## Politica de secretos
 - `.env` es local y esta ignorado por Git.

@@ -3,6 +3,12 @@
 Fecha de analisis: 2026-05-26  
 Estado: borrador tecnico / producto
 
+
+## Documentos derivados
+
+- `docs/backend-specification.md`: especificacion tecnica del backend, dependencias, API, seguridad y operacion como servicio.
+- `docs/backend-tutorial.md`: tutorial paso a paso para implementar el backend pequeno con FastAPI y Ollama.
+
 ## 1. Vision del proyecto
 
 INGENIO/64 es un sitio personal de Fabian para compartir experiencias reales con inteligencia artificial: como usa IA todos los dias, que herramientas prueba, que aprendizajes obtiene, que automatizaciones construye y que criterios tecnicos aplica.
