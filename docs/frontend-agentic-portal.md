@@ -43,7 +43,7 @@ Body:
 ```
 
 6. Mientras espera respuesta, la entrada inferior queda bloqueada y la vista muestra `STATUS: CONECTANDO CON BACKEND`.
-7. Cuando responde el backend, la web renderiza:
+7. Cuando responde el backend, la web renderiza la salida como consola: caracter por caracter y con cursor.
 
 ```text
 PROMPT:
@@ -56,6 +56,18 @@ RESPUESTA:
 ```
 
 El comando explícito `AGENT <pregunta>` usa el mismo flujo. `AGENT` sin argumentos usa una pregunta por defecto.
+
+### Velocidad de tipeo
+
+La velocidad de impresion de respuestas del agente se configura con:
+
+```env
+INGENIO_RESPONSE_TYPE_SPEED_MS=6
+```
+
+Valor en milisegundos por caracter. Menor valor = respuesta visual mas rapida.
+
+En Docker/Nginx se genera `front/env.js` al iniciar el contenedor desde `front/docker-entrypoint.d/10-env-js.sh`. Ese archivo es configuracion publica del frontend; no debe contener secretos.
 
 ## Seguridad
 

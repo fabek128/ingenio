@@ -459,7 +459,7 @@ AGENT:
 ...
 ```
 
-Para streaming, mostrar texto incremental con cursor, manteniendo la estetica actual.
+Para respuestas del modelo, mostrar texto incremental caracter por caracter con cursor, manteniendo la estetica actual. La velocidad debe ser configurable con `INGENIO_RESPONSE_TYPE_SPEED_MS` en milisegundos por caracter.
 
 ### 7.4 Selector de modelo
 

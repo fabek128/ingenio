@@ -40,6 +40,17 @@ function useTyped(text, speed = 12, enabled = true) {
   return out;
 }
 
+function envInt(name, fallback, { min = 0, max = 1000 } = {}) {
+  const raw = window[name];
+  const value = Number.parseInt(String(raw ?? ""), 10);
+  if (!Number.isFinite(value)) return fallback;
+  return Math.min(max, Math.max(min, value));
+}
+
+function typingSpeedMs() {
+  return envInt("INGENIO_RESPONSE_TYPE_SPEED_MS", 6, { min: 0, max: 250 });
+}
+
 /* ---------- Backend API client (session + CSRF) ---------- */
 let _apiCsrfToken = null;
 
@@ -994,14 +1005,18 @@ function HomeView({ onCommand }) {
 /* ============================================================
    GENERIC AGENT-RESPONSE VIEW (for non-module commands)
    ============================================================ */
-function ResponseView({ title, body, ctas = [], busy = false, onCommand, onClose }) {
+function ResponseView({ title, body, ctas = [], busy = false, typewriter = false, onCommand, onClose }) {
+  const renderedBody = useTyped(body || "", typingSpeedMs(), typewriter && !busy);
+  const done = renderedBody.length >= (body || "").length;
+
   return (
     <ViewShell tag="MSG" title={title} onClose={onClose}>
-      <div className="view-intro" aria-busy={busy ? "true" : "false"}>
+      <div className="view-intro console-response" aria-busy={busy ? "true" : "false"}>
         <span className="role">AGENT:</span>
-        <span style={{ whiteSpace: "pre-wrap" }}>{body}</span>
+        <span className="console-output">{renderedBody}</span>
+        {(busy || (typewriter && !done)) && <span className="console-cursor" aria-hidden="true" />}
       </div>
-      {ctas.length > 0 && (
+      {ctas.length > 0 && (!typewriter || done) && (
         <div className="hero-ctas">
           {ctas.map((c) => (
             <button key={c.cmd} className={"hero-cta " + (c.primary ? "primary" : "")} onClick={() => onCommand(c.cmd)}>
@@ -1101,6 +1116,7 @@ function App() {
         kind: "response",
         title: "AGENT LINK",
         body: formatAgentResponse(cleanQuestion, data),
+        typewriter: true,
         ctas: [
           { cmd: "EXPERIENCIAS", label: "EXPERIENCIAS", primary: true },
           { cmd: "PROYECTOS", label: "PROYECTOS" },
@@ -1111,6 +1127,7 @@ function App() {
         kind: "response",
         title: "AGENT ERROR",
         body: "PROMPT:\n> " + cleanQuestion + "\n\n" + agentErrorMessage(e),
+        typewriter: true,
         ctas: [
           { cmd: "HELP", label: "HELP", primary: true },
           { cmd: "HOME", label: "HOME" },
@@ -1285,6 +1302,7 @@ function App() {
           body={view.body}
           ctas={view.ctas}
           busy={view.busy}
+          typewriter={view.typewriter}
           onCommand={programmatic}
           onClose={closeView}
         />;

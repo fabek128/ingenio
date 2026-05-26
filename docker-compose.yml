@@ -31,6 +31,8 @@ services:
 
   ingenio-front:
     build: ./front
+    environment:
+      INGENIO_RESPONSE_TYPE_SPEED_MS: ${INGENIO_RESPONSE_TYPE_SPEED_MS:-6}
     depends_on:
       - ingenio-api
     ports:
