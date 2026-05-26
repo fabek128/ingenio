@@ -1,19 +1,19 @@
 # INGENIO/64 - Especificacion del backend agentico
 
 Fecha: 2026-05-26  
-Estado: especificacion tecnica inicial
+Estado: especificacion tecnica — v2 (cambio a modelo cloud)
 
 ## 1. Objetivo
 
-Definir el backend minimo para que INGENIO/64 funcione como una consola agentica personal conectada a un modelo local pequeno.
+Definir el backend minimo para que INGENIO/64 funcione como una consola agentica personal conectada a un modelo via API cloud (OpenCode Zen).
 
 El backend debe:
 
 - Recibir preguntas desde el frontend `front/`.
 - Validar y limitar el uso para evitar abuso del modelo.
-- Llamar a Ollama localmente.
+- Llamar a OpenCode Zen API con el modelo `deepseek-v4-flash-free`.
 - Responder como agente del sitio personal de Fabian.
-- Mantener Ollama y el modelo fuera de exposicion publica directa.
+- No exponer la API key del modelo al frontend.
 - Correr siempre como servicio en background.
 
 ## 2. Stack recomendado
@@ -31,18 +31,18 @@ Motivo: es simple, tipado, facil de testear y encaja bien con integraciones de I
 
 ### 2.2 Runtime LLM
 
-- **Ollama** instalado en el host.
-- API de Ollama escuchando solo en localhost o red privada.
-- Modelo inicial recomendado: `gemma2:2b`.
+- **OpenCode Zen API** (cloud).
+- API compatible con OpenAI: `https://opencode.ai/zen/v1/chat/completions`.
+- Modelo por defecto: `deepseek-v4-flash-free` (gratuito).
+- API Key via variable de entorno `INGENIO_LLM_API_KEY`.
 
-Motivo: al 2026-05-26 no se observa una variante oficial `gemma3:2b` en Ollama; `gemma2:2b` cumple mejor el requisito de modelo pequeno de ~2B. Si se prioriza Gemma 3, evaluar `gemma3:1b` o `gemma3:4b`.
+Motivo: modelo gratuito, sin necesidad de hardware local, API OpenAI-compatible, facil de cambiar a otro modelo en el futuro.
 
 ### 2.3 Servicio always-on
 
 Produccion recomendada:
 
 - Linux.
-- `systemd` para `ollama.service`.
 - `systemd` para `ingenio-api.service`.
 - Reverse proxy TLS: Caddy, Nginx o Traefik.
 
@@ -55,7 +55,6 @@ Requerido:
 - `curl`
 - `git`
 - Python 3.11+ con `venv`
-- Ollama
 - systemd
 - reverse proxy con HTTPS
 
@@ -97,18 +96,15 @@ Internet
   v
 [FastAPI backend: 127.0.0.1:8080]
   |
-  | HTTP local
+  | HTTPS (OpenCode Zen API)
   v
-[Ollama: 127.0.0.1:11434]
-  |
-  v
-[Modelo: gemma2:2b]
+[Modelo cloud: deepseek-v4-flash-free]
 ```
 
 Reglas:
 
-1. El navegador no debe llamar directo a Ollama.
-2. Ollama no debe escuchar en `0.0.0.0` ni exponerse a internet.
+1. El navegador no debe llamar directo a la API del modelo.
+2. La API key del modelo solo vive en el backend, no en el frontend.
 3. El backend no debe escuchar publicamente si hay reverse proxy: usar `127.0.0.1:8080`.
 4. El frontend y el backend deben operar bajo el mismo dominio cuando sea posible.
 
@@ -120,7 +116,7 @@ Si el sitio es publico, ningun mecanismo puramente frontend puede impedir al 100
 
 Por eso la seguridad se basa en capas:
 
-- No exponer Ollama.
+- No exponer la API key del modelo.
 - Requerir sesion firmada por el backend.
 - Requerir token CSRF asociado a esa sesion.
 - Validar `Origin`/`Referer` en navegadores.
@@ -145,7 +141,7 @@ Esto no reemplaza autenticacion real. Si se quiere que solo Fabian o usuarios au
    - header X-Ingenio-CSRF
    - body JSON con message
 6. Backend valida sesion, CSRF, origin, rate limit y payload.
-7. Backend llama a Ollama local.
+7. Backend llama a OpenCode Zen API.
 8. Backend devuelve respuesta normalizada.
 ```
 
@@ -209,9 +205,10 @@ INGENIO_API_HOST=127.0.0.1
 INGENIO_API_PORT=8080
 INGENIO_ALLOWED_ORIGIN=http://localhost:8000
 
-OLLAMA_BASE_URL=http://127.0.0.1:11434
-INGENIO_LLM_MODEL=gemma2:2b
-INGENIO_OLLAMA_TIMEOUT_SECONDS=45
+INGENIO_LLM_BASE_URL=https://opencode.ai/zen/v1
+INGENIO_LLM_MODEL=deepseek-v4-flash-free
+INGENIO_LLM_API_KEY=
+INGENIO_LLM_TIMEOUT_SECONDS=45
 
 INGENIO_SESSION_SECRET=GENERAR_EN_CADA_AMBIENTE
 INGENIO_SESSION_TTL_SECONDS=3600
@@ -219,7 +216,7 @@ INGENIO_RATE_LIMIT_PER_MINUTE=12
 INGENIO_MAX_MESSAGE_CHARS=2000
 ```
 
-`INGENIO_SESSION_SECRET` es secreto. Debe generarse por ambiente y no commitearse.
+`INGENIO_SESSION_SECRET` e `INGENIO_LLM_API_KEY` son secretos. Deben generarse por ambiente y no commitearse.
 
 Comando recomendado para generar valor local:
 
@@ -240,9 +237,8 @@ Respuesta esperada:
 ```json
 {
   "status": "ok",
-  "runtime": "ollama",
-  "model": "gemma2:2b",
-  "ollama": "reachable"
+  "runtime": "zen",
+  "model": "deepseek-v4-flash-free"
 }
 ```
 
@@ -291,7 +287,7 @@ Respuesta:
 ```json
 {
   "reply": "...",
-  "model": "gemma2:2b"
+  "model": "deepseek-v4-flash-free"
 }
 ```
 
@@ -303,7 +299,7 @@ Errores normalizados:
 }
 ```
 
-No devolver stack traces ni errores crudos de Ollama.
+No devolver stack traces ni errores crudos de la API del modelo.
 
 ### 7.4 `GET /api/site-context`
 
@@ -314,7 +310,7 @@ Respuesta sugerida:
 ```json
 {
   "agent_name": "INGENIO/64",
-  "model": "gemma2:2b",
+  "model": "deepseek-v4-flash-free",
   "capabilities": ["chat", "site_context"],
   "limits": {
     "max_message_chars": 2000
@@ -359,17 +355,7 @@ backend/app/routes.py
 
 ## 10. Operacion como servicio
 
-### 10.1 Ollama
-
-Debe correr como servicio `ollama.service` con restart automatico.
-
-Requisito critico:
-
-```text
-OLLAMA_HOST=127.0.0.1:11434
-```
-
-### 10.2 Backend
+### 10.1 Backend
 
 Debe correr como `ingenio-api.service`:
 
@@ -403,16 +389,14 @@ No permitido:
 
 ## 12. Tests minimos
 
-- `/health` devuelve `ok` aunque Ollama este unreachable debe indicarlo sin stack trace.
+- `/health` devuelve `ok` con `runtime: "zen"` aunque la API cloud este inaccesible debe indicarlo sin stack trace.
 - `/api/chat` sin sesion devuelve 401/403.
 - `/api/chat` sin CSRF devuelve 403.
 - `/api/chat` con mensaje demasiado largo devuelve 413 o 422.
 - Rate limit devuelve 429.
-- Errores de Ollama devuelven 502 generico.
+- Errores de la API del modelo devuelven 502 generico.
 
 ## 13. Fuentes oficiales
 
-- Ollama Linux/service docs: https://docs.ollama.com/linux
-- Ollama API docs: https://docs.ollama.com/api/introduction
-- Ollama Gemma 2 library: https://ollama.com/library/gemma2
+- OpenCode Zen API docs: https://opencode.ai/docs/zen
 - FastAPI docs: https://fastapi.tiangolo.com/

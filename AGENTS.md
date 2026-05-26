@@ -3,17 +3,28 @@
 Este archivo aplica a OpenCode y a cualquier agente compatible con `AGENTS.md` trabajando en este repo.
 
 ## Contexto del proyecto
-- Sitio frontend estatico de INGENIO/64.
-- Vision objetivo documentada en `docs/ingenio-agentic-site-spec.md`: sitio personal tipo consola agentica para compartir experiencias diarias con IA, con backend basico y modelo local via Ollama.
+- Sitio frontend estatico de INGENIO/64 + backend FastAPI + modelo cloud via OpenCode Zen.
+- Vision objetivo documentada en `docs/ingenio-agentic-site-spec.md`: sitio personal tipo consola agentica para compartir experiencias diarias con IA, con backend basico y modelo via API cloud (OpenCode Zen).
 - Estetica principal: terminal retro Commodore 64 / CRT.
 - Idioma visible para usuarios: espanol neutro, preferentemente sin tildes cuando el texto forme parte de la estetica terminal/uppercase existente.
-- Stack actual: HTML standalone + React cargado en navegador (`app.jsx`, `content.jsx`) sin bundler visible.
+- Stack actual:
+  - Frontend: HTML standalone + React via CDN (`app.jsx`, `content.jsx`) sin bundler.
+  - Backend: Python 3.11+ / FastAPI / Uvicorn / httpx / pydantic-settings.
+  - Runtime LLM: OpenCode Zen API (`deepseek-v4-flash-free` por defecto, gratuito).
+  - Desarrollo local: Docker Compose (backend solo, modelo cloud).
+  - Produccion: systemd + reverse proxy TLS (Linux).
 
 ## Estructura relevante
 - `front/index.html`: HTML, estilos globales y montaje de la app.
 - `front/app.jsx`: componentes React, flujo de terminal, comandos e interacciones.
 - `front/content.jsx`: contenido editable del sitio: servicios, casos, stack, about, diagnostico y metadata de comandos.
 - `front/assets/` y `front/uploads/`: imagenes usadas por la web.
+- `backend/`: backend FastAPI (Python).
+  - `backend/app/main.py`: API, sesiones, CSRF, rate limit, cliente OpenAI-compatible (OpenCode Zen).
+  - `backend/Dockerfile`: imagen para desarrollo local.
+- `docker-compose.yml`: servicio backend para desarrollo local (modelo cloud, sin Ollama).
+- `.env`: configuracion local y secreto de sesion (ignorado por Git).
+- `.env.example`: plantilla con valores no sensibles (versionado).
 
 ## Consulta de documentacion
 - Antes de implementar, modificar arquitectura o responder sobre el funcionamiento del proyecto, revisar la documentacion relevante en `docs/`.
@@ -40,9 +51,25 @@ Este archivo aplica a OpenCode y a cualquier agente compatible con `AGENTS.md` t
 - Si se detecta un secreto en texto plano, no reproducirlo: indicar archivo/riesgo y recomendar rotacion.
 - Para secretos sensibles o productivos, preferir secret manager o `/Users/fabian/.agent-secrets/with-secrets.sh` segun `/Users/fabian/docs/agent-secret-management.md`.
 
+## Flujo de desarrollo local
+
+```bash
+# 1. Asegurar que INGENIO_LLM_API_KEY este en .env
+# 2. Levantar backend
+docker compose up -d
+
+# 3. Servir frontend (otra terminal)
+cd front && python3 -m http.server 8000
+
+# 4. Abrir http://localhost:8000
+```
+
+Sin Docker: ver `backend/README.md`.
+
 ## Verificacion minima
-- Abrir `front/index.html` localmente o servir `front/` con un servidor estatico.
+- Abrir `http://localhost:8000` con frontend servido.
 - Probar comandos principales: `HELP`, `SERVICES`, `DIAGNOSE`, `CASES`, `STACK`, `ABOUT`, `CONTACT`, `THEME`, `SOUND`, `CLEAR`, `REBOOT`.
+- Verificar `/health` del backend: `curl http://127.0.0.1:8080/health`.
 - Revisar responsive en ancho movil y desktop.
 - Confirmar consola del navegador sin errores.
 
