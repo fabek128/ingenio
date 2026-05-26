@@ -443,7 +443,7 @@ Para alinear el sitio con el objetivo personal:
 ```text
 EXPERIENCIAS   Lista experiencias/posts sobre IA
 DIARIO         Ultimas notas de uso diario de IA
-TOOLS          Herramientas que uso y como las uso
+PROYECTOS      Proyectos personales en curso desde Markdown
 PROMPTS        Prompts/patrones utiles
 AGENT          Conversar con el agente del sitio
 MODEL          Ver modelo local activo
@@ -485,8 +485,8 @@ El contenido actual esta orientado a servicios comerciales. Para un sitio person
 
 - Home: presentacion personal + proposito del laboratorio.
 - Experiencias: posts cortos sobre usos diarios.
-- Herramientas: Codex, Claude Code, OpenCode, Ollama, Docker, MCP, agentes.
-- Proyectos: experimentos concretos.
+- Proyectos: experimentos concretos y repos personales, mantenidos en Markdown.
+- Herramientas: pueden aparecer dentro de experiencias o proyectos, pero ya no son una seccion principal del MVP.
 - Servicios/contacto: puede quedar, pero no como eje principal.
 
 ### 8.2 Posible estructura de contenido futura
@@ -496,16 +496,11 @@ content/
 ├── experiences/
 │   ├── 2026-05-uso-codex.md
 │   └── 2026-05-ollama-local.md
-├── tools/
-│   ├── codex.md
-│   ├── claude-code.md
-│   ├── opencode.md
-│   └── ollama.md
 └── projects/
     └── ingenio64.md
 ```
 
-Para el MVP, se puede seguir con `front/content.jsx`. Cuando haya mas contenido, conviene pasar a Markdown/JSON y que el backend o un build simple lo indexe.
+Para el MVP, la seccion `PROYECTOS` ya se carga desde `front/secciones/proyectos/proyectos.md`. Cuando haya mas contenido, conviene aplicar el mismo patron a experiencias o pasar a un build simple que indexe Markdown/JSON.
 
 ## 9. Seguridad y privacidad
 

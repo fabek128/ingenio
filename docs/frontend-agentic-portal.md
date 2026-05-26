@@ -11,13 +11,14 @@ Redisenar el frontend existente para que INGENIO/64 sea un sitio personal tipo c
 - Home reorientado a diario personal de IA.
 - Nuevos comandos:
   - `EXPERIENCIAS`: bitacora de uso real de IA.
-  - `TOOLS`: herramientas que Fabian usa en su flujo diario.
+  - `PROYECTOS`: proyectos personales en curso, cargados desde Markdown.
   - `AGENT`: envia una pregunta libre al backend.
   - `MODEL`: consulta metadata publica del backend.
 - Preguntas no reconocidas dejan de terminar en `?SYNTAX ERROR` y pasan a `/api/chat`.
 - El frontend inicializa sesion con `/api/session`, guarda CSRF en memoria y llama `/api/chat` con cookie HttpOnly + `X-Ingenio-CSRF`.
 - En desarrollo local, si el frontend se sirve en `localhost:8000`, la API se busca en `http://127.0.0.1:8080`.
 - En produccion, la API se llama por mismo origen usando `/api/*`.
+- La seccion `PROYECTOS` lee `front/secciones/proyectos/proyectos.md` en runtime con `fetch`, para editar contenido sin tocar componentes React.
 
 ## Seguridad
 
@@ -67,7 +68,7 @@ http://localhost:8000
 ```text
 HELP
 EXPERIENCIAS
-TOOLS
+PROYECTOS
 MODEL
 AGENT Como usas IA todos los dias?
 ```

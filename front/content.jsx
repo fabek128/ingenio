@@ -160,14 +160,10 @@ const EXPERIENCES = [
   },
 ];
 
-const AI_TOOLS = [
-  ["CHATGPT CODEX", "Cambios de codigo, documentacion tecnica, revisiones y automatizacion de tareas de repo."],
-  ["CLAUDE CODE", "Analisis largo, refactors controlados y trabajo multiarchivo con foco en contexto."],
-  ["OPENCODE", "Agentes locales y uso de modelos alternativos para experimentar flujos."],
-  ["OPENAI / ZEN", "APIs compatibles para backend agentico, prototipos y evaluacion de modelos."],
-  ["OLLAMA", "Pruebas locales con modelos chicos y despliegues privados."],
-  ["DOKPLOY", "Deploy de apps personales sobre Docker en localServer."],
-];
+const PROJECTS_SECTION = {
+  markdownPath: "secciones/proyectos/proyectos.md",
+  fallbackTitle: "PROYECTOS PERSONALES",
+};
 
 const DIAGNOSTIC = {
   intro: [
@@ -261,7 +257,7 @@ const COMMANDS_META = [
   { cmd: "HOME",       desc: "VUELVE A LA PANTALLA PRINCIPAL" },
   { cmd: "HELP",       desc: "MUESTRA LOS COMANDOS DISPONIBLES" },
   { cmd: "EXPERIENCIAS", desc: "BITACORA DE USO REAL DE IA" },
-  { cmd: "TOOLS",      desc: "HERRAMIENTAS IA QUE USO" },
+  { cmd: "PROYECTOS",  desc: "PROYECTOS PERSONALES EN CURSO" },
   { cmd: "AGENT",      desc: "HABLA CON EL AGENTE DEL SITIO" },
   { cmd: "MODEL",      desc: "MUESTRA EL MODELO ACTIVO" },
   { cmd: "SERVICES",   desc: "SERVICIOS Y SOLUCIONES QUE PUEDO CONSTRUIR" },
@@ -284,7 +280,7 @@ const HERO = {
   modules: [
     ["PERSONAL LOG", "OK"],
     ["AGENT CORE", "OK"],
-    ["AI TOOLS INDEX", "OK"],
+    ["PROJECTS INDEX", "OK"],
     ["BACKEND LINK", "OK"],
   ],
   title: "FABIAN + IA / DIARIO DE CAMPO",
@@ -297,6 +293,6 @@ const MODELS = [
 ];
 
 Object.assign(window, {
-  SERVICES, CASES, STACK, EXPERIENCES, AI_TOOLS, ABOUT_LINES, ABOUT_PROFILE, DIAGNOSTIC,
+  SERVICES, CASES, STACK, EXPERIENCES, PROJECTS_SECTION, ABOUT_LINES, ABOUT_PROFILE, DIAGNOSTIC,
   COMMANDS_META, HERO, buildDiagnosis, MODELS,
 });

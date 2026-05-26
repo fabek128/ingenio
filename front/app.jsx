@@ -276,7 +276,7 @@ function BlockRenderer({ entry, onCommand }) {
     case "hero": return <HeroBlock onCommand={onCommand} />;
     case "help": return <HelpBlock />;
     case "experiences": return <ExperiencesBlock />;
-    case "tools": return <ToolsBlock />;
+    case "projects": return <ProjectsBlock />;
     case "services": return <ServicesBlock onCommand={onCommand} />;
     case "cases": return <CasesBlock />;
     case "stack": return <StackBlock />;
@@ -297,7 +297,7 @@ function HeroBlock({ onCommand }) {
       <div className="hero-ctas">
         <button className="hero-cta primary" onClick={() => onCommand("EXPERIENCIAS")}>&gt; VER_EXPERIENCIAS</button>
         <button className="hero-cta" onClick={() => onCommand("AGENT Como usas IA todos los dias?")}>&gt; PREGUNTAR_AL_AGENTE</button>
-        <button className="hero-cta" onClick={() => onCommand("TOOLS")}>&gt; TOOLS</button>
+        <button className="hero-cta" onClick={() => onCommand("PROYECTOS")}>&gt; PROYECTOS</button>
       </div>
       <div className="stars" style={{ marginTop: 16 }}>{"* ".repeat(28).trim()}</div>
     </div>
@@ -351,19 +351,100 @@ function ExperiencesBlock() {
   );
 }
 
-/* ---------- TOOLS ---------- */
-function ToolsBlock() {
+/* ---------- PROYECTOS ---------- */
+function renderMarkdownInline(text) {
+  const parts = [];
+  const re = /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g;
+  let last = 0;
+  let m;
+  while ((m = re.exec(text)) !== null) {
+    if (m.index > last) parts.push(text.slice(last, m.index));
+    parts.push(
+      <a key={m.index} href={m[2]} target="_blank" rel="noopener noreferrer">
+        {m[1]}
+      </a>
+    );
+    last = re.lastIndex;
+  }
+  if (last < text.length) parts.push(text.slice(last));
+  return parts;
+}
+
+function MarkdownDocument({ source }) {
+  const lines = (source || "").split(/\r?\n/);
+  const nodes = [];
+  let paragraph = [];
+  let list = [];
+
+  const flushParagraph = () => {
+    if (!paragraph.length) return;
+    const text = paragraph.join(" ").trim();
+    if (text) nodes.push(<p key={nodes.length}>{renderMarkdownInline(text)}</p>);
+    paragraph = [];
+  };
+  const flushList = () => {
+    if (!list.length) return;
+    nodes.push(
+      <ul key={nodes.length}>
+        {list.map((item, i) => <li key={i}>{renderMarkdownInline(item)}</li>)}
+      </ul>
+    );
+    list = [];
+  };
+
+  lines.forEach((line) => {
+    const raw = line.trim();
+    if (!raw) { flushParagraph(); flushList(); return; }
+    const heading = raw.match(/^(#{1,3})\s+(.+)$/);
+    if (heading) {
+      flushParagraph(); flushList();
+      const level = heading[1].length;
+      const text = heading[2].trim();
+      if (level === 1) nodes.push(<h2 key={nodes.length}>{text}</h2>);
+      else if (level === 2) nodes.push(<h3 key={nodes.length}>{text}</h3>);
+      else nodes.push(<h4 key={nodes.length}>{text}</h4>);
+      return;
+    }
+    const bullet = raw.match(/^-\s+(.+)$/);
+    if (bullet) {
+      flushParagraph();
+      list.push(bullet[1]);
+      return;
+    }
+    flushList();
+    paragraph.push(raw);
+  });
+  flushParagraph();
+  flushList();
+
+  return <div className="markdown-doc">{nodes}</div>;
+}
+
+function ProjectsBlock() {
+  const [state, setState] = useState({ status: "loading", source: "" });
+
+  useEffect(() => {
+    let active = true;
+    fetch(PROJECTS_SECTION.markdownPath, { cache: "no-cache" })
+      .then((res) => {
+        if (!res.ok) throw new Error("PROJECTS_MD_NOT_FOUND");
+        return res.text();
+      })
+      .then((source) => { if (active) setState({ status: "ready", source }); })
+      .catch(() => { if (active) setState({ status: "error", source: "" }); });
+    return () => { active = false; };
+  }, []);
+
   return (
-    <div className="block">
-      <div className="block-title"><span className="badge">IDX</span>AI_TOOLS.INDEX</div>
-      <div style={{ display: "grid", gridTemplateColumns: "minmax(170px, max-content) 1fr", gap: "6px 18px", fontSize: 22 }}>
-        {AI_TOOLS.map(([k, v]) => (
-          <React.Fragment key={k}>
-            <div style={{ color: "var(--fg-dim)", fontFamily: "var(--font-ui)", fontSize: 13, alignSelf: "center", letterSpacing: "0.08em" }}>{k}</div>
-            <div style={{ color: "var(--fg-bright)" }}>{v}</div>
-          </React.Fragment>
-        ))}
-      </div>
+    <div className="block projects-block">
+      <div className="block-title"><span className="badge">IDX</span>PROJECTS.INDEX</div>
+      {state.status === "loading" && <div className="module-body">LEYENDO /SECCIONES/PROYECTOS/PROYECTOS.MD...</div>}
+      {state.status === "error" && (
+        <div className="module-body" style={{ color: "var(--error-color)" }}>
+          NO PUDE CARGAR EL ARCHIVO DE PROYECTOS. VERIFICAR front/secciones/proyectos/proyectos.md.
+        </div>
+      )}
+      {state.status === "ready" && <MarkdownDocument source={state.source} />}
     </div>
   );
 }
@@ -786,7 +867,7 @@ function CommandBar({ onSubmit, value, setValue, history, setHistory }) {
     }
   };
 
-  const quickButtons = ["HOME", "HELP", "EXPERIENCIAS", "TOOLS", "AGENT", "STACK", "ABOUT", "CONTACT"];
+  const quickButtons = ["HOME", "HELP", "EXPERIENCIAS", "PROYECTOS", "AGENT", "STACK", "ABOUT", "CONTACT"];
 
   return (
     <div className="command-bar">
@@ -877,7 +958,7 @@ function HomeView({ onCommand }) {
             <span className="role">AGENT:</span>
             HOLA. SOY EL AGENTE DEL SISTEMA.
             <br/>PODES ESCRIBIR UN COMANDO O HACER UNA PREGUNTA EN LENGUAJE NATURAL.
-            <br/>PROBA CON <span style={{ color: "var(--fg-bright)" }}>&gt; EXPERIENCIAS</span>, <span style={{ color: "var(--fg-bright)" }}>&gt; TOOLS</span> O ESCRIBI UNA PREGUNTA LIBRE.
+            <br/>PROBA CON <span style={{ color: "var(--fg-bright)" }}>&gt; EXPERIENCIAS</span>, <span style={{ color: "var(--fg-bright)" }}>&gt; PROYECTOS</span> O ESCRIBI UNA PREGUNTA LIBRE.
           </div>
         </div>
       </div>
@@ -946,7 +1027,7 @@ function App() {
   const inferIntent = (raw) => {
     const t = raw.toUpperCase();
     if (/EXPERIENCIA|DIARIO|BITACORA|USO.*IA/.test(t)) return "EXPERIENCIAS";
-    if (/TOOLS|HERRAMIENT|CODEX|CLAUDE|OPENCODE/.test(t)) return "TOOLS";
+    if (/PROYECT|REPO|INGENIO|SEMANTIC|TOOLS|HERRAMIENT/.test(t)) return "PROYECTOS";
     if (/MODELO|MODEL|LLM/.test(t)) return "MODEL";
     if (/SERVIC|QUE OFRECE|QUE HACEN|PUEDEN HACER/.test(t)) return "SERVICES";
     if (/DIAGNOST|DIAGNOSE|AYUD.*ELEGIR|NO SE/.test(t)) return "DIAGNOSE";
@@ -983,7 +1064,8 @@ function App() {
     switch (cmd) {
       case "HELP":     return setView({ kind: "help" });
       case "EXPERIENCIAS": return setView({ kind: "experiences" });
-      case "TOOLS":    return setView({ kind: "tools" });
+      case "PROYECTOS": return setView({ kind: "projects" });
+      case "TOOLS":    return setView({ kind: "projects" });
       case "SERVICES": return setView({ kind: "services" });
       case "CASES":    return setView({ kind: "cases" });
       case "STACK":    return setView({ kind: "stack" });
@@ -999,7 +1081,7 @@ function App() {
           const data = await askBackendAgent(question);
           return setView({ kind: "response", title: "AGENT LINK", body: data.reply, ctas: [
             { cmd: "EXPERIENCIAS", label: "EXPERIENCIAS", primary: true },
-            { cmd: "TOOLS", label: "TOOLS" },
+            { cmd: "PROYECTOS", label: "PROYECTOS" },
           ] });
         } catch (e) {
           return setView({ kind: "response", title: "AGENT ERROR", body: agentErrorMessage(e), ctas: [
@@ -1126,10 +1208,10 @@ function App() {
           <div className="view-intro"><span className="role">AGENT:</span>ABRIENDO BITACORA PERSONAL DE IA.</div>
           <ExperiencesBlock />
         </ViewShell>;
-      case "tools":
-        return <ViewShell tag="IDX" title="AI TOOLS" path="/USR/TOOLS.IDX" onClose={closeView}>
-          <div className="view-intro"><span className="role">AGENT:</span>HERRAMIENTAS QUE USO EN EL DIA A DIA.</div>
-          <ToolsBlock />
+      case "projects":
+        return <ViewShell tag="IDX" title="PROYECTOS" path="/USR/PROYECTOS.MD" onClose={closeView}>
+          <div className="view-intro"><span className="role">AGENT:</span>LEYENDO PROYECTOS PERSONALES DESDE MARKDOWN.</div>
+          <ProjectsBlock />
         </ViewShell>;
       case "services":
         return <ViewShell tag="LOAD" title="SERVICE MODULES" path="/SYS/SERVICES.SYS" onClose={closeView}>

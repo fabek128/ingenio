@@ -798,6 +798,64 @@ body {
   color: var(--fg-dim);
 }
 
+/* Markdown-backed sections */
+.markdown-doc {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  font-size: 22px;
+  line-height: 1.32;
+}
+.markdown-doc h2,
+.markdown-doc h3,
+.markdown-doc h4,
+.markdown-doc p,
+.markdown-doc ul {
+  margin: 0;
+}
+.markdown-doc h2 {
+  color: var(--fg-bright);
+  font-size: clamp(28px, 4vw, 44px);
+  letter-spacing: 0.04em;
+}
+.markdown-doc h3 {
+  margin-top: 14px;
+  color: var(--sys-color);
+  font-size: clamp(24px, 3vw, 34px);
+  border-top: 1px dashed color-mix(in srgb, var(--border) 50%, transparent);
+  padding-top: 14px;
+}
+.markdown-doc h4 {
+  color: var(--fg-bright);
+  font-size: 24px;
+}
+.markdown-doc p {
+  color: var(--fg);
+}
+.markdown-doc ul {
+  padding-left: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  color: var(--fg-dim);
+  font-family: var(--font-ui);
+  font-size: 14px;
+}
+.markdown-doc li::before {
+  content: "> ";
+  color: var(--fg-bright);
+}
+.markdown-doc a {
+  color: var(--fg-bright);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.markdown-doc code {
+  font-family: var(--font-ui);
+  color: var(--fg-bright);
+}
+
 /* Diagnostic wizard */
 .wizard-prompt {
   margin-top: 8px;
