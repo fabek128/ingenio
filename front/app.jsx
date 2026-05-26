@@ -941,17 +941,25 @@ function CommandBar({ onSubmit, value, setValue, history, setHistory, disabled =
 /* ============================================================
    VIEW SHELL — chrome around each module
    ============================================================ */
-function ViewShell({ tag, title, path, onClose, children }) {
+function ViewShell({ tag, title, path, onClose, children, onReset, onResetLabel }) {
   return (
     <div className="view">
       <div className="view-bar">
         <div className="view-tag">[{tag}]</div>
         <div className="view-title">{title}</div>
         {path && <div className="view-path">{path}</div>}
-        <button className="view-close" onClick={onClose} title="Volver al inicio (ESC)">
-          <span className="x">X</span>
-          <span>CLOSE / ESC</span>
-        </button>
+        <div className="view-actions">
+          {onReset && (
+            <button className="view-reset" onClick={onReset} title={onResetLabel || "RESET CTX"}>
+              <span className="x">!</span>
+              <span>{onResetLabel || "RESET CTX"}</span>
+            </button>
+          )}
+          <button className="view-close" onClick={onClose} title="Volver al inicio (ESC)">
+            <span className="x">X</span>
+            <span>CLOSE / ESC</span>
+          </button>
+        </div>
       </div>
       <div className="view-body">
         <div className="view-content">{children}</div>
@@ -1280,7 +1288,11 @@ function App() {
       case "agent": {
         const usageStr = agentUsage ? ("CTX: " + (agentUsage.total_tokens || "?") + " TOKENS") : "";
         const title = usageStr ? ("AGENT SESSION  |  " + usageStr) : "AGENT SESSION";
-        return <ViewShell tag="AGT" title={title} path="/AGT/SESSION" onClose={closeView}>
+        const resetAgent = () => {
+          setAgentMessages([]);
+          setAgentUsage(null);
+        };
+        return <ViewShell tag="AGT" title={title} path="/AGT/SESSION" onClose={closeView} onReset={resetAgent} onResetLabel="RESET CTX">
           <AgentSessionView
             messages={agentMessages}
             typingMessageId={typingMessageId}

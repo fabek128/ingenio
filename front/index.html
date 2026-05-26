@@ -1196,6 +1196,39 @@ body {
   display: flex;
   align-items: center;
 }
+.view-bar .view-actions {
+  display: flex;
+  align-items: stretch;
+  margin-left: auto;
+}
+.view-bar .view-reset {
+  padding: 0 14px;
+  background: transparent;
+  border: none;
+  border-left: 1px solid var(--border);
+  color: var(--warn-color);
+  font-family: var(--font-ui);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.view-bar .view-reset:hover {
+  background: var(--warn-color);
+  color: var(--selection-fg);
+}
+.view-bar .view-reset .x {
+  border: 1px solid currentColor;
+  width: 18px; height: 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  line-height: 1;
+}
 .view-bar .view-close {
   padding: 0 14px;
   background: transparent;
