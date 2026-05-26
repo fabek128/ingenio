@@ -1108,28 +1108,6 @@ function App() {
     setView({ kind: "home" });
   }, []);
 
-  // Heuristic intent detection for natural-language inputs
-  const inferIntent = (raw) => {
-    const t = raw.toUpperCase();
-    if (/EXPERIENCIA|DIARIO|BITACORA|USO.*IA/.test(t)) return "EXPERIENCIAS";
-    if (/PROYECT|REPO|INGENIO|SEMANTIC|TOOLS|HERRAMIENT/.test(t)) return "PROYECTOS";
-    if (/MODELO|MODEL|LLM/.test(t)) return "MODEL";
-    if (/SERVIC|QUE OFRECE|QUE HACEN|PUEDEN HACER/.test(t)) return "SERVICES";
-    if (/DIAGNOST|DIAGNOSE|AYUD.*ELEGIR|NO SE/.test(t)) return "DIAGNOSE";
-    if (/CASO|EJEMPLO|MUESTRA/.test(t)) return "CASES";
-    if (/STACK|TECNOL|HERRAMIENT|CON QUE/.test(t)) return "STACK";
-    if (/QUIEN|SOBRE|ABOUT|EQUIPO/.test(t)) return "ABOUT";
-    if (/CONTACT|HABLAR|ESCRIB|MAIL|EMAIL|FORMULARIO/.test(t)) return "CONTACT";
-    if (/WHATSAPP|WSP/.test(t)) return "WHATSAPP";
-    if (/AGEND|LLAMAD|MEET|CALL/.test(t)) return "AGENDAR";
-    if (/CHATBOT|BOT/.test(t)) return "CHATBOT_INFO";
-    if (/AUTOMATIZ/.test(t)) return "AUTO_INFO";
-    if (/PRECIO|CUANTO|COSTO/.test(t)) return "PRICING";
-    if (/HOLA|HEY|HI|BUENAS/.test(t)) return "GREET";
-    if (/^HOME$|VOLVER|INICIO|^MENU$/.test(t)) return "HOME";
-    return null;
-  };
-
   const handleCommand = async (rawInput, opts = {}) => {
     const raw = (rawInput || "").trim();
     if (!raw || isPromptBusy) return;
@@ -1137,8 +1115,7 @@ function App() {
     if (sound) beep(1200, 0.025, 0.025);
     const first = upper.split(/\s+/)[0];
     const cmds = new Set(COMMANDS_META.map((c) => c.cmd).concat(["HOME"]));
-    let cmd = cmds.has(first) ? first : null;
-    if (!cmd) cmd = inferIntent(raw);
+    const cmd = cmds.has(first) ? first : null;
     await runCommand(cmd, raw, opts);
   };
 
