@@ -88,7 +88,14 @@ async function askBackendAgent(message) {
   }
   if (res.status === 429) throw new Error("RATE_LIMITED");
   if (res.status === 413) throw new Error("MESSAGE_TOO_LONG");
-  if (!res.ok) throw new Error("AGENT_FAILED");
+  if (!res.ok) {
+    let detail = "";
+    try { detail = (await res.json()).detail || ""; } catch (e) {}
+    if (detail === "model_empty_response") throw new Error("MODEL_EMPTY_RESPONSE");
+    if (detail === "model_timeout") throw new Error("MODEL_TIMEOUT");
+    if (detail === "model_unavailable") throw new Error("MODEL_UNAVAILABLE");
+    throw new Error("AGENT_FAILED");
+  }
   return res.json();
 }
 
@@ -100,6 +107,9 @@ function agentErrorMessage(error) {
     RATE_LIMITED: "DEMASIADAS CONSULTAS EN POCO TIEMPO. ESPERA UN MINUTO Y PROBA DE NUEVO.",
     MESSAGE_TOO_LONG: "EL MENSAJE ES DEMASIADO LARGO. RESUMILO Y VOLVE A ENVIARLO.",
     SITE_CONTEXT_FAILED: "NO PUDE LEER EL ESTADO DEL MODELO EN EL BACKEND.",
+    MODEL_EMPTY_RESPONSE: "EL MODELO RESPONDIO SIN TEXTO FINAL. PROBA REFORMULAR EL PROMPT O INTENTA DE NUEVO.",
+    MODEL_TIMEOUT: "EL MODELO TARDO DEMASIADO EN RESPONDER. INTENTA DE NUEVO CON UN PROMPT MAS CORTO.",
+    MODEL_UNAVAILABLE: "EL PROVEEDOR DEL MODELO NO ESTA DISPONIBLE EN ESTE MOMENTO.",
     AGENT_FAILED: "EL AGENTE NO RESPONDIO. PUEDE SER UN ERROR TEMPORAL DEL MODELO O DEL BACKEND.",
   };
   return map[code] || map.AGENT_FAILED;

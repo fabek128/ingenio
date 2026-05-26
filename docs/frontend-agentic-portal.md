@@ -142,3 +142,9 @@ La app existente en Dokploy se detecto como frontend estatico `ingenio-uno-site`
 2. Mantener app frontend separada y agregar `ingenio-api`, configurando routing equivalente.
 
 El camino recomendado para el portal completo es `docker-compose.dokploy.yml`.
+
+
+## Error esperado si el modelo no emite texto
+
+Si el backend recibe una respuesta valida del proveedor pero sin texto final, devuelve `502 model_empty_response`.
+El frontend lo muestra como error del agente para no confundir una falla del proveedor con una respuesta real del modelo.

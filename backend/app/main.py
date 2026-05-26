@@ -33,6 +33,7 @@ class Settings(BaseSettings):
     ingenio_llm_model: str = "deepseek-v4-flash-free"
     ingenio_llm_api_key: str = ""
     ingenio_llm_timeout_seconds: float = 45
+    ingenio_llm_max_tokens: int = 2048
     ingenio_session_secret: str = ""
     ingenio_session_ttl_seconds: int = 3600
     ingenio_rate_limit_per_minute: int = 12
@@ -188,6 +189,51 @@ def _system_prompt() -> str:
     )
 
 
+def _content_to_text(content: Any) -> str:
+    if isinstance(content, str):
+        return content.strip()
+
+    if isinstance(content, list):
+        parts: list[str] = []
+        for item in content:
+            if isinstance(item, str):
+                parts.append(item)
+            elif isinstance(item, dict):
+                value = item.get("text") or item.get("content")
+                if isinstance(value, str):
+                    parts.append(value)
+        return "".join(parts).strip()
+
+    return ""
+
+
+def _extract_llm_reply(data: dict[str, Any]) -> str:
+    choices = data.get("choices")
+    if isinstance(choices, list) and choices:
+        first = choices[0] if isinstance(choices[0], dict) else {}
+        message = first.get("message")
+        if isinstance(message, dict):
+            content = _content_to_text(message.get("content"))
+            if content:
+                return content
+
+        text = _content_to_text(first.get("text"))
+        if text:
+            return text
+
+    output_text = _content_to_text(data.get("output_text"))
+    if output_text:
+        return output_text
+
+    message = data.get("message")
+    if isinstance(message, dict):
+        content = _content_to_text(message.get("content"))
+        if content:
+            return content
+
+    return ""
+
+
 @app.get("/health")
 async def health() -> dict[str, str]:
     return {
@@ -238,7 +284,7 @@ async def chat(
             {"role": "user", "content": message},
         ],
         "temperature": 0.4,
-        "max_tokens": 512,
+        "max_tokens": settings.ingenio_llm_max_tokens,
         "stream": False,
     }
 
@@ -261,10 +307,8 @@ async def chat(
     except httpx.HTTPError as exc:
         raise HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail="model_unavailable") from exc
 
-    reply = (
-        data.get("choices", [{}])[0]
-        .get("message", {})
-        .get("content")
-        or "No pude generar una respuesta."
-    )
+    reply = _extract_llm_reply(data)
+    if not reply:
+        raise HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail="model_empty_response")
+
     return ChatResponse(reply=reply, model=settings.ingenio_llm_model)

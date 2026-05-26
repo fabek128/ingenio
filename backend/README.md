@@ -58,3 +58,9 @@ Ver `docs/backend-specification.md` y `docs/backend-tutorial.md`.
 cd backend
 PYTHONPATH="$PWD" pytest
 ```
+
+
+## Nota sobre respuestas vacias del modelo
+
+DeepSeek V4 puede consumir tokens en razonamiento interno y devolver `content` vacio si `max_tokens` queda corto.
+Por eso el backend usa `INGENIO_LLM_MAX_TOKENS=2048` por defecto y si el proveedor responde sin texto visible devuelve `502 model_empty_response` en vez de ocultarlo con una respuesta falsa.

@@ -209,6 +209,7 @@ INGENIO_LLM_BASE_URL=https://opencode.ai/zen/v1
 INGENIO_LLM_MODEL=deepseek-v4-flash-free
 INGENIO_LLM_API_KEY=
 INGENIO_LLM_TIMEOUT_SECONDS=45
+INGENIO_LLM_MAX_TOKENS=2048
 
 INGENIO_SESSION_SECRET=GENERAR_EN_CADA_AMBIENTE
 INGENIO_SESSION_TTL_SECONDS=3600
@@ -400,3 +401,9 @@ No permitido:
 
 - OpenCode Zen API docs: https://opencode.ai/docs/zen
 - FastAPI docs: https://fastapi.tiangolo.com/
+
+
+### Manejo de respuestas vacias del modelo
+
+El backend no debe devolver una respuesta fallback como si fuera generada por el modelo cuando el proveedor devuelve `content` vacio.
+Debe responder `502 model_empty_response`. Para DeepSeek V4 / OpenCode Zen se configura `INGENIO_LLM_MAX_TOKENS=2048` por defecto, porque prompts medianos pueden gastar tokens en razonamiento interno antes de emitir texto final.
