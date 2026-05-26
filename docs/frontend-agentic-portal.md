@@ -9,6 +9,7 @@ Redisenar el frontend existente para que INGENIO/64 sea un sitio personal tipo c
 ## Cambios funcionales
 
 - Home reorientado a diario personal de IA.
+- Header simplificado: se elimina el selector visual `MODEL` y `AGENT` pasa a ser un acceso directo a la sesion del agente.
 - Nuevos comandos:
   - `EXPERIENCIAS`: bitacora de uso real de IA.
   - `PROYECTOS`: proyectos personales en curso, cargados desde Markdown.
@@ -55,7 +56,22 @@ RESPUESTA:
 <respuesta del modelo>
 ```
 
-El comando explícito `AGENT <pregunta>` usa el mismo flujo. `AGENT` sin argumentos usa una pregunta por defecto.
+El comando explícito `AGENT <pregunta>` usa el mismo flujo. `AGENT` sin argumentos abre la sesion del agente sin disparar una pregunta automatica.
+
+## Sesion visual del agente
+
+El sitio mantiene una conversacion de agente por sesion de navegador usando `sessionStorage`.
+
+Objetivo:
+
+- El usuario puede navegar por `HOME`, `PROYECTOS`, `EXPERIENCIAS`, etc.
+- Si vuelve a `AGENT`, ve lo que ya pregunto y las respuestas anteriores.
+- El historial no se guarda en el repo ni en el backend.
+- Al cerrar la pestana/sesion del navegador, el historial se pierde.
+
+El header tiene `AGENT OPEN` como enlace a `/AGT/SESSION`. Ese acceso no dispara una pregunta por defecto: solo abre la sesion y enfoca el flujo de prompt inferior.
+
+El almacenamiento local usa solo mensajes de conversacion. No debe guardar API keys, tokens, cookies ni secretos.
 
 ### Velocidad de tipeo
 
@@ -118,7 +134,7 @@ http://localhost:8000
 HELP
 EXPERIENCIAS
 PROYECTOS
-MODEL
+AGENT
 AGENT Como usas IA todos los dias?
 ```
 

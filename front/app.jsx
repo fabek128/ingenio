@@ -140,6 +140,44 @@ function formatAgentResponse(question, data) {
   ].join("\n");
 }
 
+const AGENT_CHAT_STORAGE_KEY = "ingenio_agent_chat_v1";
+
+function formatAgentHistoryResponse(data) {
+  const model = data?.model || "UNKNOWN";
+  const reply = data?.reply || "SIN RESPUESTA DEL MODELO.";
+  return ["MODEL: " + model, "", "RESPUESTA:", reply].join("\n");
+}
+
+function createAgentMessage(role, text, status = "done") {
+  return {
+    id: Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 8),
+    role,
+    text,
+    status,
+    ts: new Date().toISOString(),
+  };
+}
+
+function loadAgentMessages() {
+  try {
+    const raw = window.sessionStorage?.getItem(AGENT_CHAT_STORAGE_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return [];
+    return parsed
+      .filter((m) => m && (m.role === "user" || m.role === "assistant") && typeof m.text === "string")
+      .slice(-40);
+  } catch (e) {
+    return [];
+  }
+}
+
+function saveAgentMessages(messages) {
+  try {
+    window.sessionStorage?.setItem(AGENT_CHAT_STORAGE_KEY, JSON.stringify(messages.slice(-40)));
+  } catch (e) {}
+}
+
 /* ============================================================
    BOOT SCREEN
    ============================================================ */
@@ -199,27 +237,13 @@ function BootScreen({ onDone, onSkip, theme }) {
 /* ============================================================
    HEADER
    ============================================================ */
-function SysHeader({ theme, onTheme, model, onModel }) {
+function SysHeader({ theme, onTheme, onAgent }) {
   const themes = [
     { id: "c64", label: "C64" },
     { id: "dark", label: "DARK" },
     { id: "amber", label: "AMBER" },
     { id: "light", label: "LIGHT" },
   ];
-  const [modelOpen, setModelOpen] = useState(false);
-  const modelRef = useRef(null);
-
-  useEffect(() => {
-    if (!modelOpen) return;
-    const close = (e) => {
-      if (modelRef.current && !modelRef.current.contains(e.target)) setModelOpen(false);
-    };
-    document.addEventListener("mousedown", close);
-    document.addEventListener("keydown", (e) => { if (e.key === "Escape") setModelOpen(false); });
-    return () => document.removeEventListener("mousedown", close);
-  }, [modelOpen]);
-
-  const current = MODELS.find((m) => m.id === model) || MODELS[0];
 
   return (
     <div className="sys-header">
@@ -228,47 +252,13 @@ function SysHeader({ theme, onTheme, model, onModel }) {
         INGENIO/64
       </div>
       <div className="status-group">
-        <div className="stat essential">
+        <button className="stat essential agent-link" onClick={onAgent} title="Abrir sesion del agente">
           <span className="dot" />
           <span className="label">AGENT</span>
-          <span className="val">ONLINE</span>
-        </div>
-        <div className="stat model-stat" ref={modelRef}>
-          <span className="label">MODEL</span>
-          <button
-            className="model-trigger"
-            onClick={() => setModelOpen((o) => !o)}
-            aria-expanded={modelOpen}
-            aria-haspopup="listbox"
-          >
-            <span className="val">{current.label}</span>
-            <span className="chev">{modelOpen ? "▲" : "▼"}</span>
-          </button>
-          {modelOpen && (
-            <div className="model-menu" role="listbox">
-              <div className="model-menu-title">SELECT LLM MODEL</div>
-              {MODELS.map((m) => (
-                <button
-                  key={m.id}
-                  className={"model-item " + (m.id === current.id ? "active" : "")}
-                  role="option"
-                  aria-selected={m.id === current.id}
-                  onClick={() => { onModel(m.id); setModelOpen(false); }}
-                >
-                  <span className="model-check">{m.id === current.id ? "■" : "□"}</span>
-                  <span className="model-name">{m.label}</span>
-                  <span className="model-vendor">{m.vendor}</span>
-                  <span className="model-desc">{m.desc}</span>
-                </button>
-              ))}
-              <div className="model-menu-footer">
-                ↑↓ NAVEGAR — ENTER CONFIRMAR — ESC CERRAR
-              </div>
-            </div>
-          )}
-        </div>
+          <span className="val">OPEN</span>
+        </button>
       </div>
-      <div className="theme-pill" role="group" aria-label="Theme">
+      <div className="theme-pill" aria-label="Theme selector">
         {themes.map((t) => (
           <button
             key={t.id}
@@ -280,6 +270,7 @@ function SysHeader({ theme, onTheme, model, onModel }) {
     </div>
   );
 }
+
 
 /* ============================================================
    FEED LINES + INLINE BLOCKS
@@ -1029,6 +1020,54 @@ function ResponseView({ title, body, ctas = [], busy = false, typewriter = false
   );
 }
 
+function AgentMessage({ message, typing, onTypedDone }) {
+  const rendered = useTyped(message.text || "", typingSpeedMs(), typing);
+  const done = rendered.length >= (message.text || "").length;
+
+  useEffect(() => {
+    if (typing && done) onTypedDone?.(message.id);
+  }, [typing, done, message.id, onTypedDone]);
+
+  return (
+    <div className={"agent-message " + message.role + " " + (message.status || "done")}>
+      <div className="agent-message-role">{message.role === "user" ? "PROMPT" : "AGENT"}</div>
+      <div className="agent-message-body">
+        <span className="console-output">{rendered}</span>
+        {(message.status === "pending" || (typing && !done)) && <span className="console-cursor" aria-hidden="true" />}
+      </div>
+    </div>
+  );
+}
+
+function AgentSessionView({ messages, typingMessageId, onTypedDone }) {
+  const bottomRef = useRef(null);
+
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ block: "end" });
+  }, [messages.length, typingMessageId]);
+
+  return (
+    <div className="agent-session">
+      {messages.length === 0 ? (
+        <div className="agent-empty">
+          <div className="agent-empty-title">AGENT SESSION READY.</div>
+          <div>ESCRIBI TU PROMPT ABAJO. LA CONVERSACION SE CONSERVA EN ESTA SESION DEL NAVEGADOR MIENTRAS NAVEGAS EL SITIO.</div>
+        </div>
+      ) : (
+        messages.map((message) => (
+          <AgentMessage
+            key={message.id}
+            message={message}
+            typing={message.id === typingMessageId}
+            onTypedDone={onTypedDone}
+          />
+        ))
+      )}
+      <div ref={bottomRef} />
+    </div>
+  );
+}
+
 /* ============================================================
    MAIN APP
    ============================================================ */
@@ -1040,13 +1079,18 @@ function App() {
   const [value, setValue] = useState("");
   const [history, setHistory] = useState([]);
   const [sound, setSound] = useState(false);
-  const [model, setModel] = useState("deepseek-v4-flash-free");
   const [isPromptBusy, setIsPromptBusy] = useState(false);
+  const [agentMessages, setAgentMessages] = useState(() => loadAgentMessages());
+  const [typingMessageId, setTypingMessageId] = useState(null);
 
   // Apply theme to <html>
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", theme);
   }, [theme]);
+
+  useEffect(() => {
+    saveAgentMessages(agentMessages);
+  }, [agentMessages]);
 
   // ESC closes view → home
   useEffect(() => {
@@ -1103,36 +1147,28 @@ function App() {
   const submitPromptToModel = async (question) => {
     const cleanQuestion = (question || "").trim();
     if (!cleanQuestion) return;
+
+    const userMessage = createAgentMessage("user", cleanQuestion);
+    const assistantMessage = createAgentMessage("assistant", "STATUS: CONECTANDO CON BACKEND...", "pending");
+
     setIsPromptBusy(true);
-    setView({
-      kind: "response",
-      title: "AGENT LINK",
-      body: "PROMPT:\n> " + cleanQuestion + "\n\nSTATUS: CONECTANDO CON BACKEND...",
-      busy: true,
-    });
+    setTypingMessageId(null);
+    setView({ kind: "agent" });
+    setAgentMessages((messages) => [...messages, userMessage, assistantMessage].slice(-40));
+
     try {
       const data = await askBackendAgent(cleanQuestion);
-      return setView({
-        kind: "response",
-        title: "AGENT LINK",
-        body: formatAgentResponse(cleanQuestion, data),
-        typewriter: true,
-        ctas: [
-          { cmd: "EXPERIENCIAS", label: "EXPERIENCIAS", primary: true },
-          { cmd: "PROYECTOS", label: "PROYECTOS" },
-        ],
-      });
+      const text = formatAgentHistoryResponse(data);
+      setAgentMessages((messages) => messages.map((m) => (
+        m.id === assistantMessage.id ? { ...m, text, status: "done" } : m
+      )));
+      setTypingMessageId(assistantMessage.id);
     } catch (e) {
-      return setView({
-        kind: "response",
-        title: "AGENT ERROR",
-        body: "PROMPT:\n> " + cleanQuestion + "\n\n" + agentErrorMessage(e),
-        typewriter: true,
-        ctas: [
-          { cmd: "HELP", label: "HELP", primary: true },
-          { cmd: "HOME", label: "HOME" },
-        ],
-      });
+      const text = agentErrorMessage(e);
+      setAgentMessages((messages) => messages.map((m) => (
+        m.id === assistantMessage.id ? { ...m, text, status: "error" } : m
+      )));
+      setTypingMessageId(assistantMessage.id);
     } finally {
       setIsPromptBusy(false);
     }
@@ -1154,7 +1190,8 @@ function App() {
       case "HOME":     return setView({ kind: "home" });
 
       case "AGENT": {
-        const question = (raw || "").replace(/^AGENT\s*/i, "").trim() || "Como usas IA todos los dias?";
+        const question = (raw || "").replace(/^AGENT\s*/i, "").trim();
+        if (!question) return setView({ kind: "agent" });
         return submitPromptToModel(question);
       }
       case "MODEL": {
@@ -1253,6 +1290,14 @@ function App() {
     switch (view.kind) {
       case "home":
         return <HomeView onCommand={programmatic} />;
+      case "agent":
+        return <ViewShell tag="AGT" title="AGENT SESSION" path="/AGT/SESSION" onClose={closeView}>
+          <AgentSessionView
+            messages={agentMessages}
+            typingMessageId={typingMessageId}
+            onTypedDone={(id) => setTypingMessageId((current) => current === id ? null : current)}
+          />
+        </ViewShell>;
       case "help":
         return <ViewShell tag="HELP" title="COMANDOS DISPONIBLES" path="/SYS/HELP" onClose={closeView}>
           <HelpBlock />
@@ -1314,7 +1359,7 @@ function App() {
   return (
     <div className="bezel">
       <div className="crt-screen">
-        <SysHeader theme={theme} onTheme={setTheme} model={model} onModel={setModel} />
+        <SysHeader theme={theme} onTheme={setTheme} onAgent={() => programmatic("AGENT")} />
         {phase === "boot" ? (
           <BootScreen onDone={enterMain} onSkip={enterMain} theme={theme} />
         ) : (
