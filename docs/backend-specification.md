@@ -23,7 +23,7 @@ El backend debe:
 - **Python 3.11+**.
 - **FastAPI** para API HTTP.
 - **Uvicorn** como servidor ASGI.
-- **httpx** como cliente HTTP hacia Ollama.
+- **httpx** como cliente HTTP hacia OpenCode Zen API.
 - **pydantic-settings** para configuracion desde variables de entorno.
 - **pytest** para tests basicos.
 
@@ -79,7 +79,7 @@ pytest
 Dependencias evitadas en MVP:
 
 - Redis: no requerido para un solo proceso; necesario si se escala a multiples workers/instancias con rate limit compartido.
-- LangChain/LlamaIndex: no requeridos para un proxy simple hacia Ollama.
+- LangChain/LlamaIndex: no requeridos para un proxy simple hacia OpenCode Zen API.
 - Base vectorial: no requerida hasta que haya RAG con contenido del sitio.
 
 ## 4. Arquitectura
@@ -187,7 +187,7 @@ MVP:
 - Por sesion: 12 requests/minuto.
 - Por IP: 30 requests/minuto.
 - Maximo mensaje: 2.000 caracteres.
-- Timeout de Ollama: 45 segundos.
+- Timeout de modelo/API: 45 segundos.
 
 Produccion con mas trafico:
 
@@ -349,7 +349,7 @@ Para el MVP se permite un `main.py` autocontenido. Cuando crezca, separar:
 ```text
 backend/app/config.py
 backend/app/security.py
-backend/app/ollama_client.py
+backend/app/llm_client.py
 backend/app/routes.py
 ```
 

@@ -80,14 +80,13 @@ const CASES = [
 ];
 
 const STACK = [
-  ["FRONTEND", "React / Next.js / TypeScript"],
-  ["BACKEND", "Node.js / Python / FastAPI"],
-  ["IA / LLM", "OpenAI / Anthropic / Open-weights"],
-  ["AGENTES", "Tool-use / RAG / Memoria"],
-  ["AUTOMATIZACION", "n8n / Make / APIs / Webhooks"],
-  ["DATOS", "PostgreSQL / Vector DB / Sheets"],
-  ["INFRA", "Vercel / Railway / Docker"],
-  ["MENSAJERIA", "WhatsApp Cloud / Telegram / Email"],
+  ["FRONTEND", "HTML estatico / React UMD / consola retro"],
+  ["BACKEND", "Python / FastAPI / Docker"],
+  ["IA / LLM", "OpenCode Zen API / modelos OpenAI-compatible / Ollama experimental"],
+  ["AGENTES", "ChatGPT Codex / Claude Code / OpenCode"],
+  ["SEGURIDAD", "CSRF / cookies HttpOnly / rate limit / secretos fuera del repo"],
+  ["INFRA", "Dokploy / Docker / NPM / VPN / localServer"],
+  ["CONTENIDO", "Experiencias personales / herramientas / bitacora IA"],
 ];
 
 const ABOUT_PROFILE = {
@@ -101,7 +100,7 @@ const ABOUT_PROFILE = {
   bio: [
     "SOY FABIAN, PROGRAMADOR SENIOR, Y HACE MUCHOS ANOS QUE VENGO CONSTRUYENDO SOFTWARE, RESOLVIENDO PROBLEMAS REALES Y METIENDOME EN DISTINTOS FRENTES DE LA INDUSTRIA. EMPECE A PROGRAMAR CON UNA COMMODORE 64, DONDE APRENDI BASIC, Y LA VERDAD ES QUE DESDE AHI NO PARE MAS.",
     "MI RECORRIDO FUE CAMBIANDO JUNTO CON LA TECNOLOGIA: ARRANQUE PROGRAMANDO EN .NET, DESPUES PASE POR JAVA, MAS ADELANTE POR NODE.JS Y LUEGO POR PYTHON. EN EL CAMINO TAMBIEN TRABAJE EN DEVOPS, INTEGRACIONES, ARQUITECTURA Y LIDERAZGO TECNICO. ESO ME DIO UNA MIRADA BASTANTE AMPLIA, PERO SOBRE TODO MUY PRACTICA, DE COMO HACER QUE LA TECNOLOGIA SIRVA DE VERDAD.",
-    "HOY TRABAJO EN ASAP CONSULTING S.A. COMO LIDER TECNICO, Y EN INGENIO UNO VUELCO TODA ESA EXPERIENCIA EN SOLUCIONES DE INTELIGENCIA ARTIFICIAL, AUTOMATIZACION Y SISTEMAS DE AGENTES. EN ESTA ETAPA ESTOY ENFOCANDOME FUERTE EN IA, EN COMO APLICARLA A PROBLEMAS CONCRETOS Y EN COMO CONVERTIRLA EN UNA HERRAMIENTA UTIL PARA PERSONAS Y EMPRESAS.",
+    "HOY USO INGENIO/64 COMO LABORATORIO PERSONAL PARA MOSTRAR COMO INTEGRO IA EN MI DIA A DIA: CODIGO, DEVOPS, DOCUMENTACION, AGENTES, AUTOMATIZACIONES, MODELOS Y DECISIONES TECNICAS. LA IDEA ES COMPARTIR EXPERIENCIA REAL, NO HUMO.",
   ],
 };
 
@@ -127,6 +126,47 @@ const ABOUT_LINES = [
   "  4. SOPORTE Y OPTIMIZACION CONTINUA",
   "",
   "-------------------------------------------------------------",
+];
+
+
+const EXPERIENCES = [
+  {
+    id: "01",
+    code: "DAILY_AI_WORKFLOW",
+    title: "MI FLUJO DIARIO CON IA",
+    body: "Uso agentes como copilotos reales: para leer codigo, escribir documentacion, revisar seguridad, automatizar tareas y acelerar decisiones tecnicas sin delegar criterio.",
+    tags: ["CODEX", "CLAUDE", "OPENCODE"],
+  },
+  {
+    id: "02",
+    code: "LOCAL_AND_CLOUD_MODELS",
+    title: "MODELOS LOCALES Y CLOUD",
+    body: "Experimento con modelos chicos, APIs compatibles con OpenAI y runtimes locales para entender costos, latencia, privacidad y calidad real en espanol.",
+    tags: ["LLM", "OLLAMA", "ZEN"],
+  },
+  {
+    id: "03",
+    code: "AGENTIC_CONSOLE",
+    title: "ESTA CONSOLA AGENTICA",
+    body: "INGENIO/64 es mi laboratorio publico: una web tipo terminal donde comparto pruebas, errores, decisiones y aprendizajes sobre IA aplicada al trabajo diario.",
+    tags: ["INGENIO64", "FASTAPI", "DOKPLOY"],
+  },
+  {
+    id: "04",
+    code: "SECURITY_FIRST",
+    title: "SEGURIDAD ANTES QUE MAGIA",
+    body: "Cada integracion con IA debe cuidar secretos, permisos, datos sensibles, logs y superficie publica. La IA acelera; no reemplaza criterio de seguridad.",
+    tags: ["SECRETS", "DEVOPS", "REVIEW"],
+  },
+];
+
+const AI_TOOLS = [
+  ["CHATGPT CODEX", "Cambios de codigo, documentacion tecnica, revisiones y automatizacion de tareas de repo."],
+  ["CLAUDE CODE", "Analisis largo, refactors controlados y trabajo multiarchivo con foco en contexto."],
+  ["OPENCODE", "Agentes locales y uso de modelos alternativos para experimentar flujos."],
+  ["OPENAI / ZEN", "APIs compatibles para backend agentico, prototipos y evaluacion de modelos."],
+  ["OLLAMA", "Pruebas locales con modelos chicos y despliegues privados."],
+  ["DOKPLOY", "Deploy de apps personales sobre Docker en localServer."],
 ];
 
 const DIAGNOSTIC = {
@@ -220,7 +260,11 @@ function buildDiagnosis(answers) {
 const COMMANDS_META = [
   { cmd: "HOME",       desc: "VUELVE A LA PANTALLA PRINCIPAL" },
   { cmd: "HELP",       desc: "MUESTRA LOS COMANDOS DISPONIBLES" },
-  { cmd: "SERVICES",   desc: "CARGA LOS MODULOS DE SERVICIO" },
+  { cmd: "EXPERIENCIAS", desc: "BITACORA DE USO REAL DE IA" },
+  { cmd: "TOOLS",      desc: "HERRAMIENTAS IA QUE USO" },
+  { cmd: "AGENT",      desc: "HABLA CON EL AGENTE DEL SITIO" },
+  { cmd: "MODEL",      desc: "MUESTRA EL MODELO ACTIVO" },
+  { cmd: "SERVICES",   desc: "SERVICIOS Y SOLUCIONES QUE PUEDO CONSTRUIR" },
   { cmd: "DIAGNOSE",   desc: "INICIA UN DIAGNOSTICO GUIADO" },
   { cmd: "CASES",      desc: "ABRE LA BASE DE CASOS DE USO" },
   { cmd: "STACK",      desc: "MUESTRA EL STACK TECNOLOGICO" },
@@ -235,28 +279,24 @@ const COMMANDS_META = [
 ];
 
 const HERO = {
-  banner: "**** INGENIO/64 — AI SERVICE SYSTEM v1.0 ****",
-  ram: "64K RAM SYSTEM   38911 BASIC BYTES FREE",
+  banner: "**** INGENIO/64 — PERSONAL AI CONSOLE v2.0 ****",
+  ram: "64K RAM SYSTEM   AGENT LINK READY   ZEN MODEL ONLINE",
   modules: [
+    ["PERSONAL LOG", "OK"],
     ["AGENT CORE", "OK"],
-    ["AUTOMATION ENGINE", "OK"],
-    ["KNOWLEDGE BASE", "OK"],
-    ["INTERFACE LAYER", "OK"],
+    ["AI TOOLS INDEX", "OK"],
+    ["BACKEND LINK", "OK"],
   ],
-  title: "HUMAN + AI SYSTEMS",
-  sub: "DESARROLLO DE AGENTES IA, AUTOMATIZACIONES Y SISTEMAS INTELIGENTES A MEDIDA. PARA EQUIPOS QUE QUIEREN DEJAR DE HACER LO REPETITIVO.",
+  title: "FABIAN + IA / DIARIO DE CAMPO",
+  sub: "MI SITIO PERSONAL PARA COMPARTIR COMO USO IA TODOS LOS DIAS: AGENTES, AUTOMATIZACIONES, CODIGO, DEVOPS, ERRORES, APRENDIZAJES Y EXPERIMENTOS REALES.",
 };
 
 const MODELS = [
-  { id: "gpt-5",             label: "GPT-5",              vendor: "OPENAI",    desc: "GENERAL-PURPOSE / LARGE CONTEXT" },
-  { id: "claude-sonnet-4-5", label: "CLAUDE SONNET 4.5",  vendor: "ANTHROPIC", desc: "BALANCEADO / RAZONAMIENTO" },
-  { id: "claude-haiku-4-5",  label: "CLAUDE HAIKU 4.5",   vendor: "ANTHROPIC", desc: "RAPIDO Y ECONOMICO" },
-  { id: "gemini-2-5-pro",    label: "GEMINI 2.5 PRO",     vendor: "GOOGLE",    desc: "MULTIMODAL / CONTEXTO LARGO" },
-  { id: "llama-3-3-70b",     label: "LLAMA 3.3 70B",      vendor: "META",      desc: "OPEN-WEIGHTS / DEPLOY PROPIO" },
-  { id: "local-ollama",      label: "LOCAL (OLLAMA)",     vendor: "LOCAL",     desc: "ON-PREM / PRIVADO" },
+  { id: "deepseek-v4-flash-free", label: "DEEPSEEK V4 FLASH", vendor: "OPENCODE ZEN", desc: "MODELO ACTIVO DEL BACKEND" },
+  { id: "local-ollama",           label: "LOCAL (OLLAMA)",     vendor: "LOCAL",        desc: "LAB / FUTURO ON-PREM" },
 ];
 
 Object.assign(window, {
-  SERVICES, CASES, STACK, ABOUT_LINES, ABOUT_PROFILE, DIAGNOSTIC,
+  SERVICES, CASES, STACK, EXPERIENCES, AI_TOOLS, ABOUT_LINES, ABOUT_PROFILE, DIAGNOSTIC,
   COMMANDS_META, HERO, buildDiagnosis, MODELS,
 });

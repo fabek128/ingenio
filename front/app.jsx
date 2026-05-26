@@ -40,6 +40,71 @@ function useTyped(text, speed = 12, enabled = true) {
   return out;
 }
 
+/* ---------- Backend API client (session + CSRF) ---------- */
+let _apiCsrfToken = null;
+
+function apiBaseUrl() {
+  if (window.INGENIO_API_BASE_URL) return window.INGENIO_API_BASE_URL.replace(/\/$/, "");
+  const host = window.location.hostname;
+  const isLocalStatic = (host === "localhost" || host === "127.0.0.1") && window.location.port === "8000";
+  return isLocalStatic ? "http://127.0.0.1:8080" : "";
+}
+
+async function ensureApiSession() {
+  if (_apiCsrfToken) return _apiCsrfToken;
+  const res = await fetch(apiBaseUrl() + "/api/session", {
+    method: "GET",
+    credentials: "include",
+  });
+  if (!res.ok) throw new Error("SESSION_FAILED");
+  const data = await res.json();
+  _apiCsrfToken = data.csrf_token;
+  return _apiCsrfToken;
+}
+
+async function fetchSiteContext() {
+  const res = await fetch(apiBaseUrl() + "/api/site-context", {
+    method: "GET",
+    credentials: "include",
+  });
+  if (!res.ok) throw new Error("SITE_CONTEXT_FAILED");
+  return res.json();
+}
+
+async function askBackendAgent(message) {
+  const csrf = await ensureApiSession();
+  const res = await fetch(apiBaseUrl() + "/api/chat", {
+    method: "POST",
+    credentials: "include",
+    headers: {
+      "Content-Type": "application/json",
+      "X-Ingenio-CSRF": csrf,
+    },
+    body: JSON.stringify({ message }),
+  });
+  if (res.status === 401 || res.status === 403) {
+    _apiCsrfToken = null;
+    throw new Error("SESSION_REJECTED");
+  }
+  if (res.status === 429) throw new Error("RATE_LIMITED");
+  if (res.status === 413) throw new Error("MESSAGE_TOO_LONG");
+  if (!res.ok) throw new Error("AGENT_FAILED");
+  return res.json();
+}
+
+function agentErrorMessage(error) {
+  const code = error?.message || "AGENT_FAILED";
+  const map = {
+    SESSION_FAILED: "NO PUDE INICIAR SESION CON EL BACKEND. VERIFICA QUE LA API ESTE ONLINE.",
+    SESSION_REJECTED: "LA SESION FUE RECHAZADA. RECARGA LA PAGINA O INTENTA DE NUEVO.",
+    RATE_LIMITED: "DEMASIADAS CONSULTAS EN POCO TIEMPO. ESPERA UN MINUTO Y PROBA DE NUEVO.",
+    MESSAGE_TOO_LONG: "EL MENSAJE ES DEMASIADO LARGO. RESUMILO Y VOLVE A ENVIARLO.",
+    SITE_CONTEXT_FAILED: "NO PUDE LEER EL ESTADO DEL MODELO EN EL BACKEND.",
+    AGENT_FAILED: "EL AGENTE NO RESPONDIO. PUEDE SER UN ERROR TEMPORAL DEL MODELO O DEL BACKEND.",
+  };
+  return map[code] || map.AGENT_FAILED;
+}
+
 /* ============================================================
    BOOT SCREEN
    ============================================================ */
@@ -210,6 +275,8 @@ function BlockRenderer({ entry, onCommand }) {
   switch (entry.kind) {
     case "hero": return <HeroBlock onCommand={onCommand} />;
     case "help": return <HelpBlock />;
+    case "experiences": return <ExperiencesBlock />;
+    case "tools": return <ToolsBlock />;
     case "services": return <ServicesBlock onCommand={onCommand} />;
     case "cases": return <CasesBlock />;
     case "stack": return <StackBlock />;
@@ -228,9 +295,9 @@ function HeroBlock({ onCommand }) {
       <div className="title">{HERO.title}</div>
       <div className="sub">{HERO.sub}</div>
       <div className="hero-ctas">
-        <button className="hero-cta primary" onClick={() => onCommand("DIAGNOSE")}>&gt; INICIAR_DIAGNOSTICO</button>
-        <button className="hero-cta" onClick={() => onCommand("SERVICES")}>&gt; VER_SERVICIOS</button>
-        <button className="hero-cta" onClick={() => onCommand("CONTACT")}>&gt; CONTACTAR</button>
+        <button className="hero-cta primary" onClick={() => onCommand("EXPERIENCIAS")}>&gt; VER_EXPERIENCIAS</button>
+        <button className="hero-cta" onClick={() => onCommand("AGENT Como usas IA todos los dias?")}>&gt; PREGUNTAR_AL_AGENTE</button>
+        <button className="hero-cta" onClick={() => onCommand("TOOLS")}>&gt; TOOLS</button>
       </div>
       <div className="stars" style={{ marginTop: 16 }}>{"* ".repeat(28).trim()}</div>
     </div>
@@ -252,6 +319,50 @@ function HelpBlock() {
       </div>
       <div style={{ marginTop: 14, color: "var(--fg-dim)", fontSize: 16, fontFamily: "var(--font-ui)", letterSpacing: "0.06em" }}>
         TIP: PODES USAR FLECHA ARRIBA/ABAJO PARA NAVEGAR EL HISTORIAL. TAB AUTOCOMPLETA.
+      </div>
+    </div>
+  );
+}
+
+
+/* ---------- EXPERIENCES ---------- */
+function ExperiencesBlock() {
+  return (
+    <div className="block">
+      <div className="block-title"><span className="badge">LOG</span>AI_EXPERIENCES.LOG</div>
+      <div style={{ color: "var(--fg-dim)", fontSize: 16, marginBottom: 8, fontFamily: "var(--font-ui)" }}>
+        REGISTRO PERSONAL DE USO REAL DE IA. NO ES UN WHITEPAPER: ES DIARIO DE CAMPO.
+      </div>
+      <div className="modules">
+        {EXPERIENCES.map((e) => (
+          <div key={e.id} className="module">
+            <div className="module-header">
+              <span className="module-id">[{e.id}]</span>
+              <span className="module-title">{e.title}</span>
+            </div>
+            <div className="module-body">{e.body}</div>
+            <div className="module-meta">
+              {e.tags.map((t) => <span key={t} className="tag">{t}</span>)}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/* ---------- TOOLS ---------- */
+function ToolsBlock() {
+  return (
+    <div className="block">
+      <div className="block-title"><span className="badge">IDX</span>AI_TOOLS.INDEX</div>
+      <div style={{ display: "grid", gridTemplateColumns: "minmax(170px, max-content) 1fr", gap: "6px 18px", fontSize: 22 }}>
+        {AI_TOOLS.map(([k, v]) => (
+          <React.Fragment key={k}>
+            <div style={{ color: "var(--fg-dim)", fontFamily: "var(--font-ui)", fontSize: 13, alignSelf: "center", letterSpacing: "0.08em" }}>{k}</div>
+            <div style={{ color: "var(--fg-bright)" }}>{v}</div>
+          </React.Fragment>
+        ))}
       </div>
     </div>
   );
@@ -675,7 +786,7 @@ function CommandBar({ onSubmit, value, setValue, history, setHistory }) {
     }
   };
 
-  const quickButtons = ["HOME", "HELP", "SERVICES", "DIAGNOSE", "CASES", "STACK", "ABOUT", "CONTACT"];
+  const quickButtons = ["HOME", "HELP", "EXPERIENCIAS", "TOOLS", "AGENT", "STACK", "ABOUT", "CONTACT"];
 
   return (
     <div className="command-bar">
@@ -766,7 +877,7 @@ function HomeView({ onCommand }) {
             <span className="role">AGENT:</span>
             HOLA. SOY EL AGENTE DEL SISTEMA.
             <br/>PODES ESCRIBIR UN COMANDO O HACER UNA PREGUNTA EN LENGUAJE NATURAL.
-            <br/>PROBA CON <span style={{ color: "var(--fg-bright)" }}>&gt; SERVICES</span> O <span style={{ color: "var(--fg-bright)" }}>&gt; DIAGNOSE</span>.
+            <br/>PROBA CON <span style={{ color: "var(--fg-bright)" }}>&gt; EXPERIENCIAS</span>, <span style={{ color: "var(--fg-bright)" }}>&gt; TOOLS</span> O ESCRIBI UNA PREGUNTA LIBRE.
           </div>
         </div>
       </div>
@@ -808,7 +919,7 @@ function App() {
   const [value, setValue] = useState("");
   const [history, setHistory] = useState([]);
   const [sound, setSound] = useState(false);
-  const [model, setModel] = useState("claude-sonnet-4-5");
+  const [model, setModel] = useState("deepseek-v4-flash-free");
 
   // Apply theme to <html>
   useEffect(() => {
@@ -834,6 +945,9 @@ function App() {
   // Heuristic intent detection for natural-language inputs
   const inferIntent = (raw) => {
     const t = raw.toUpperCase();
+    if (/EXPERIENCIA|DIARIO|BITACORA|USO.*IA/.test(t)) return "EXPERIENCIAS";
+    if (/TOOLS|HERRAMIENT|CODEX|CLAUDE|OPENCODE/.test(t)) return "TOOLS";
+    if (/MODELO|MODEL|LLM/.test(t)) return "MODEL";
     if (/SERVIC|QUE OFRECE|QUE HACEN|PUEDEN HACER/.test(t)) return "SERVICES";
     if (/DIAGNOST|DIAGNOSE|AYUD.*ELEGIR|NO SE/.test(t)) return "DIAGNOSE";
     if (/CASO|EJEMPLO|MUESTRA/.test(t)) return "CASES";
@@ -850,7 +964,7 @@ function App() {
     return null;
   };
 
-  const handleCommand = (rawInput, opts = {}) => {
+  const handleCommand = async (rawInput, opts = {}) => {
     const raw = (rawInput || "").trim();
     if (!raw) return;
     const upper = raw.toUpperCase();
@@ -859,15 +973,17 @@ function App() {
     const cmds = new Set(COMMANDS_META.map((c) => c.cmd).concat(["HOME"]));
     let cmd = cmds.has(first) ? first : null;
     if (!cmd) cmd = inferIntent(raw);
-    runCommand(cmd, raw, opts);
+    await runCommand(cmd, raw, opts);
   };
 
   const closeView = () => setView({ kind: "home" });
 
-  const runCommand = (cmd, raw, opts = {}) => {
+  const runCommand = async (cmd, raw, opts = {}) => {
     if (sound) beep(660, 0.025, 0.025);
     switch (cmd) {
       case "HELP":     return setView({ kind: "help" });
+      case "EXPERIENCIAS": return setView({ kind: "experiences" });
+      case "TOOLS":    return setView({ kind: "tools" });
       case "SERVICES": return setView({ kind: "services" });
       case "CASES":    return setView({ kind: "cases" });
       case "STACK":    return setView({ kind: "stack" });
@@ -875,6 +991,34 @@ function App() {
       case "DIAGNOSE": return setView({ kind: "diag" });
       case "CONTACT":  return setView({ kind: "contact", prefill: opts.prefill });
       case "HOME":     return setView({ kind: "home" });
+
+      case "AGENT": {
+        const question = (raw || "").replace(/^AGENT\s*/i, "").trim() || "Como usas IA todos los dias?";
+        setView({ kind: "response", title: "AGENT LINK", body: "CONECTANDO CON BACKEND...\n\n> " + question });
+        try {
+          const data = await askBackendAgent(question);
+          return setView({ kind: "response", title: "AGENT LINK", body: data.reply, ctas: [
+            { cmd: "EXPERIENCIAS", label: "EXPERIENCIAS", primary: true },
+            { cmd: "TOOLS", label: "TOOLS" },
+          ] });
+        } catch (e) {
+          return setView({ kind: "response", title: "AGENT ERROR", body: agentErrorMessage(e), ctas: [
+            { cmd: "HELP", label: "HELP", primary: true },
+            { cmd: "HOME", label: "HOME" },
+          ] });
+        }
+      }
+      case "MODEL": {
+        try {
+          const data = await fetchSiteContext();
+          return setView({ kind: "response", title: "MODEL STATUS",
+            body: "BACKEND: ONLINE\nMODEL: " + (data.model || "UNKNOWN") + "\nCAPS: " + ((data.capabilities || []).join(" / ") || "N/A") + "\nMAX MESSAGE: " + (data.limits?.max_message_chars || "N/A"),
+            ctas: [{ cmd: "AGENT", label: "PREGUNTAR", primary: true }],
+          });
+        } catch (e) {
+          return setView({ kind: "response", title: "MODEL STATUS", body: agentErrorMessage(e), ctas: [{ cmd: "HOME", label: "HOME", primary: true }] });
+        }
+      }
 
       case "WHATSAPP":
         return setView({ kind: "response", title: "WHATSAPP",
@@ -949,14 +1093,21 @@ function App() {
         setView({ kind: "home" });
         return;
 
-      default:
-        return setView({ kind: "response", title: "?SYNTAX ERROR",
-          body: "?SYNTAX ERROR  —  COMANDO O FRASE NO RECONOCIDA.\n\nPROBA ASI:\n> HELP             VER COMANDOS\n> SERVICES         VER QUE HACEMOS\n> DIAGNOSE         DIAGNOSTICO RAPIDO\n\nO SIMPLEMENTE CONTAME QUE NECESITAS EN LENGUAJE NATURAL.",
-          ctas: [
+      default: {
+        setView({ kind: "response", title: "AGENT LINK", body: "CONSULTA LIBRE DETECTADA.\nCONECTANDO CON BACKEND...\n\n> " + raw });
+        try {
+          const data = await askBackendAgent(raw);
+          return setView({ kind: "response", title: "AGENT LINK", body: data.reply, ctas: [
+            { cmd: "EXPERIENCIAS", label: "EXPERIENCIAS", primary: true },
+            { cmd: "HELP", label: "HELP" },
+          ] });
+        } catch (e) {
+          return setView({ kind: "response", title: "AGENT ERROR", body: agentErrorMessage(e), ctas: [
             { cmd: "HELP", label: "HELP", primary: true },
             { cmd: "HOME", label: "HOME" },
-          ],
-        });
+          ] });
+        }
+      }
     }
   };
 
@@ -969,6 +1120,16 @@ function App() {
       case "help":
         return <ViewShell tag="HELP" title="COMANDOS DISPONIBLES" path="/SYS/HELP" onClose={closeView}>
           <HelpBlock />
+        </ViewShell>;
+      case "experiences":
+        return <ViewShell tag="LOG" title="AI EXPERIENCES" path="/USR/EXPERIENCIAS.LOG" onClose={closeView}>
+          <div className="view-intro"><span className="role">AGENT:</span>ABRIENDO BITACORA PERSONAL DE IA.</div>
+          <ExperiencesBlock />
+        </ViewShell>;
+      case "tools":
+        return <ViewShell tag="IDX" title="AI TOOLS" path="/USR/TOOLS.IDX" onClose={closeView}>
+          <div className="view-intro"><span className="role">AGENT:</span>HERRAMIENTAS QUE USO EN EL DIA A DIA.</div>
+          <ToolsBlock />
         </ViewShell>;
       case "services":
         return <ViewShell tag="LOAD" title="SERVICE MODULES" path="/SYS/SERVICES.SYS" onClose={closeView}>

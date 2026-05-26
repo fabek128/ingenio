@@ -1,0 +1,114 @@
+name: Deploy INGENIO/64
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ingenio-production
+  cancel-in-progress: false
+
+jobs:
+  test-and-deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    env:
+      PYTHON_VERSION: "3.11"
+      INGENIO_ENV: test
+      INGENIO_ALLOWED_ORIGIN: http://localhost:8000
+      INGENIO_LLM_BASE_URL: https://opencode.ai/zen/v1
+      INGENIO_LLM_MODEL: deepseek-v4-flash-free
+      INGENIO_LLM_API_KEY: test-only-not-used
+      INGENIO_LLM_TIMEOUT_SECONDS: "5"
+      INGENIO_SESSION_SECRET: test-only-session-secret-change-in-prod
+      INGENIO_SESSION_TTL_SECONDS: "3600"
+      INGENIO_RATE_LIMIT_PER_MINUTE: "100"
+      INGENIO_MAX_MESSAGE_CHARS: "2000"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+          cache-dependency-path: backend/requirements.txt
+
+      - name: Install backend dependencies
+        working-directory: backend
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Backend tests
+        working-directory: backend
+        run: |
+          PYTHONPATH="$PWD" pytest
+          python -m compileall app
+
+      - name: Validate deployment secrets
+        env:
+          DOKPLOY_API_URL: ${{ secrets.DOKPLOY_API_URL }}
+          DOKPLOY_API_TOKEN: ${{ secrets.DOKPLOY_API_TOKEN }}
+          DOKPLOY_APPLICATION_ID: ${{ secrets.DOKPLOY_APPLICATION_ID }}
+          DOKPLOY_COMPOSE_ID: ${{ secrets.DOKPLOY_COMPOSE_ID }}
+        run: |
+          test -n "$DOKPLOY_API_URL" || (echo "Missing DOKPLOY_API_URL" && exit 1)
+          test -n "$DOKPLOY_API_TOKEN" || (echo "Missing DOKPLOY_API_TOKEN" && exit 1)
+          if [ -z "$DOKPLOY_APPLICATION_ID" ] && [ -z "$DOKPLOY_COMPOSE_ID" ]; then
+            echo "Missing DOKPLOY_APPLICATION_ID or DOKPLOY_COMPOSE_ID"
+            exit 1
+          fi
+
+      - name: Trigger Dokploy deploy
+        env:
+          DOKPLOY_API_URL: ${{ secrets.DOKPLOY_API_URL }}
+          DOKPLOY_API_TOKEN: ${{ secrets.DOKPLOY_API_TOKEN }}
+          DOKPLOY_APPLICATION_ID: ${{ secrets.DOKPLOY_APPLICATION_ID }}
+          DOKPLOY_COMPOSE_ID: ${{ secrets.DOKPLOY_COMPOSE_ID }}
+          GITHUB_SHA: ${{ github.sha }}
+        run: |
+          API_BASE="${DOKPLOY_API_URL%/}"
+          case "$API_BASE" in
+            */api) ;;
+            *) API_BASE="$API_BASE/api" ;;
+          esac
+
+          if [ -n "$DOKPLOY_COMPOSE_ID" ]; then
+            ENDPOINT="compose.deploy"
+            BODY=$(printf '{"composeId":"%s"}' "$DOKPLOY_COMPOSE_ID")
+          else
+            ENDPOINT="application.deploy"
+            BODY=$(printf '{"applicationId":"%s","title":"GitHub Actions deploy","description":"Commit %s"}' "$DOKPLOY_APPLICATION_ID" "$GITHUB_SHA")
+          fi
+
+          curl --fail --show-error --silent \
+            -X POST "$API_BASE/$ENDPOINT" \
+            -H "Content-Type: application/json" \
+            -H "accept: application/json" \
+            -H "x-api-key: $DOKPLOY_API_TOKEN" \
+            -H "Authorization: Bearer $DOKPLOY_API_TOKEN" \
+            -d "$BODY"
+
+      - name: Smoke test
+        env:
+          DOMAIN_INGENIO: ${{ secrets.DOMAIN_INGENIO }}
+          SMOKE_TEST_URL: ${{ secrets.SMOKE_TEST_URL }}
+        run: |
+          sleep 20
+          if [ -n "$SMOKE_TEST_URL" ]; then
+            URL="$SMOKE_TEST_URL"
+          elif [ -n "$DOMAIN_INGENIO" ]; then
+            URL="https://${DOMAIN_INGENIO}/health"
+          else
+            echo "Skipping smoke test: set SMOKE_TEST_URL or DOMAIN_INGENIO to enable it."
+            exit 0
+          fi
+          curl --fail --show-error --silent "$URL" >/dev/null

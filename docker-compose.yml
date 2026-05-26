@@ -1,15 +1,14 @@
 # INGENIO/64 — desarrollo local con Docker Compose
 #
 # Uso:
-#   docker compose up -d            # levantar backend
-#   docker compose down             # detener todo
+#   docker compose up -d --build     # levantar frontend + backend
+#   docker compose down              # detener todo
 #
-# Frontend: servir front/ con un servidor estatico separado:
-#   cd front && python3 -m http.server 8000
+# Frontend: http://localhost:8000
+# Backend directo para debug: http://localhost:8080
 #
 # Nota: el modelo usa OpenCode Zen API (cloud), no requiere Ollama local.
-# La API key se pasa via variable de entorno INGENIO_LLM_API_KEY
-# o se lee del archivo .env en la raiz del repo.
+# La API key se lee del archivo .env en la raiz del repo.
 
 services:
   ingenio-api:
@@ -17,14 +16,22 @@ services:
     ports:
       - "127.0.0.1:8080:8080"
     environment:
-      INGENIO_ENV: development
-      INGENIO_ALLOWED_ORIGIN: http://localhost:8000
-      INGENIO_LLM_BASE_URL: https://opencode.ai/zen/v1
-      INGENIO_LLM_MODEL: deepseek-v4-flash-free
+      INGENIO_ENV: ${INGENIO_ENV:-development}
+      INGENIO_ALLOWED_ORIGIN: ${INGENIO_ALLOWED_ORIGIN:-http://localhost:8000}
+      INGENIO_LLM_BASE_URL: ${INGENIO_LLM_BASE_URL:-https://opencode.ai/zen/v1}
+      INGENIO_LLM_MODEL: ${INGENIO_LLM_MODEL:-deepseek-v4-flash-free}
       INGENIO_LLM_API_KEY: ${INGENIO_LLM_API_KEY}
-      INGENIO_LLM_TIMEOUT_SECONDS: "45"
+      INGENIO_LLM_TIMEOUT_SECONDS: ${INGENIO_LLM_TIMEOUT_SECONDS:-45}
       INGENIO_SESSION_SECRET: ${INGENIO_SESSION_SECRET:-dev-only-insecure-change-in-prod}
-      INGENIO_SESSION_TTL_SECONDS: "3600"
-      INGENIO_RATE_LIMIT_PER_MINUTE: "12"
-      INGENIO_MAX_MESSAGE_CHARS: "2000"
+      INGENIO_SESSION_TTL_SECONDS: ${INGENIO_SESSION_TTL_SECONDS:-3600}
+      INGENIO_RATE_LIMIT_PER_MINUTE: ${INGENIO_RATE_LIMIT_PER_MINUTE:-12}
+      INGENIO_MAX_MESSAGE_CHARS: ${INGENIO_MAX_MESSAGE_CHARS:-2000}
+    restart: unless-stopped
+
+  ingenio-front:
+    build: ./front
+    depends_on:
+      - ingenio-api
+    ports:
+      - "127.0.0.1:8000:80"
     restart: unless-stopped

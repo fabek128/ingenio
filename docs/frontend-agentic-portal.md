@@ -1,0 +1,106 @@
+# INGENIO/64 - Portal frontend agentico
+
+Fecha: 2026-05-26
+
+## Objetivo
+
+Redisenar el frontend existente para que INGENIO/64 sea un sitio personal tipo consola agentica, no solo una landing comercial.
+
+## Cambios funcionales
+
+- Home reorientado a diario personal de IA.
+- Nuevos comandos:
+  - `EXPERIENCIAS`: bitacora de uso real de IA.
+  - `TOOLS`: herramientas que Fabian usa en su flujo diario.
+  - `AGENT`: envia una pregunta libre al backend.
+  - `MODEL`: consulta metadata publica del backend.
+- Preguntas no reconocidas dejan de terminar en `?SYNTAX ERROR` y pasan a `/api/chat`.
+- El frontend inicializa sesion con `/api/session`, guarda CSRF en memoria y llama `/api/chat` con cookie HttpOnly + `X-Ingenio-CSRF`.
+- En desarrollo local, si el frontend se sirve en `localhost:8000`, la API se busca en `http://127.0.0.1:8080`.
+- En produccion, la API se llama por mismo origen usando `/api/*`.
+
+## Seguridad
+
+- El frontend no contiene API keys ni secretos.
+- El token CSRF se mantiene en memoria, no en localStorage.
+- La cookie de sesion la maneja el backend como HttpOnly.
+- Las respuestas del modelo se renderizan como texto React, sin `dangerouslySetInnerHTML`.
+- Errores del backend se normalizan a mensajes de consola sin filtrar detalles internos.
+
+## Requisitos de backend
+
+El backend debe exponer:
+
+```text
+GET  /api/session
+GET  /api/site-context
+POST /api/chat
+GET  /health
+```
+
+Y debe aceptar CORS desde `INGENIO_ALLOWED_ORIGIN` durante desarrollo.
+
+## Validacion manual
+
+1. Levantar backend:
+
+```bash
+cd backend
+PYTHONPATH="$PWD" uvicorn app.main:app --host 127.0.0.1 --port 8080 --reload
+```
+
+2. Servir frontend:
+
+```bash
+cd front
+python3 -m http.server 8000
+```
+
+3. Abrir:
+
+```text
+http://localhost:8000
+```
+
+4. Probar comandos:
+
+```text
+HELP
+EXPERIENCIAS
+TOOLS
+MODEL
+AGENT Como usas IA todos los dias?
+```
+
+5. Probar pregunta libre:
+
+```text
+Que estas construyendo con INGENIO/64?
+```
+
+## Docker / deploy
+
+El frontend ahora incluye:
+
+```text
+front/Dockerfile
+front/nginx.conf
+front/.dockerignore
+```
+
+`front/nginx.conf` sirve los archivos estaticos y proxya internamente:
+
+```text
+/       -> frontend estatico
+/api/*  -> http://ingenio-api:8080/api/*
+/health -> http://ingenio-api:8080/health
+```
+
+## Nota de deploy
+
+La app existente en Dokploy se detecto como frontend estatico `ingenio-uno-site`. Para produccion hay dos caminos:
+
+1. Crear un Compose nuevo usando `docker-compose.dokploy.yml` y publicar el dominio sobre `ingenio-front:80`.
+2. Mantener app frontend separada y agregar `ingenio-api`, configurando routing equivalente.
+
+El camino recomendado para el portal completo es `docker-compose.dokploy.yml`.

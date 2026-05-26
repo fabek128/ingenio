@@ -1,6 +1,9 @@
 # INGENIO/64 - Tutorial paso a paso para crear el backend pequeno
 
 Fecha: 2026-05-26  
+
+> Estado actual: este tutorial conserva el diseno original con Ollama/Gemma local como referencia historica. La implementacion vigente del repo usa FastAPI + OpenCode Zen API cloud. Para correr el backend actual, ver `backend/README.md` y `docs/backend-specification.md`.
+
 Objetivo: construir un backend FastAPI pequeno que conecte el frontend de INGENIO/64 con Ollama usando un modelo local y controles basicos de seguridad.
 
 Este tutorial esta escrito para que pueda seguirlo un programador junior o un subagente con contexto limitado.

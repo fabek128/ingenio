@@ -1,0 +1,34 @@
+# INGENIO/64 — stack recomendado para Dokploy
+#
+# Configurar estas variables en Dokploy, no en Git:
+# - INGENIO_ALLOWED_ORIGIN=https://<DOMAIN_INGENIO>
+# - INGENIO_LLM_API_KEY=<secret>
+# - INGENIO_SESSION_SECRET=<secret>
+#
+# Publicar el dominio en Dokploy apuntando al servicio ingenio-front puerto 80.
+
+services:
+  ingenio-api:
+    build: ./backend
+    environment:
+      INGENIO_ENV: production
+      INGENIO_ALLOWED_ORIGIN: ${INGENIO_ALLOWED_ORIGIN}
+      INGENIO_LLM_BASE_URL: ${INGENIO_LLM_BASE_URL:-https://opencode.ai/zen/v1}
+      INGENIO_LLM_MODEL: ${INGENIO_LLM_MODEL:-deepseek-v4-flash-free}
+      INGENIO_LLM_API_KEY: ${INGENIO_LLM_API_KEY}
+      INGENIO_LLM_TIMEOUT_SECONDS: ${INGENIO_LLM_TIMEOUT_SECONDS:-45}
+      INGENIO_SESSION_SECRET: ${INGENIO_SESSION_SECRET}
+      INGENIO_SESSION_TTL_SECONDS: ${INGENIO_SESSION_TTL_SECONDS:-3600}
+      INGENIO_RATE_LIMIT_PER_MINUTE: ${INGENIO_RATE_LIMIT_PER_MINUTE:-12}
+      INGENIO_MAX_MESSAGE_CHARS: ${INGENIO_MAX_MESSAGE_CHARS:-2000}
+    expose:
+      - "8080"
+    restart: unless-stopped
+
+  ingenio-front:
+    build: ./front
+    depends_on:
+      - ingenio-api
+    expose:
+      - "80"
+    restart: unless-stopped

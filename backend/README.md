@@ -27,13 +27,14 @@ uvicorn app.main:app --host 127.0.0.1 --port 8080 --reload
 ## Desarrollo local (Docker Compose)
 
 ```bash
-docker compose up -d
+docker compose up -d --build
 ```
 
-Levanta el backend. El frontend se sirve aparte:
+Levanta backend + frontend:
 
-```bash
-cd front && python3 -m http.server 8000
+```text
+http://localhost:8000  # frontend + proxy /api
+http://localhost:8080  # backend directo para debug
 ```
 
 **Nota**: el modelo se ejecuta en la nube via OpenCode Zen. No requiere Ollama local.

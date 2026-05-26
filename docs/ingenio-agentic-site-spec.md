@@ -8,6 +8,19 @@ Estado: borrador tecnico / producto
 
 - `docs/backend-specification.md`: especificacion tecnica del backend, dependencias, API, seguridad y operacion como servicio.
 - `docs/backend-tutorial.md`: tutorial paso a paso para implementar el backend pequeno con FastAPI y Ollama.
+- `docs/github-actions-deploy.md`: pipeline de deploy con GitHub Actions y Dokploy.
+- `docs/frontend-agentic-portal.md`: adaptacion del frontend al nuevo portal agentico.
+
+
+## Nota de implementacion actual
+
+El proyecto evoluciono desde la idea inicial de Ollama/Gemma local hacia un backend FastAPI que usa OpenCode Zen API (`deepseek-v4-flash-free`) via variable `INGENIO_LLM_API_KEY`. Las secciones historicas sobre Ollama quedan como alternativa futura/laboratorio local, pero el camino activo de deploy es:
+
+```text
+frontend Nginx -> backend FastAPI -> OpenCode Zen API
+```
+
+Para deploy actual, priorizar `docker-compose.dokploy.yml`, `docs/frontend-agentic-portal.md` y `docs/github-actions-deploy.md`.
 
 ## 1. Vision del proyecto
 
@@ -594,8 +607,8 @@ Cuando haya suficientes posts/docs:
 - El frontend sigue funcionando como consola retro.
 - `HELP` lista comandos locales y comandos agenticos.
 - Una pregunta libre no reconocida llama al backend.
-- El backend responde usando modelo local via Ollama.
-- Ollama no esta expuesto publicamente.
+- El backend responde usando modelo via API cloud/OpenCode Zen.
+- La API key del modelo no esta expuesta publicamente.
 - El backend corre como servicio y reinicia solo.
 - Hay `GET /health` para monitoreo.
 - Los errores se muestran con estetica terminal sin filtrar stack traces.

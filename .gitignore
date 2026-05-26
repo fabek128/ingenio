@@ -44,3 +44,7 @@ coverage/
 .idea/
 *.swp
 *.swo
+
+# Private deployment documentation (infra topology, hosts, VPN, admin panels)
+docs/deploy-pipeline-requirements.md
+docs/deploy-pipeline-tutorial.md

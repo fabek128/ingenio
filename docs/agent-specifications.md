@@ -14,9 +14,11 @@ Cuando una instruccion afecte como deben trabajar los agentes en este repo, debe
 Todo agente debe buscar primero en `docs/` la documentacion relevante antes de implementar, modificar arquitectura o responder sobre el funcionamiento del proyecto. Si cambia una decision documentada, debe actualizar el documento correspondiente en el mismo cambio.
 
 ## Documentos relacionados
-- `docs/ingenio-agentic-site-spec.md`: analisis del proyecto, vision de producto, arquitectura objetivo y plan de backend local con Ollama.
+- `docs/ingenio-agentic-site-spec.md`: analisis del proyecto, vision de producto, arquitectura objetivo y plan de backend agentico.
 - `docs/backend-tutorial.md`: guia paso a paso para construir y operar el backend pequeno.
 - `docs/backend-specification.md`: requisitos, arquitectura y seguridad del backend agentico.
+- `docs/github-actions-deploy.md`: configuracion del pipeline GitHub Actions -> Dokploy.
+- `docs/frontend-agentic-portal.md`: cambios del frontend como consola agentica y validacion manual.
 
 ## Politica de secretos
 - `.env` es local y esta ignorado por Git.
