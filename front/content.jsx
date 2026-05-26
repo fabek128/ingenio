@@ -91,10 +91,10 @@ const STACK = [
 
 const ABOUT_PROFILE = {
   photo: "assets/fabian-profile.jpg",
-  name: "FABIAN",
+  name: "FABIAN FIGUEREDO",
   role: "SENIOR PROGRAMMER / TECH LEAD",
   company: "ASAP CONSULTING S.A.  //  INGENIO UNO",
-  since: "COMMODORE 64 BASIC",
+  since: "COMMODORE 64 BASIC V2",
   stack: ".NET → JAVA → NODE.JS → PYTHON → AI",
   title: "ACERCA DE MI.",
 };
@@ -229,24 +229,24 @@ function buildDiagnosis(answers) {
 }
 
 const COMMANDS_META = [
-  { cmd: "HOME",       desc: "VUELVE A LA PANTALLA PRINCIPAL" },
-  { cmd: "HELP",       desc: "MUESTRA LOS COMANDOS DISPONIBLES" },
+  { cmd: "HOME", desc: "VUELVE A LA PANTALLA PRINCIPAL" },
+  { cmd: "HELP", desc: "MUESTRA LOS COMANDOS DISPONIBLES" },
   { cmd: "EXPERIENCIAS", desc: "BITACORA DE USO REAL DE IA" },
-  { cmd: "PROYECTOS",  desc: "PROYECTOS PERSONALES EN CURSO" },
-  { cmd: "AGENT",      desc: "HABLA CON EL AGENTE DEL SITIO" },
-  { cmd: "MODEL",      desc: "MUESTRA EL MODELO ACTIVO" },
-  { cmd: "SERVICES",   desc: "SERVICIOS Y SOLUCIONES QUE PUEDO CONSTRUIR" },
-  { cmd: "DIAGNOSE",   desc: "INICIA UN DIAGNOSTICO GUIADO" },
-  { cmd: "CASES",      desc: "ABRE LA BASE DE CASOS DE USO" },
-  { cmd: "STACK",      desc: "MUESTRA EL STACK TECNOLOGICO" },
-  { cmd: "ABOUT",      desc: "QUIEN ESTA DEL OTRO LADO" },
-  { cmd: "CONTACT",    desc: "ABRE EL MODULO DE CONTACTO" },
-  { cmd: "WHATSAPP",   desc: "ABRE WHATSAPP" },
-  { cmd: "AGENDAR",    desc: "AGENDAR UNA LLAMADA DE 30 MIN" },
-  { cmd: "THEME",      desc: "CAMBIA EL TEMA: C64 / DARK / AMBER / LIGHT" },
-  { cmd: "SOUND",      desc: "ACTIVA O DESACTIVA EL BEEP" },
-  { cmd: "CLEAR",      desc: "LIMPIA LA PANTALLA" },
-  { cmd: "REBOOT",     desc: "REINICIA EL SISTEMA" },
+  { cmd: "PROYECTOS", desc: "PROYECTOS PERSONALES EN CURSO" },
+  { cmd: "AGENT", desc: "HABLA CON EL AGENTE DEL SITIO" },
+  { cmd: "MODEL", desc: "MUESTRA EL MODELO ACTIVO" },
+  { cmd: "SERVICES", desc: "SERVICIOS Y SOLUCIONES QUE PUEDO CONSTRUIR" },
+  { cmd: "DIAGNOSE", desc: "INICIA UN DIAGNOSTICO GUIADO" },
+  { cmd: "CASES", desc: "ABRE LA BASE DE CASOS DE USO" },
+  { cmd: "STACK", desc: "MUESTRA EL STACK TECNOLOGICO" },
+  { cmd: "ABOUT", desc: "QUIEN ESTA DEL OTRO LADO" },
+  { cmd: "CONTACT", desc: "ABRE EL MODULO DE CONTACTO" },
+  { cmd: "WHATSAPP", desc: "ABRE WHATSAPP" },
+  { cmd: "AGENDAR", desc: "AGENDAR UNA LLAMADA DE 30 MIN" },
+  { cmd: "THEME", desc: "CAMBIA EL TEMA: C64 / DARK / AMBER / LIGHT" },
+  { cmd: "SOUND", desc: "ACTIVA O DESACTIVA EL BEEP" },
+  { cmd: "CLEAR", desc: "LIMPIA LA PANTALLA" },
+  { cmd: "REBOOT", desc: "REINICIA EL SISTEMA" },
 ];
 
 const HERO = {
@@ -264,7 +264,7 @@ const HERO = {
 
 const MODELS = [
   { id: "deepseek-v4-flash-free", label: "DEEPSEEK V4 FLASH", vendor: "OPENCODE ZEN", desc: "MODELO ACTIVO DEL BACKEND" },
-  { id: "local-ollama",           label: "LOCAL (OLLAMA)",     vendor: "LOCAL",        desc: "LAB / FUTURO ON-PREM" },
+  { id: "local-ollama", label: "LOCAL (OLLAMA)", vendor: "LOCAL", desc: "LAB / FUTURO ON-PREM" },
 ];
 
 Object.assign(window, {
