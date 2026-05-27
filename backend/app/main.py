@@ -12,6 +12,12 @@ from urllib.parse import urlparse
 
 import httpx
 from fastapi import Cookie, Depends, FastAPI, Header, HTTPException, Request, Response, status
+from app.guardrails import (
+    build_public_context,
+    build_system_prompt,
+    classify_prompt,
+    validate_model_output,
+)
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -179,20 +185,6 @@ def require_browser_session(
     return payload
 
 
-def _system_prompt() -> str:
-    return (
-        "Sos el agente de INGENIO/64, el sitio personal de Fabian. "
-        "Respondes en espanol neutro, directo y tecnico. "
-        "Tu objetivo es ayudar a explorar experiencias, herramientas y aprendizajes sobre IA publicados por Fabian. "
-        "Si el usuario quiere acceder a una seccion del sitio (ABOUT, STACK, PROYECTOS, EXPERIENCIAS, "
-        "SERVICES, CASES, CONTACT, HELP), decile el nombre exacto del comando en mayusculas para que "
-        "lo escriba, por ejemplo: > ABOUT, > STACK, > EXPERIENCIAS. "
-        "Si no sabes algo del sitio, decilo y sugeri revisar una seccion relacionada. "
-        "No inventes datos personales, clientes, credenciales ni informacion privada. "
-        "No ejecutes acciones externas."
-    )
-
-
 def _content_to_text(content: Any) -> str:
     if isinstance(content, str):
         return content.strip()
@@ -281,10 +273,20 @@ async def chat(
     if len(message) > settings.ingenio_max_message_chars:
         raise HTTPException(status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE, detail="message_too_long")
 
+    decision = classify_prompt(message)
+    if not decision.allowed:
+        return ChatResponse(
+            reply=decision.safe_reply or "No puedo responder eso.",
+            model=settings.ingenio_llm_model,
+        )
+
+    public_context = build_public_context()
+    system_content = build_system_prompt(public_context)
+
     zen_payload = {
         "model": settings.ingenio_llm_model,
         "messages": [
-            {"role": "system", "content": _system_prompt()},
+            {"role": "system", "content": system_content},
             {"role": "user", "content": message},
         ],
         "temperature": 0.4,
@@ -314,6 +316,13 @@ async def chat(
     reply = _extract_llm_reply(data)
     if not reply:
         raise HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail="model_empty_response")
+
+    output_decision = validate_model_output(reply)
+    if not output_decision.allowed:
+        return ChatResponse(
+            reply=output_decision.safe_reply or "No puedo devolver esa respuesta.",
+            model=settings.ingenio_llm_model,
+        )
 
     usage = data.get("usage")
     usage_dict: dict[str, int] | None = None
