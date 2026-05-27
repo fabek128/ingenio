@@ -20,7 +20,7 @@ function beep(freq = 880, dur = 0.04, vol = 0.04, type = "square") {
     o.start();
     g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + dur);
     o.stop(ctx.currentTime + dur);
-  } catch (e) {}
+  } catch (e) { }
 }
 
 /* ---------- Typewriter hook: typed-out text reveal ---------- */
@@ -101,7 +101,7 @@ async function askBackendAgent(message) {
   if (res.status === 413) throw new Error("MESSAGE_TOO_LONG");
   if (!res.ok) {
     let detail = "";
-    try { detail = (await res.json()).detail || ""; } catch (e) {}
+    try { detail = (await res.json()).detail || ""; } catch (e) { }
     if (detail === "model_empty_response") throw new Error("MODEL_EMPTY_RESPONSE");
     if (detail === "model_timeout") throw new Error("MODEL_TIMEOUT");
     if (detail === "model_unavailable") throw new Error("MODEL_UNAVAILABLE");
@@ -173,7 +173,7 @@ function loadAgentMessages() {
 function saveAgentMessages(messages) {
   try {
     window.sessionStorage?.setItem(AGENT_CHAT_STORAGE_KEY, JSON.stringify(messages.slice(-40)));
-  } catch (e) {}
+  } catch (e) { }
 }
 
 /* ============================================================
@@ -238,29 +238,37 @@ function BootScreen({ onDone, theme, static: isStatic }) {
    ============================================================ */
 function SysHeader({ theme, onTheme }) {
   const themes = [
-    { id: "c64", icon: (
-      <svg viewBox="0 0 20 18" width="18" height="16" fill="currentColor">
-        <rect x="1" y="1" width="7" height="7" rx="1" />
-        <rect x="1" y="10" width="7" height="7" rx="1" />
-        <rect x="12" y="1" width="7" height="16" rx="1" />
-      </svg>
-    ), title: "C64" },
-    { id: "dark", icon: (
-      <svg viewBox="0 0 20 20" width="18" height="18" fill="currentColor">
-        <path d="M16.8 12.4A8 8 0 1 1 7.6 3.2a9 9 0 0 0 9.2 9.2z"/>
-      </svg>
-    ), title: "Dark" },
-    { id: "amber", icon: (
-      <svg viewBox="0 0 20 18" width="18" height="16" fill="currentColor">
-        <path d="M2 2h16v2H2zm0 7h14v2H2zm0 7h12v2H2z"/>
-      </svg>
-    ), title: "Amber" },
-    { id: "light", icon: (
-      <svg viewBox="0 0 20 20" width="18" height="18" fill="currentColor">
-        <circle cx="10" cy="10" r="4"/>
-        <path d="M10 1v2m0 14v2M1 10h2m14 0h2m-3.5-5.5L12 6m-4 4-1.5 1.5m7 0L12 14M6 6 4.5 4.5" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round"/>
-      </svg>
-    ), title: "Light" },
+    {
+      id: "c64", icon: (
+        <svg viewBox="0 0 20 18" width="18" height="16" fill="currentColor">
+          <rect x="1" y="1" width="7" height="7" rx="1" />
+          <rect x="1" y="10" width="7" height="7" rx="1" />
+          <rect x="12" y="1" width="7" height="16" rx="1" />
+        </svg>
+      ), title: "C64"
+    },
+    {
+      id: "dark", icon: (
+        <svg viewBox="0 0 20 20" width="18" height="18" fill="currentColor">
+          <path d="M16.8 12.4A8 8 0 1 1 7.6 3.2a9 9 0 0 0 9.2 9.2z" />
+        </svg>
+      ), title: "Dark"
+    },
+    {
+      id: "amber", icon: (
+        <svg viewBox="0 0 20 18" width="18" height="16" fill="currentColor">
+          <path d="M2 2h16v2H2zm0 7h14v2H2zm0 7h12v2H2z" />
+        </svg>
+      ), title: "Amber"
+    },
+    {
+      id: "light", icon: (
+        <svg viewBox="0 0 20 20" width="18" height="18" fill="currentColor">
+          <circle cx="10" cy="10" r="4" />
+          <path d="M10 1v2m0 14v2M1 10h2m14 0h2m-3.5-5.5L12 6m-4 4-1.5 1.5m7 0L12 14M6 6 4.5 4.5" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" />
+        </svg>
+      ), title: "Light"
+    },
   ];
 
   return (
@@ -303,7 +311,7 @@ function FeedLine({ entry, onCommand }) {
     return <div className={cls}><span className="prompt-mark">&gt;</span>{text}</div>;
   }
   if (entry.type === "agent") {
-    return <div className={cls}><span className="role">AGENT:</span><br/>{typedText}</div>;
+    return <div className={cls}><span className="role">AGENT:</span><br />{typedText}</div>;
   }
   if (entry.type === "sys") {
     return <div className={cls}>{typedText}</div>;
@@ -541,7 +549,7 @@ function AboutBlock() {
             />
             <div className="about-photo-scan" aria-hidden="true" />
             <div className="about-photo-corners" aria-hidden="true">
-              <span/><span/><span/><span/>
+              <span /><span /><span /><span />
             </div>
           </div>
           <div className="about-photo-caption">
@@ -555,12 +563,12 @@ function AboutBlock() {
           <div className="about-title">{ABOUT_PROFILE.title}</div>
           <div className="about-rows">
             {[
-              ["NAME",    ABOUT_PROFILE.name],
-              ["ROLE",    ABOUT_PROFILE.role],
+              ["NAME", ABOUT_PROFILE.name],
+              ["ROLE", ABOUT_PROFILE.role],
               ["COMPANY", ABOUT_PROFILE.company],
-              ["SINCE",   ABOUT_PROFILE.since],
-              ["STACK",   ABOUT_PROFILE.stack],
-              ["STATUS",  <><span className="status-dot"/> ONLINE — LISTO PARA CONSTRUIR</>],
+              ["SINCE", ABOUT_PROFILE.since],
+              ["STACK", ABOUT_PROFILE.stack],
+              ["STATUS", <><span className="status-dot" /> ONLINE — LISTO PARA CONSTRUIR</>],
             ].map(([k, v]) => (
               <React.Fragment key={k}>
                 <div className="about-k">{k}</div>
@@ -946,14 +954,6 @@ function HomeView({ onCommand }) {
               </div>
             ))}
           </div>
-          <div style={{ color: "var(--ok-color)", marginTop: 4, fontWeight: 600 }}>READY.</div>
-          <HeroBlock onCommand={onCommand} />
-          <div className="view-intro" style={{ marginTop: 10 }}>
-            <span className="role">AGENT:</span>
-            HOLA. SOY EL AGENTE DEL SISTEMA.
-            <br/>PODES ESCRIBIR UN COMANDO O HACER UNA PREGUNTA EN LENGUAJE NATURAL.
-            <br/>PROBA CON <span style={{ color: "var(--fg-bright)" }}>&gt; PROYECTOS</span>, <span style={{ color: "var(--fg-bright)" }}>&gt; ABOUT</span> O ESCRIBI UNA PREGUNTA LIBRE.
-          </div>
         </div>
       </div>
     </div>
@@ -1124,13 +1124,13 @@ function App() {
     if (sound) beep(660, 0.025, 0.025);
     switch (cmd) {
       case "PROYECTOS": return setView({ kind: "projects" });
-      case "TOOLS":    return setView({ kind: "projects" });
+      case "TOOLS": return setView({ kind: "projects" });
       case "SERVICES": return setView({ kind: "services" });
-      case "CASES":    return setView({ kind: "cases" });
-      case "ABOUT":    return setView({ kind: "about" });
+      case "CASES": return setView({ kind: "cases" });
+      case "ABOUT": return setView({ kind: "about" });
       case "DIAGNOSE": return setView({ kind: "diag" });
-      case "CONTACT":  return setView({ kind: "contact", prefill: opts.prefill });
-      case "HOME":     return setView({ kind: "home" });
+      case "CONTACT": return setView({ kind: "contact", prefill: opts.prefill });
+      case "HOME": return setView({ kind: "home" });
       case "AGENT": {
         const question = (raw || "").replace(/^AGENT\s*/i, "").trim();
         if (!question) return setView({ kind: "agent" });
@@ -1139,7 +1139,8 @@ function App() {
       case "MODEL": {
         try {
           const data = await fetchSiteContext();
-          return setView({ kind: "response", title: "MODEL STATUS",
+          return setView({
+            kind: "response", title: "MODEL STATUS",
             body: "BACKEND: ONLINE\nMODEL: " + (data.model || "UNKNOWN") + "\nCAPS: " + ((data.capabilities || []).join(" / ") || "N/A") + "\nMAX MESSAGE: " + (data.limits?.max_message_chars || "N/A"),
             ctas: [{ cmd: "AGENT", label: "PREGUNTAR", primary: true }],
           });
@@ -1148,32 +1149,38 @@ function App() {
         }
       }
       case "WHATSAPP":
-        return setView({ kind: "response", title: "WHATSAPP",
+        return setView({
+          kind: "response", title: "WHATSAPP",
           body: "ABRIENDO WHATSAPP EN UNA NUEVA PESTANA...\n\n(EN PROD: WA.ME/549XXXXXXXX)\n\nMIENTRAS TANTO PODES DEJARNOS UN MENSAJE EN EL MODULO DE CONTACTO.",
           ctas: [{ cmd: "CONTACT", label: "CONTACT", primary: true }, { cmd: "HOME", label: "HOME" }],
         });
       case "AGENDAR":
-        return setView({ kind: "response", title: "AGENDAR LLAMADA",
+        return setView({
+          kind: "response", title: "AGENDAR LLAMADA",
           body: "ABRIENDO CALENDARIO PARA UNA LLAMADA DE 30 MIN.\n\n(EN PROD: CAL.COM/INGENIO64)\n\nO DEJANOS TUS DATOS EN EL MODULO DE CONTACTO Y TE ESCRIBIMOS.",
           ctas: [{ cmd: "CONTACT", label: "CONTACT", primary: true }, { cmd: "HOME", label: "HOME" }],
         });
       case "CHATBOT_INFO":
-        return setView({ kind: "response", title: "SOBRE CHATBOTS",
+        return setView({
+          kind: "response", title: "SOBRE CHATBOTS",
           body: "PODEMOS DESARROLLAR CHATBOTS PARA WEB, WHATSAPP, INSTAGRAM Y TELEGRAM, CON HANDOFF A HUMANOS Y CONEXION A TU CRM.\n\nINCLUYE: ENTRENAMIENTO CON TUS DATOS, MENSAJES PROACTIVOS, METRICAS Y PANEL DE ADMINISTRACION.",
           ctas: [{ cmd: "DIAGNOSE", label: "DIAGNOSTICO RAPIDO", primary: true }, { cmd: "SERVICES", label: "VER SERVICIOS" }],
         });
       case "AUTO_INFO":
-        return setView({ kind: "response", title: "AUTOMATIZACIONES",
+        return setView({
+          kind: "response", title: "AUTOMATIZACIONES",
           body: "AUTOMATIZAMOS FLUJOS REPETITIVOS:\n- ALTA DE CLIENTES\n- REPORTES PERIODICOS\n- ETL ENTRE SISTEMAS\n- EMAILS Y NOTIFICACIONES\n- FACTURACION Y COBRANZAS\n\nSE INTEGRA CON SHEETS, NOTION, CRMS, ERPS, APIS Y WEBHOOKS.",
           ctas: [{ cmd: "DIAGNOSE", label: "DIAGNOSTICO", primary: true }, { cmd: "CASES", label: "VER CASOS" }],
         });
       case "PRICING":
-        return setView({ kind: "response", title: "RANGO ORIENTATIVO",
+        return setView({
+          kind: "response", title: "RANGO ORIENTATIVO",
           body: "RANGOS DE INVERSION (USD):\n\n- AUTOMATIZACION SIMPLE...... 1.500 -  3.000\n- CHATBOT / AGENTE BASICO.... 3.000 -  8.000\n- SISTEMA A MEDIDA........... 8.000 - 30.000+\n\nCADA PROYECTO SE COTIZA SEGUN ALCANCE.\nESCRIBI > DIAGNOSE PARA UNA ESTIMACION MAS PRECISA.",
           ctas: [{ cmd: "DIAGNOSE", label: "DIAGNOSTICO", primary: true }, { cmd: "CONTACT", label: "CONTACTO" }],
         });
       case "GREET":
-        return setView({ kind: "response", title: "HOLA",
+        return setView({
+          kind: "response", title: "HOLA",
           body: "HOLA. AGENTE ONLINE.\nESCRIBI UN COMANDO O DIRECTAMENTE CONTARME QUE NECESITAS.",
           ctas: [{ cmd: "DIAGNOSE", label: "DIAGNOSTICO", primary: true }],
         });
@@ -1183,7 +1190,8 @@ function App() {
         if (map[arg]) {
           setTheme(map[arg]);
         } else {
-          return setView({ kind: "response", title: "THEME",
+          return setView({
+            kind: "response", title: "THEME",
             body: "USO: > THEME C64 | DARK | AMBER | LIGHT\n\nTAMBIEN PODES USAR EL SELECTOR EN LA BARRA SUPERIOR.",
             ctas: [{ cmd: "HOME", label: "HOME", primary: true }],
           });
