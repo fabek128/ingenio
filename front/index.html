@@ -153,7 +153,7 @@ body {
 
 .about-card {
   display: grid;
-  grid-template-columns: minmax(120px, 280px) 1fr;
+  grid-template-columns: clamp(100px, 30%, 280px) 1fr;
   gap: clamp(12px, 3vw, 36px);
   align-items: start;
   border: 1px solid var(--border);
@@ -344,8 +344,8 @@ body {
 
 @media (max-width: 700px) {
   .about-card {
-    grid-template-columns: minmax(100px, 160px) 1fr;
-    gap: clamp(8px, 2vw, 16px);
+    grid-template-columns: clamp(80px, 30%, 160px) 1fr;
+    gap: clamp(6px, 2vw, 12px);
   }
   .about-photo-wrap { max-width: 160px; }
   .about-bio { font-size: 17px; }
