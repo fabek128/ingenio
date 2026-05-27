@@ -238,7 +238,7 @@ function BootScreen({ onDone, theme, static: isStatic = false }) {
 /* ============================================================
    HEADER
    ============================================================ */
-function SysHeader({ theme, onTheme, onAgent }) {
+function SysHeader({ theme, onTheme, onAgent, onHome }) {
   const themes = [
     {
       id: "c64", icon: (
@@ -275,10 +275,10 @@ function SysHeader({ theme, onTheme, onAgent }) {
 
   return (
     <div className="sys-header">
-      <div className="brand">
+      <button className="brand" onClick={onHome} title="Volver al inicio">
         <span className="brand-mark" />
         INGENIO/64
-      </div>
+      </button>
       <div className="status-group">
         <button className="stat essential agent-link" onClick={onAgent} title="Abrir sesion del agente">
           <span className="dot" />
@@ -1208,7 +1208,7 @@ function App() {
   return (
     <div className="bezel">
       <div className="crt-screen">
-        <SysHeader theme={theme} onTheme={setTheme} onAgent={() => programmatic("AGENT")} />
+        <SysHeader theme={theme} onTheme={setTheme} onAgent={() => programmatic("AGENT")} onHome={closeView} />
         <div className="main-area">
           <div className="app-content">
             {view.kind === "home" ? (

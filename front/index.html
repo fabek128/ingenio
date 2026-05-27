@@ -488,6 +488,19 @@ body {
   align-items: center;
   letter-spacing: 0.06em;
   border-right: 1px solid var(--border);
+  background: none;
+  border-top: none;
+  border-bottom: none;
+  border-left: none;
+  color: inherit;
+  font-family: inherit;
+  font-size: inherit;
+  cursor: pointer;
+  padding: 10px 14px;
+  transition: background 0.15s;
+}
+.sys-header .brand:hover {
+  background: color-mix(in srgb, var(--border) 20%, transparent);
 }
 .sys-header .brand-mark {
   width: 14px; height: 14px;
