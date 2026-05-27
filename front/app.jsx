@@ -937,28 +937,6 @@ function ViewShell({ tag, title, path, onClose, children, onReset, onResetLabel 
   );
 }
 
-/* ============================================================
-   HOME VIEW
-   ============================================================ */
-function HomeView({ onCommand }) {
-  return (
-    <div className="home">
-      <div className="home-body">
-        <div className="home-content">
-          <div style={{ color: "var(--sys-color)" }}>{HERO.banner}2222</div>
-          <div style={{ color: "var(--sys-color)" }}>{HERO.ram}</div>
-          <div style={{ display: "flex", flexDirection: "column", gap: 2, fontSize: 18 }}>
-            {HERO.modules.map(([name, st]) => (
-              <div key={name} style={{ color: "var(--fg-dim)", fontFamily: "var(--font-ui)" }}>
-                <span style={{ color: "var(--ok-color)" }}>[ {st} ]</span>{" "}{name}
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
 
 /* ============================================================
    GENERIC AGENT-RESPONSE VIEW (for non-module commands)
@@ -1214,8 +1192,6 @@ function App() {
 
   const renderView = () => {
     switch (view.kind) {
-      case "home":
-        return <HomeView onCommand={programmatic} />;
       case "agent":
         const usageStr = agentUsage ? ("CTX: " + (agentUsage.total_tokens || "?") + " TOKENS") : "";
         const title = usageStr ? ("AGENT SESSION  |  " + usageStr) : "AGENT SESSION";
@@ -1254,8 +1230,6 @@ function App() {
         </ViewShell>;
       case "response":
         return <ResponseView title={view.title} body={view.body} ctas={view.ctas} busy={view.busy} typewriter={view.typewriter} onCommand={programmatic} onClose={closeView} />;
-      default:
-        return <HomeView onCommand={programmatic} />;
     }
   };
 
