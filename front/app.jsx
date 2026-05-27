@@ -961,7 +961,7 @@ function AgentMessage({ message, typing, onTypedDone }) {
 
   return (
     <div className={"agent-message " + message.role + " " + (message.status || "done")}>
-      <div className={"agent-message-role" + (message.status === "pending" ? " pending" : "")}>{message.role === "user" ? "PROMPT" : "AGENT"}</div>
+      <div className={"agent-message-role" + (message.status === "pending" ? " pending" : "")}>{message.role === "user" ? "USER" : "AGENT"}</div>
       <div className="agent-message-body">
         <span className="console-output">{message.status === "pending" ? <AnimatedPending text={message.text} /> : rendered}</span>
         {(message.status === "pending" || (typing && !done)) && <span className="console-cursor" aria-hidden="true" />}
