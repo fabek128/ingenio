@@ -1644,14 +1644,19 @@ body {
   text-align: center;
   margin: 18px 0 4px;
   line-height: var(--leading-tight);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .boot-subline {
   text-align: center;
   color: var(--fg);
   letter-spacing: -0.01em;
   font-size: var(--text-lead);
-  max-width: var(--content-narrow);
   margin: 0 auto;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .boot-progress {
   margin: 18px 0;
@@ -1765,8 +1770,8 @@ input:disabled {
 
   /* Boot */
   .boot { padding: 16px 14px; font-size: var(--text-sm); }
-  .boot-banner { font-size: clamp(1.5rem, 5vw, 2rem); letter-spacing: -0.04em; }
-  .boot-subline { font-size: var(--text-xs); }
+  .boot-banner { font-size: clamp(0.65rem, 3.5vw, 1.25rem); letter-spacing: -0.02em; }
+  .boot-subline { font-size: clamp(0.55rem, 2.2vw, 0.8rem); }
   .boot-skip { font-size: var(--text-xs); padding: 6px 8px; top: 8px; right: 10px; }
 
   /* About */
@@ -1790,13 +1795,16 @@ input:disabled {
 
 @media (max-width: 480px) {
   html, body { font-size: 16px; }
-  .boot-banner { font-size: 1.5rem; }
+  .boot-banner { font-size: 0.65rem; }
+  .boot-subline { font-size: 0.55rem; }
   .home-status { font-size: var(--text-xs); }
 }
 
 @media (max-width: 380px) {
   .sys-header > * { padding: 4px 6px; }
   .quick-btn { min-height: 40px; }
+  .boot-banner { font-size: 0.55rem; }
+  .boot-subline { font-size: 0.5rem; }
 }
 
 /* Reduced motion */
