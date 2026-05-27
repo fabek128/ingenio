@@ -179,7 +179,7 @@ function saveAgentMessages(messages) {
 /* ============================================================
    BOOT SCREEN
    ============================================================ */
-function BootScreen({ onDone, onSkip, theme }) {
+function BootScreen({ onDone, theme, static: isStatic }) {
   const lines = [
     { t: "INGENIO/64 KERNEL ROM v1.0.4 — BOOT SEQUENCE", cls: "bright" },
     { t: "(C) 2025 INGENIO/64. ALL RIGHTS RESERVED.", cls: "dim" },
@@ -195,10 +195,11 @@ function BootScreen({ onDone, onSkip, theme }) {
     { t: "READY.", cls: "bright" },
   ];
 
-  const [shownCount, setShownCount] = useState(0);
-  const [progress, setProgress] = useState(0);
+  const [shownCount, setShownCount] = useState(isStatic ? lines.length : 0);
+  const [progress, setProgress] = useState(isStatic ? 100 : 0);
 
   useEffect(() => {
+    if (isStatic) return;
     let i = 0;
     const interval = setInterval(() => {
       i++;
@@ -210,11 +211,11 @@ function BootScreen({ onDone, onSkip, theme }) {
       }
     }, 180);
     return () => clearInterval(interval);
-  }, []);
+  }, [isStatic]);
 
   return (
-    <div className="boot">
-      <button className="boot-skip" onClick={onSkip}>SKIP &gt;&gt;</button>
+    <div className={"boot" + (isStatic ? " static" : "")}>
+      {!isStatic && <button className="boot-skip" onClick={onDone}>SKIP &gt;&gt;</button>}
       <div className="boot-banner">{HERO.banner}</div>
       <div className="boot-subline">{HERO.ram}</div>
       <div className="boot-progress" aria-hidden="true">
@@ -226,7 +227,7 @@ function BootScreen({ onDone, onSkip, theme }) {
             {l.t || "\u00A0"}
           </div>
         ))}
-        {shownCount < lines.length && <span className="boot-cursor" />}
+        {!isStatic && shownCount < lines.length && <span className="boot-cursor" />}
       </div>
     </div>
   );
@@ -1056,7 +1057,7 @@ function AgentSessionView({ messages, typingMessageId, onTypedDone }) {
 
 function App() {
   const [theme, setTheme] = useState("c64");
-  const [phase, setPhase] = useState("boot"); // boot | main
+  const [bootDone, setBootDone] = useState(false);
   const [view, setView] = useState({ kind: "home" });
   const [value, setValue] = useState("");
   const [history, setHistory] = useState([]);
@@ -1078,29 +1079,13 @@ function App() {
   // ESC closes view → home
   useEffect(() => {
     const onKey = (e) => {
-      if (e.key === "Escape" && view.kind !== "home" && phase === "main") {
+      if (e.key === "Escape" && view.kind !== "home" && bootDone) {
         setView({ kind: "home" });
       }
     };
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
-  }, [view.kind, phase]);
-
-  const enterMain = useCallback(() => {
-    setPhase("main");
-    setView({ kind: "home" });
-  }, []);
-
-  const handleCommand = async (rawInput, opts = {}) => {
-    const raw = (rawInput || "").trim();
-    if (!raw || isPromptBusy) return;
-    const upper = raw.toUpperCase();
-    if (sound) beep(1200, 0.025, 0.025);
-    const first = upper.split(/\s+/)[0];
-    const cmds = new Set(COMMANDS_META.map((c) => c.cmd).concat(["HOME"]));
-    const cmd = cmds.has(first) ? first : null;
-    await runCommand(cmd, raw, opts);
-  };
+  }, [view.kind, bootDone]);
 
   const closeView = () => setView({ kind: "home" });
 
@@ -1310,21 +1295,22 @@ function App() {
     <div className="bezel">
       <div className="crt-screen">
         <SysHeader theme={theme} onTheme={setTheme} onAgent={() => programmatic("AGENT")} />
-        {phase === "boot" ? (
-          <BootScreen onDone={enterMain} onSkip={enterMain} theme={theme} />
-        ) : (
-          <>
-            {renderView()}
-            <CommandBar
-              value={value}
-              setValue={setValue}
-              onSubmit={(cmd) => handleCommand(cmd)}
-              history={history}
-              setHistory={setHistory}
-              disabled={isPromptBusy}
-            />
-          </>
-        )}
+        <div className="main-area">
+          <BootScreen onDone={() => setBootDone(true)} theme={theme} static={bootDone} />
+          {bootDone && (
+            <div className="home-overlay">
+              {renderView()}
+              <CommandBar
+                value={value}
+                setValue={setValue}
+                onSubmit={(cmd) => handleCommand(cmd)}
+                history={history}
+                setHistory={setHistory}
+                disabled={isPromptBusy}
+              />
+            </div>
+          )}
+        </div>
         <div className="crt-noise" aria-hidden="true" />
       </div>
     </div>
