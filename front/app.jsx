@@ -1054,34 +1054,169 @@ function AgentSessionView({ messages, typingMessageId, onTypedDone }) {
 function App() {
   const [theme, setTheme] = useState("c64");
   const [bootDone, setBootDone] = useState(false);
+  const [view, setView] = useState({ kind: "home" });
+  const [value, setValue] = useState("");
+  const [history, setHistory] = useState([]);
   const [sound, setSound] = useState(false);
+  const [isPromptBusy, setIsPromptBusy] = useState(false);
+  const [agentMessages, setAgentMessages] = useState(() => loadAgentMessages());
+  const [typingMessageId, setTypingMessageId] = useState(null);
+  const [agentUsage, setAgentUsage] = useState(null);
 
-  // Apply theme to <html>
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", theme);
   }, [theme]);
 
-  const programmatic = (cmd, opts) => {};
+  useEffect(() => {
+    saveAgentMessages(agentMessages);
+  }, [agentMessages]);
+
+  useEffect(() => {
+    const onKey = (e) => {
+      if (e.key === "Escape" && view.kind !== "home" && bootDone) {
+        setView({ kind: "home" });
+      }
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [view.kind, bootDone]);
+
+  const closeView = () => setView({ kind: "home" });
+
+  const handleCommand = async (rawInput, opts = {}) => {
+    const raw = (rawInput || "").trim();
+    if (!raw || isPromptBusy) return;
+    const upper = raw.toUpperCase();
+    if (sound) beep(1200, 0.025, 0.025);
+    const first = upper.split(/\s+/)[0];
+    const cmds = new Set(COMMANDS_META.map((c) => c.cmd).concat(["HOME"]));
+    const cmd = cmds.has(first) ? first : null;
+    await runCommand(cmd, raw, opts);
+  };
+
+  const submitPromptToModel = async (question) => {
+    const cleanQuestion = (question || "").trim();
+    if (!cleanQuestion) return;
+    const userMessage = createAgentMessage("user", cleanQuestion);
+    const assistantMessage = createAgentMessage("assistant", "CONECTANDO", "pending");
+    setIsPromptBusy(true);
+    setTypingMessageId(null);
+    setView({ kind: "agent" });
+    setAgentMessages((messages) => [...messages, userMessage, assistantMessage].slice(-40));
+    try {
+      const data = await askBackendAgent(cleanQuestion);
+      const text = formatAgentHistoryResponse(data);
+      setAgentUsage(data?.usage || null);
+      setAgentMessages((messages) => messages.map((m) =>
+        m.id === assistantMessage.id ? { ...m, text, status: "done" } : m
+      ));
+      setTypingMessageId(assistantMessage.id);
+    } catch (e) {
+      const text = agentErrorMessage(e);
+      setAgentMessages((messages) => messages.map((m) =>
+        m.id === assistantMessage.id ? { ...m, text, status: "error" } : m
+      ));
+      setTypingMessageId(assistantMessage.id);
+    } finally {
+      setIsPromptBusy(false);
+    }
+  };
+
+  const runCommand = async (cmd, raw, opts = {}) => {
+    if (sound) beep(660, 0.025, 0.025);
+    switch (cmd) {
+      case "PROYECTOS": return setView({ kind: "projects" });
+      case "TOOLS":    return setView({ kind: "projects" });
+      case "SERVICES": return setView({ kind: "services" });
+      case "CASES":    return setView({ kind: "cases" });
+      case "ABOUT":    return setView({ kind: "about" });
+      case "DIAGNOSE": return setView({ kind: "diag" });
+      case "CONTACT":  return setView({ kind: "contact", prefill: opts.prefill });
+      case "HOME":     return setView({ kind: "home" });
+      case "AGENT": {
+        const question = (raw || "").replace(/^AGENT\s*/i, "").trim();
+        if (!question) return setView({ kind: "agent" });
+        return submitPromptToModel(question);
+      }
+      case "MODEL": {
+        try {
+          const data = await fetchSiteContext();
+          return setView({ kind: "response", title: "MODEL STATUS",
+            body: "BACKEND: ONLINE\nMODEL: " + (data.model || "UNKNOWN") + "\nCAPS: " + ((data.capabilities || []).join(" / ") || "N/A") + "\nMAX MESSAGE: " + (data.limits?.max_message_chars || "N/A"),
+            ctas: [{ cmd: "AGENT", label: "PREGUNTAR", primary: true }],
+          });
+        } catch (e) {
+          return setView({ kind: "response", title: "MODEL STATUS", body: agentErrorMessage(e), ctas: [{ cmd: "HOME", label: "HOME", primary: true }] });
+        }
+      }
+      case "WHATSAPP":
+        return setView({ kind: "response", title: "WHATSAPP",
+          body: "ABRIENDO WHATSAPP EN UNA NUEVA PESTANA...\n\n(EN PROD: WA.ME/549XXXXXXXX)\n\nMIENTRAS TANTO PODES DEJARNOS UN MENSAJE EN EL MODULO DE CONTACTO.",
+          ctas: [{ cmd: "CONTACT", label: "CONTACT", primary: true }, { cmd: "HOME", label: "HOME" }],
+        });
+      case "AGENDAR":
+        return setView({ kind: "response", title: "AGENDAR LLAMADA",
+          body: "ABRIENDO CALENDARIO PARA UNA LLAMADA DE 30 MIN.\n\n(EN PROD: CAL.COM/INGENIO64)\n\nO DEJANOS TUS DATOS EN EL MODULO DE CONTACTO Y TE ESCRIBIMOS.",
+          ctas: [{ cmd: "CONTACT", label: "CONTACT", primary: true }, { cmd: "HOME", label: "HOME" }],
+        });
+      case "CHATBOT_INFO":
+        return setView({ kind: "response", title: "SOBRE CHATBOTS",
+          body: "PODEMOS DESARROLLAR CHATBOTS PARA WEB, WHATSAPP, INSTAGRAM Y TELEGRAM, CON HANDOFF A HUMANOS Y CONEXION A TU CRM.\n\nINCLUYE: ENTRENAMIENTO CON TUS DATOS, MENSAJES PROACTIVOS, METRICAS Y PANEL DE ADMINISTRACION.",
+          ctas: [{ cmd: "DIAGNOSE", label: "DIAGNOSTICO RAPIDO", primary: true }, { cmd: "SERVICES", label: "VER SERVICIOS" }],
+        });
+      case "AUTO_INFO":
+        return setView({ kind: "response", title: "AUTOMATIZACIONES",
+          body: "AUTOMATIZAMOS FLUJOS REPETITIVOS:\n- ALTA DE CLIENTES\n- REPORTES PERIODICOS\n- ETL ENTRE SISTEMAS\n- EMAILS Y NOTIFICACIONES\n- FACTURACION Y COBRANZAS\n\nSE INTEGRA CON SHEETS, NOTION, CRMS, ERPS, APIS Y WEBHOOKS.",
+          ctas: [{ cmd: "DIAGNOSE", label: "DIAGNOSTICO", primary: true }, { cmd: "CASES", label: "VER CASOS" }],
+        });
+      case "PRICING":
+        return setView({ kind: "response", title: "RANGO ORIENTATIVO",
+          body: "RANGOS DE INVERSION (USD):\n\n- AUTOMATIZACION SIMPLE...... 1.500 -  3.000\n- CHATBOT / AGENTE BASICO.... 3.000 -  8.000\n- SISTEMA A MEDIDA........... 8.000 - 30.000+\n\nCADA PROYECTO SE COTIZA SEGUN ALCANCE.\nESCRIBI > DIAGNOSE PARA UNA ESTIMACION MAS PRECISA.",
+          ctas: [{ cmd: "DIAGNOSE", label: "DIAGNOSTICO", primary: true }, { cmd: "CONTACT", label: "CONTACTO" }],
+        });
+      case "GREET":
+        return setView({ kind: "response", title: "HOLA",
+          body: "HOLA. AGENTE ONLINE.\nESCRIBI UN COMANDO O DIRECTAMENTE CONTARME QUE NECESITAS.",
+          ctas: [{ cmd: "DIAGNOSE", label: "DIAGNOSTICO", primary: true }],
+        });
+      case "THEME": {
+        const arg = (raw || "").toUpperCase().split(/\s+/)[1];
+        const map = { C64: "c64", DARK: "dark", AMBER: "amber", LIGHT: "light" };
+        if (map[arg]) {
+          setTheme(map[arg]);
+        } else {
+          return setView({ kind: "response", title: "THEME",
+            body: "USO: > THEME C64 | DARK | AMBER | LIGHT\n\nTAMBIEN PODES USAR EL SELECTOR EN LA BARRA SUPERIOR.",
+            ctas: [{ cmd: "HOME", label: "HOME", primary: true }],
+          });
+        }
+        return;
+      }
+      case "SOUND":
+        setSound((s) => !s);
+        return;
+      case "CLEAR":
+      case "REBOOT":
+        setView({ kind: "home" });
+        return;
+      default:
+        return submitPromptToModel(raw);
+    }
+  };
+
+  const programmatic = (cmd, opts) => handleCommand(cmd, opts);
 
   const renderView = () => {
     switch (view.kind) {
       case "home":
         return <HomeView onCommand={programmatic} />;
-      case "agent": {
+      case "agent":
         const usageStr = agentUsage ? ("CTX: " + (agentUsage.total_tokens || "?") + " TOKENS") : "";
         const title = usageStr ? ("AGENT SESSION  |  " + usageStr) : "AGENT SESSION";
-        const resetAgent = () => {
-          setAgentMessages([]);
-          setAgentUsage(null);
-        };
+        const resetAgent = () => { setAgentMessages([]); setAgentUsage(null); };
         return <ViewShell tag="AGT" title={title} path="/AGT/SESSION" onClose={closeView} onReset={resetAgent} onResetLabel="RESET CTX">
-          <AgentSessionView
-            messages={agentMessages}
-            typingMessageId={typingMessageId}
-            onTypedDone={(id) => setTypingMessageId((current) => current === id ? null : current)}
-          />
+          <AgentSessionView messages={agentMessages} typingMessageId={typingMessageId} onTypedDone={(id) => setTypingMessageId((current) => current === id ? null : current)} />
         </ViewShell>;
-      }
       case "projects":
         return <ViewShell tag="IDX" title="PROYECTOS" path="/USR/PROYECTOS.MD" onClose={closeView}>
           <div className="view-intro"><span className="role">AGENT:</span>LEYENDO PROYECTOS PERSONALES DESDE MARKDOWN.</div>
@@ -1112,15 +1247,7 @@ function App() {
           <ContactBlock onCommand={programmatic} prefill={view.prefill} />
         </ViewShell>;
       case "response":
-        return <ResponseView
-          title={view.title}
-          body={view.body}
-          ctas={view.ctas}
-          busy={view.busy}
-          typewriter={view.typewriter}
-          onCommand={programmatic}
-          onClose={closeView}
-        />;
+        return <ResponseView title={view.title} body={view.body} ctas={view.ctas} busy={view.busy} typewriter={view.typewriter} onCommand={programmatic} onClose={closeView} />;
       default:
         return <HomeView onCommand={programmatic} />;
     }
@@ -1130,7 +1257,22 @@ function App() {
     <div className="bezel">
       <div className="crt-screen">
         <SysHeader theme={theme} onTheme={setTheme} />
-        <BootScreen onDone={() => setBootDone(true)} theme={theme} static={bootDone} />
+        <div className="main-area">
+          <BootScreen onDone={() => setBootDone(true)} theme={theme} static={bootDone} />
+          {bootDone && (
+            <div className="app-content">
+              {renderView()}
+              <CommandBar
+                value={value}
+                setValue={setValue}
+                onSubmit={(cmd) => handleCommand(cmd)}
+                history={history}
+                setHistory={setHistory}
+                disabled={isPromptBusy}
+              />
+            </div>
+          )}
+        </div>
         <div className="crt-noise" aria-hidden="true" />
       </div>
     </div>

@@ -489,10 +489,32 @@ body {
               8px 0 0 var(--fg), 0 8px 0 var(--fg), 8px 8px 0 var(--fg);
   margin-right: 6px;
 }
-.sys-header .status-group {
-  display: flex;
+
+.main-area {
   flex: 1;
-  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: relative;
+  z-index: 3;
+}
+
+.app-content {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.boot.static {
+  flex-shrink: 0;
+  padding: clamp(10px, 2vw, 30px) clamp(18px, 4vw, 60px);
+  border-bottom: 1px solid color-mix(in srgb, var(--border) 40%, transparent);
+}
+.boot.static .boot-cursor {
+  animation: blink 0.9s steps(2) infinite;
 }
 .sys-header .stat {
   display: flex; gap: 8px; align-items: center;
