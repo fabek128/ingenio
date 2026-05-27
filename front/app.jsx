@@ -237,10 +237,29 @@ function BootScreen({ onDone, onSkip, theme }) {
    ============================================================ */
 function SysHeader({ theme, onTheme, onAgent }) {
   const themes = [
-    { id: "c64", label: "C64" },
-    { id: "dark", label: "DARK" },
-    { id: "amber", label: "AMBER" },
-    { id: "light", label: "LIGHT" },
+    { id: "c64", icon: (
+      <svg viewBox="0 0 20 18" width="18" height="16" fill="currentColor">
+        <rect x="1" y="1" width="7" height="7" rx="1" />
+        <rect x="1" y="10" width="7" height="7" rx="1" />
+        <rect x="12" y="1" width="7" height="16" rx="1" />
+      </svg>
+    ), title: "C64" },
+    { id: "dark", icon: (
+      <svg viewBox="0 0 20 20" width="18" height="18" fill="currentColor">
+        <path d="M16.8 12.4A8 8 0 1 1 7.6 3.2a9 9 0 0 0 9.2 9.2z"/>
+      </svg>
+    ), title: "Dark" },
+    { id: "amber", icon: (
+      <svg viewBox="0 0 20 18" width="18" height="16" fill="currentColor">
+        <path d="M2 2h16v2H2zm0 7h14v2H2zm0 7h12v2H2z"/>
+      </svg>
+    ), title: "Amber" },
+    { id: "light", icon: (
+      <svg viewBox="0 0 20 20" width="18" height="18" fill="currentColor">
+        <circle cx="10" cy="10" r="4"/>
+        <path d="M10 1v2m0 14v2M1 10h2m14 0h2m-3.5-5.5L12 6m-4 4-1.5 1.5m7 0L12 14M6 6 4.5 4.5" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round"/>
+      </svg>
+    ), title: "Light" },
   ];
 
   return (
@@ -262,7 +281,8 @@ function SysHeader({ theme, onTheme, onAgent }) {
             key={t.id}
             aria-pressed={theme === t.id}
             onClick={() => onTheme(t.id)}
-          >{t.label}</button>
+            title={t.title}
+          >{t.icon}</button>
         ))}
       </div>
     </div>
