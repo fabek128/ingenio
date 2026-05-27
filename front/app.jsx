@@ -191,8 +191,7 @@ function BootScreen({ onDone, theme, static: isStatic = false }) {
     { t: "[ OK ] AUTOMATION ENGINE.......LOADED", cls: "" },
     { t: "[ OK ] KNOWLEDGE BASE..........38911 ENTRIES", cls: "" },
     { t: "[ OK ] INTERFACE LAYER.........CRT MODE", cls: "" },
-    { t: "" },
-    { t: "READY.", cls: "bright" },
+    { t: "[ OK ] LLM MODEL...............DEEPSEEK V4 FLASH", cls: "" },
   ];
 
   const [shownCount, setShownCount] = useState(isStatic ? lines.length : 0);
