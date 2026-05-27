@@ -796,6 +796,40 @@ body {
   margin-right: 6px;
 }
 
+/* Agent section */
+.agentes-sections {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 10px;
+}
+.agentes-section {
+  border-left: 2px solid var(--border);
+  padding: 4px 0 4px 14px;
+}
+.agentes-section-title {
+  color: var(--fg-bright);
+  font-family: var(--font-ui);
+  font-size: 13px;
+  letter-spacing: 0.08em;
+  margin-bottom: 6px;
+}
+.agentes-line {
+  color: var(--fg);
+  font-size: 15px;
+  line-height: 1.5;
+}
+.agentes-spacer {
+  height: 6px;
+}
+.agentes-footer {
+  margin-top: 16px;
+  padding-top: 10px;
+  border-top: 1px dashed color-mix(in srgb, var(--border) 50%, transparent);
+  font-family: var(--font-ui);
+  font-size: 13px;
+}
+
 /* Service / case grid */
 .modules {
   display: grid;

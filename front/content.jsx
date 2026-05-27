@@ -23,6 +23,96 @@ const PROJECTS_SECTION = {
   fallbackTitle: "PROYECTOS PERSONALES",
 };
 
+const AGENTES_DATA = {
+  title: "AGENTES IA / AUTOMACION / SISTEMAS AGENTICOS",
+  sections: [
+    {
+      title: "QUE HAGO",
+      lines: [
+        "Diseno, construyo y mantengo sistemas basados en agentes de IA.",
+        "Agentes que interactuan con modelos, APIs, archivos, terminales,",
+        "navegadores, servicios cloud y entornos locales.",
+        "",
+        "No vendo magia. Vendo sistemas que hacen trabajo concreto:",
+        "- con permisos claros",
+        "- mantenibles",
+        "- auditables",
+        "- que reducen trabajo repetitivo",
+        "- sin romperse al primer cambio de contexto",
+      ],
+    },
+    {
+      title: "TIPOS DE AGENTES",
+      lines: [
+        "PROGRAMACION: revision de codigo, tests, PRs, refactors,",
+        "  documentacion tecnica, automatizacion de tareas DevOps.",
+        "",
+        "INVESTIGACION: buscar, comparar, resumir, monitorear cambios,",
+        "  generar reportes, mantener base de conocimiento.",
+        "",
+        "OPERACION INTERNA: reportes, tickets, resumenes, actualizacion",
+        "  de docs, extraccion de datos, tareas admin.",
+        "",
+        "PERSONALES / EJECUTIVOS: agenda, recordatorios, email,",
+        "  preparacion de contexto, seguimiento de proyectos.",
+        "",
+        "MULTI-MODELO: un modelo planifica, otro ejecuta, otro verifica.",
+        "  Optimiza calidad, costo y privacidad.",
+        "",
+        "HERRAMIENTAS PROPIAS: tools deterministicas para que el agente",
+        "  haga cosas confiables sin improvisar.",
+      ],
+    },
+    {
+      title: "COMO TRABAJO",
+      lines: [
+        "1. ENTENDER EL FLUJO REAL: que tarea, quien la hace, que datos",
+        "   usa, que errores son comunes, que requiere aprobacion.",
+        "",
+        "2. DISENAR ARQUITECTURA: modelo, herramientas, memoria, logs,",
+        "   permisos, recuperacion de errores, limites.",
+        "",
+        "3. PROTOTIPO FUNCIONAL: primera version que hace el flujo",
+        "   principal con entrada clara y salida util.",
+        "",
+        "4. HARDENING: permisos minimos, validaciones, timeouts,",
+        "   control de costos, aprobacion humana, sandboxing.",
+        "",
+        "5. MANTENIMIENTO: el agente no se termina cuando anda.",
+        "   Hay que monitorear costos, comportamiento del modelo,",
+        "   cambios de API y casos raros.",
+      ],
+    },
+    {
+      title: "ENTREGABLES",
+      lines: [
+        "- Agente funcionando con documentacion",
+        "- Arquitectura del sistema y reglas",
+        "- Prompts, tools, skills reutilizables",
+        "- Scripts auxiliares y configuracion",
+        "- Checklist de seguridad",
+        "- Pruebas basicas y ejemplos de uso",
+        "- Plan de evolucion",
+      ],
+    },
+    {
+      title: "ENFOQUE",
+      lines: [
+        "No me interesa vender una fantasia.",
+        "Me interesa construir sistemas agenticos que sirvan,",
+        "que se puedan explicar, que tengan limites",
+        "y que mejoren procesos reales.",
+        "",
+        "La diferencia entre una demo y una herramienta util",
+        "esta en los detalles: permisos, contexto, auditoria,",
+        "riesgo, mantenimiento y criterio tecnico.",
+        "",
+        "Ahi es donde puedo aportar.",
+      ],
+    },
+  ],
+};
+
 const DIAGNOSTIC = {
   intro: [
     "OK. VOY A HACERTE 4 PREGUNTAS RAPIDAS.",
@@ -114,6 +204,7 @@ function buildDiagnosis(answers) {
 const COMMANDS_META = [
   { cmd: "HOME", desc: "VUELVE A LA PANTALLA PRINCIPAL" },
   { cmd: "PROYECTOS", desc: "PROYECTOS PERSONALES EN CURSO" },
+  { cmd: "AGENTES", desc: "SERVICIOS DE AGENTES IA Y AUTOMATIZACION" },
   { cmd: "AGENT", desc: "HABLA CON EL AGENTE DEL SITIO" },
   { cmd: "MODEL", desc: "MUESTRA EL MODELO ACTIVO" },
   { cmd: "DIAGNOSE", desc: "INICIA UN DIAGNOSTICO GUIADO" },
@@ -146,6 +237,6 @@ const MODELS = [
 ];
 
 Object.assign(window, {
-  PROJECTS_SECTION, ABOUT_SECTION,
+  AGENTES_DATA, PROJECTS_SECTION, ABOUT_SECTION,
   ABOUT_PROFILE, DIAGNOSTIC, COMMANDS_META, HERO, MODELS, buildDiagnosis,
 });

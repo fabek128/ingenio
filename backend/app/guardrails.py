@@ -73,6 +73,7 @@ _ALLOWED_KEYWORDS = [
     "ayuda",
     "help",
     "stack",
+    "agentes",
     "contact",
     "experienci",
     "diagnostico",

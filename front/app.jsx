@@ -450,6 +450,30 @@ function ProjectsBlock() {
   );
 }
 
+/* ---------- AGENTES ---------- */
+function AgentesBlock() {
+  return (
+    <div className="block agentes-block">
+      <div className="block-title"><span className="badge">AGT</span>{AGENTES_DATA.title}</div>
+      <div className="agentes-sections">
+        {AGENTES_DATA.sections.map((sec, i) => (
+          <div key={i} className="agentes-section">
+            <div className="agentes-section-title">{">"} {sec.title}</div>
+            {sec.lines.map((line, j) => (
+              <div key={j} className={line === "" ? "agentes-spacer" : "agentes-line"}>
+                {line || "\u00A0"}
+              </div>
+            ))}
+          </div>
+        ))}
+      </div>
+      <div className="agentes-footer">
+        <span className="dim">ESCRIBI &gt; AGENT PARA HABLAR CON EL AGENTE DEL SITIO. &nbsp;O &gt; CONTACT PARA CONSULTAR.</span>
+      </div>
+    </div>
+  );
+}
+
 /* ---------- ABOUT ---------- */
 function AboutBlock() {
   const [state, setState] = useState({ status: "loading", source: "" });
@@ -793,7 +817,7 @@ function CommandBar({ onSubmit, value, setValue, history, setHistory, disabled =
     }
   };
 
-  const quickButtons = ["HOME", "AGENT", "PROYECTOS", "ABOUT", "CONTACT"];
+  const quickButtons = ["HOME", "AGENTES", "PROYECTOS", "ABOUT", "CONTACT"];
   const syncCaret = () => {
     requestAnimationFrame(() => {
       const el = inputRef.current;
@@ -1056,6 +1080,7 @@ function App() {
       case "PROYECTOS": return setView({ kind: "projects" });
       case "TOOLS": return setView({ kind: "projects" });
       case "ABOUT": return setView({ kind: "about" });
+      case "AGENTES": return setView({ kind: "agentes" });
       case "DIAGNOSE": return setView({ kind: "diag" });
       case "CONTACT": return setView({ kind: "contact", prefill: opts.prefill });
       case "HOME": return setView({ kind: "home" });
@@ -1150,6 +1175,11 @@ function App() {
         const resetAgent = () => { setAgentMessages([]); setAgentUsage(null); };
         return <ViewShell tag="AGT" title={title} path="/AGT/SESSION" onClose={closeView} onReset={resetAgent} onResetLabel="RESET CTX">
           <AgentSessionView messages={agentMessages} typingMessageId={typingMessageId} onTypedDone={(id) => setTypingMessageId((current) => current === id ? null : current)} />
+        </ViewShell>;
+      case "agentes":
+        return <ViewShell tag="AGT" title="AGENTES IA" path="/SYS/AGENTES.SYS" onClose={closeView}>
+          <div className="view-intro"><span className="role">AGENT:</span>SERVICIOS DE AGENTES IA, AUTOMATIZACION Y SISTEMAS AGENTICOS.</div>
+          <AgentesBlock />
         </ViewShell>;
       case "projects":
         return <ViewShell tag="IDX" title="PROYECTOS" path="/USR/PROYECTOS.MD" onClose={closeView}>
