@@ -1,83 +1,7 @@
 /* ============================================================
-   INGENIO/64 — content (services, cases, diagnostic, etc.)
+   INGENIO/64 — content (diagnostic, profile, metadata, etc.)
    All strings in Spanish, monospaced/uppercase tone.
    ============================================================ */
-
-const SERVICES = [
-  {
-    id: "01",
-    code: "AI_AGENTS",
-    title: "AI AGENTS",
-    body: "Agentes inteligentes para atencion, soporte, ventas y procesos internos. Razonan, consultan datos y ejecutan acciones.",
-    tags: ["LLM", "TOOL-USE", "MEMORIA"],
-  },
-  {
-    id: "02",
-    code: "AUTOMATION_SYSTEMS",
-    title: "AUTOMATION SYSTEMS",
-    body: "Automatizacion de tareas repetitivas, flujos de trabajo e integraciones entre las herramientas que ya usas.",
-    tags: ["WEBHOOKS", "CRON", "API"],
-  },
-  {
-    id: "03",
-    code: "CHATBOTS",
-    title: "CHATBOTS",
-    body: "Chatbots para web, WhatsApp, soporte, ecommerce y generacion de leads. Con handoff a humanos.",
-    tags: ["WEB", "WHATSAPP", "LEADS"],
-  },
-  {
-    id: "04",
-    code: "CUSTOM_SOFTWARE",
-    title: "CUSTOM SOFTWARE",
-    body: "Sistemas a medida conectados con IA, APIs y bases de datos. Desde MVPs hasta plataformas internas.",
-    tags: ["REACT", "NODE", "POSTGRES"],
-  },
-  {
-    id: "05",
-    code: "DATA_DASHBOARDS",
-    title: "DATA & DASHBOARDS",
-    body: "Paneles, reportes automaticos y analisis para decidir con datos en vez de intuicion.",
-    tags: ["SQL", "BI", "VECTORES"],
-  },
-];
-
-const CASES = [
-  {
-    id: "01",
-    code: "ASISTENTE_ATENCION",
-    title: "ASISTENTE DE ATENCION AL CLIENTE",
-    body: "Agente que responde 24/7 sobre productos, envios y devoluciones. Consulta el CRM y deriva a un humano cuando hace falta. Reduce hasta 70% el tiempo de respuesta.",
-    tags: ["AGENTE", "CRM", "RAG"],
-  },
-  {
-    id: "02",
-    code: "BOT_WHATSAPP_LEADS",
-    title: "BOT DE WHATSAPP QUE CALIFICA LEADS",
-    body: "Conversa con interesados, recolecta datos, agenda llamadas en el calendario del equipo comercial y deja todo cargado en el CRM.",
-    tags: ["WHATSAPP", "CALENDARIO", "CRM"],
-  },
-  {
-    id: "03",
-    code: "REPORTES_AUTOMATICOS",
-    title: "AUTOMATIZACION DE REPORTES INTERNOS",
-    body: "Cada lunes a las 8:00 el sistema extrae datos de Sheets, Stripe y la base interna, arma un PDF y lo envia por mail al equipo directivo.",
-    tags: ["ETL", "SCHEDULER", "PDF"],
-  },
-  {
-    id: "04",
-    code: "AGENTE_BASES_DATOS",
-    title: "AGENTE QUE CONSULTA BASES DE DATOS",
-    body: "Un agente en lenguaje natural: 'cuanto facturamos este mes en sucursal norte?'. Traduce a SQL, valida, ejecuta y devuelve la respuesta con grafico.",
-    tags: ["SQL", "AGENT", "NL2SQL"],
-  },
-  {
-    id: "05",
-    code: "RAG_DOCUMENTACION",
-    title: "RESPUESTAS CON DOCUMENTACION PRIVADA",
-    body: "Subis manuales, contratos o procedimientos. El sistema arma una base vectorial y responde con citas a la fuente original.",
-    tags: ["RAG", "VECTOR-DB", "CITAS"],
-  },
-];
 
 const ABOUT_PROFILE = {
   photo: "assets/fabian-profile.jpg",
@@ -192,9 +116,7 @@ const COMMANDS_META = [
   { cmd: "PROYECTOS", desc: "PROYECTOS PERSONALES EN CURSO" },
   { cmd: "AGENT", desc: "HABLA CON EL AGENTE DEL SITIO" },
   { cmd: "MODEL", desc: "MUESTRA EL MODELO ACTIVO" },
-  { cmd: "SERVICES", desc: "SERVICIOS Y SOLUCIONES QUE PUEDO CONSTRUIR" },
   { cmd: "DIAGNOSE", desc: "INICIA UN DIAGNOSTICO GUIADO" },
-  { cmd: "CASES", desc: "ABRE LA BASE DE CASOS DE USO" },
   { cmd: "ABOUT", desc: "QUIEN ESTA DEL OTRO LADO" },
   { cmd: "CONTACT", desc: "ABRE EL MODULO DE CONTACTO" },
   { cmd: "WHATSAPP", desc: "ABRE WHATSAPP" },
@@ -224,6 +146,6 @@ const MODELS = [
 ];
 
 Object.assign(window, {
-  SERVICES, CASES, PROJECTS_SECTION, ABOUT_SECTION,
+  PROJECTS_SECTION, ABOUT_SECTION,
   ABOUT_PROFILE, DIAGNOSTIC, COMMANDS_META, HERO, MODELS, buildDiagnosis,
 });

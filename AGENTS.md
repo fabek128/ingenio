@@ -68,7 +68,7 @@ Sin Docker: ver `backend/README.md`.
 
 ## Verificacion minima
 - Abrir `http://localhost:8000` con frontend servido.
-- Probar comandos principales: `HELP`, `SERVICES`, `DIAGNOSE`, `CASES`, `STACK`, `ABOUT`, `CONTACT`, `THEME`, `SOUND`, `CLEAR`, `REBOOT`.
+- Probar comandos principales: `HELP`, `DIAGNOSE`, `STACK`, `ABOUT`, `CONTACT`, `THEME`, `SOUND`, `CLEAR`, `REBOOT`.
 - Verificar `/health` del backend: `curl http://127.0.0.1:8080/health`.
 - Revisar responsive en ancho movil y desktop.
 - Confirmar consola del navegador sin errores.

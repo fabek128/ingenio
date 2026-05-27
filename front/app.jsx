@@ -307,7 +307,7 @@ function SysHeader({ theme, onTheme, onAgent }) {
 
 function FeedLine({ entry, onCommand }) {
   // entries can be: {type:'user'|'sys'|'agent'|'ok'|'error'|'dim', text, typed}
-  // or {type:'block', kind:'services'|'cases'|'about'|'hero'|'diag'|'contact', data}
+  // or {type:'block', kind:'about'|'hero'|'diag'|'contact', data}
   if (entry.type === "block") {
     return <BlockRenderer entry={entry} onCommand={onCommand} />;
   }
@@ -329,8 +329,6 @@ function FeedLine({ entry, onCommand }) {
 function BlockRenderer({ entry, onCommand }) {
   switch (entry.kind) {
     case "projects": return <ProjectsBlock />;
-    case "services": return <ServicesBlock onCommand={onCommand} />;
-    case "cases": return <CasesBlock />;
     case "about": return <AboutBlock />;
     case "diag": return <DiagnosticBlock onCommand={onCommand} initial={entry.initial} />;
     case "contact": return <ContactBlock onCommand={onCommand} prefill={entry.prefill} />;
@@ -451,76 +449,6 @@ function ProjectsBlock() {
     </div>
   );
 }
-
-/* ---------- SERVICES ---------- */
-function ServicesBlock({ onCommand }) {
-  return (
-    <div className="block">
-      <div className="block-title"><span className="badge">LOAD</span>SERVICE_MODULES.SYS</div>
-      <div style={{ color: "var(--fg-dim)", fontSize: 16, marginBottom: 8, fontFamily: "var(--font-ui)" }}>
-        LOADING 5 MODULES... DONE.
-      </div>
-      <div className="modules">
-        {SERVICES.map((s) => (
-          <div key={s.id} className="module" onClick={() => onCommand("DIAGNOSE")}>
-            <div className="module-header">
-              <span className="module-id">[{s.id}]</span>
-              <span className="module-title">{s.title}</span>
-            </div>
-            <div className="module-body">{s.body}</div>
-            <div className="module-meta">
-              {s.tags.map((t) => <span key={t} className="tag">{t}</span>)}
-            </div>
-          </div>
-        ))}
-      </div>
-      <div style={{ marginTop: 14, color: "var(--fg-dim)", fontSize: 16, fontFamily: "var(--font-ui)" }}>
-        ESCRIBI &gt; DIAGNOSE PARA UN DIAGNOSTICO RAPIDO. &nbsp;O &gt; CONTACT PARA HABLAR.
-      </div>
-    </div>
-  );
-}
-
-/* ---------- CASES (expandable) ---------- */
-function CasesBlock() {
-  const [open, setOpen] = useState({});
-  return (
-    <div className="block">
-      <div className="block-title"><span className="badge">DB</span>USE_CASE_DATABASE.IDX</div>
-      <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-        {CASES.map((c) => {
-          const isOpen = open[c.id];
-          return (
-            <div key={c.id} style={{ borderBottom: "1px dashed color-mix(in srgb, var(--border) 30%, transparent)", paddingBottom: 6 }}>
-              <button
-                onClick={() => setOpen({ ...open, [c.id]: !isOpen })}
-                style={{
-                  width: "100%", textAlign: "left", background: "transparent",
-                  border: "none", color: "var(--fg-bright)", fontFamily: "var(--font-mono)",
-                  fontSize: 22, cursor: "pointer", padding: "4px 0",
-                  display: "flex", gap: 10, alignItems: "baseline"
-                }}
-              >
-                <span style={{ color: "var(--fg-dim)" }}>{isOpen ? "[-]" : "[+]"}</span>
-                <span className="module-id">[{c.id}]</span>
-                <span>{c.title}</span>
-              </button>
-              {isOpen && (
-                <div style={{ padding: "6px 0 10px 50px", color: "var(--fg)" }}>
-                  <div style={{ marginBottom: 8 }}>{c.body}</div>
-                  <div style={{ display: "flex", gap: 6 }}>
-                    {c.tags.map((t) => <span key={t} className="tag">{t}</span>)}
-                  </div>
-                </div>
-              )}
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
-
 
 /* ---------- ABOUT ---------- */
 function AboutBlock() {
@@ -865,7 +793,7 @@ function CommandBar({ onSubmit, value, setValue, history, setHistory, disabled =
     }
   };
 
-  const quickButtons = ["HOME", "AGENT", "PROYECTOS", "ABOUT", "SERVICES", "CASES", "CONTACT"];
+  const quickButtons = ["HOME", "AGENT", "PROYECTOS", "ABOUT", "CONTACT"];
   const syncCaret = () => {
     requestAnimationFrame(() => {
       const el = inputRef.current;
@@ -1127,8 +1055,6 @@ function App() {
     switch (cmd) {
       case "PROYECTOS": return setView({ kind: "projects" });
       case "TOOLS": return setView({ kind: "projects" });
-      case "SERVICES": return setView({ kind: "services" });
-      case "CASES": return setView({ kind: "cases" });
       case "ABOUT": return setView({ kind: "about" });
       case "DIAGNOSE": return setView({ kind: "diag" });
       case "CONTACT": return setView({ kind: "contact", prefill: opts.prefill });
@@ -1166,13 +1092,13 @@ function App() {
         return setView({
           kind: "response", title: "SOBRE CHATBOTS",
           body: "PODEMOS DESARROLLAR CHATBOTS PARA WEB, WHATSAPP, INSTAGRAM Y TELEGRAM, CON HANDOFF A HUMANOS Y CONEXION A TU CRM.\n\nINCLUYE: ENTRENAMIENTO CON TUS DATOS, MENSAJES PROACTIVOS, METRICAS Y PANEL DE ADMINISTRACION.",
-          ctas: [{ cmd: "DIAGNOSE", label: "DIAGNOSTICO RAPIDO", primary: true }, { cmd: "SERVICES", label: "VER SERVICIOS" }],
+          ctas: [{ cmd: "DIAGNOSE", label: "DIAGNOSTICO RAPIDO", primary: true }, { cmd: "CONTACT", label: "CONTACTAR" }],
         });
       case "AUTO_INFO":
         return setView({
           kind: "response", title: "AUTOMATIZACIONES",
           body: "AUTOMATIZAMOS FLUJOS REPETITIVOS:\n- ALTA DE CLIENTES\n- REPORTES PERIODICOS\n- ETL ENTRE SISTEMAS\n- EMAILS Y NOTIFICACIONES\n- FACTURACION Y COBRANZAS\n\nSE INTEGRA CON SHEETS, NOTION, CRMS, ERPS, APIS Y WEBHOOKS.",
-          ctas: [{ cmd: "DIAGNOSE", label: "DIAGNOSTICO", primary: true }, { cmd: "CASES", label: "VER CASOS" }],
+          ctas: [{ cmd: "DIAGNOSE", label: "DIAGNOSTICO", primary: true }, { cmd: "CONTACT", label: "CONTACTAR" }],
         });
       case "PRICING":
         return setView({
@@ -1229,16 +1155,6 @@ function App() {
         return <ViewShell tag="IDX" title="PROYECTOS" path="/USR/PROYECTOS.MD" onClose={closeView}>
           <div className="view-intro"><span className="role">AGENT:</span>LEYENDO PROYECTOS PERSONALES DESDE MARKDOWN.</div>
           <ProjectsBlock />
-        </ViewShell>;
-      case "services":
-        return <ViewShell tag="LOAD" title="SERVICE MODULES" path="/SYS/SERVICES.SYS" onClose={closeView}>
-          <div className="view-intro"><span className="role">AGENT:</span>CARGANDO MODULOS DE SERVICIO... DONE.</div>
-          <ServicesBlock onCommand={programmatic} />
-        </ViewShell>;
-      case "cases":
-        return <ViewShell tag="DB" title="USE CASE DATABASE" path="/DB/CASES.IDX" onClose={closeView}>
-          <div className="view-intro"><span className="role">AGENT:</span>ABRIENDO BASE DE CASOS. TOCA CADA UNO PARA EXPANDIR.</div>
-          <CasesBlock />
         </ViewShell>;
       case "about":
         return <ViewShell tag="FILE" title="ABOUT_OPERATOR.TXT" path="/USR/ABOUT.TXT" onClose={closeView}>

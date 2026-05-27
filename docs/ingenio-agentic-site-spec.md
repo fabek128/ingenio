@@ -83,8 +83,6 @@ Implicacion: el proyecto hoy es muy simple de servir como estatico, pero usa Rea
 
 Es la fuente principal de datos editables:
 
-- `SERVICES`: servicios ofrecidos.
-- `CASES`: casos de uso.
 - `STACK`: stack tecnico mostrado.
 - `ABOUT_PROFILE`: perfil personal.
 - `ABOUT_LINES`: bloque tipo archivo terminal.
@@ -103,7 +101,7 @@ Implementa la aplicacion React:
 - Header con estado, selector de modelo y selector de tema.
 - Command bar con historial, autocompletado y botones rapidos.
 - Heuristica simple de intenciones en lenguaje natural.
-- Vistas: home, help, services, cases, stack, about, diagnostico, contact y respuestas genericas.
+- Vistas: home, help, stack, about, diagnostico, contact y respuestas genericas.
 - Formulario de contacto simulado: no envia datos reales.
 - Selector de modelo solo cambia estado local; no esta conectado a backend.
 - Comandos `WHATSAPP` y `AGENDAR` muestran placeholders, no abren enlaces reales.
