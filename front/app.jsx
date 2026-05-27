@@ -1240,7 +1240,7 @@ function App() {
         <SysHeader theme={theme} onTheme={setTheme} onAgent={() => programmatic("AGENT")} />
         <div className="main-area">
           <div className="app-content">
-            {!bootDone && view.kind === "home" ? (
+            {bootDone && view.kind === "home" ? (
               <BootScreen onDone={() => { setBootDone(true); setView({ kind: "home" }); }} theme={theme} />
             ) : (
               renderView()
