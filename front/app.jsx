@@ -1047,7 +1047,7 @@ function App() {
   };
 
   const submitPromptToModel = async (question) => {
-    const cleanQuestion = (question || "").trim();
+    const cleanQuestion = (question || "").trim().toUpperCase();
     if (!cleanQuestion) return;
     const userMessage = createAgentMessage("user", cleanQuestion);
     const assistantMessage = createAgentMessage("assistant", "CONECTANDO", "pending");
@@ -1085,7 +1085,7 @@ function App() {
       case "CONTACT": return setView({ kind: "contact", prefill: opts.prefill });
       case "HOME": return setView({ kind: "home" });
       case "AGENT": {
-        const question = (raw || "").replace(/^AGENT\s*/i, "").trim();
+        const question = (raw || "").replace(/^AGENT\s*/i, "").trim().toUpperCase();
         if (!question) return setView({ kind: "agent" });
         return submitPromptToModel(question);
       }

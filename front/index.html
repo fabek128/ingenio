@@ -1158,18 +1158,19 @@ body {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 12px clamp(14px, 3vw, 28px);
+  padding: 0 clamp(14px, 3vw, 28px);
+  min-height: 0;
 }
 .input-row .prompt-glyph {
   color: var(--fg-bright);
   font-weight: 700;
   text-shadow: var(--shadow-glow);
-  font-size: clamp(16px, 2.2vw, 22px);
+  font-size: var(--text-xs);
   display: flex;
   align-items: center;
   gap: 6px;
   white-space: nowrap;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.1em;
 }
 .input-row .prompt-gt {
   color: var(--fg);
@@ -1188,10 +1189,10 @@ body {
   position: relative;
   flex: 1;
   min-width: 0;
-  min-height: 1.35em;
+  min-height: 1.2em;
   font-family: var(--font-mono);
-  font-size: clamp(18px, 2.6vw, 26px);
-  letter-spacing: 0.03em;
+  font-size: var(--text-xs);
+  letter-spacing: 0.1em;
   text-transform: uppercase;
 }
 .cmd-mirror {
@@ -1208,10 +1209,10 @@ body {
 }
 .input-cursor {
   display: inline-block;
-  width: 0.58em;
-  height: 1.05em;
+  width: 0.5em;
+  height: 0.85em;
   background: var(--fg-bright);
-  vertical-align: -0.16em;
+  vertical-align: -0.12em;
   animation: blink 0.9s steps(2) infinite;
   box-shadow: var(--shadow-glow);
 }
@@ -1225,23 +1226,23 @@ body {
   color: transparent;
   font-family: var(--font-mono);
   font-size: inherit;
-  letter-spacing: 0.03em;
+  letter-spacing: inherit;
   caret-color: transparent;
   text-transform: uppercase;
 }
 .fake-cursor {
   display: inline-block;
-  width: 0.6em;
-  height: 1.05em;
+  width: 0.5em;
+  height: 0.85em;
   background: var(--fg-bright);
   margin-left: -2px;
-  vertical-align: -3px;
+  vertical-align: -2px;
   animation: blink 1s steps(2) infinite;
   box-shadow: var(--shadow-glow);
 }
 .input-row .submit-hint {
   font-family: var(--font-ui);
-  font-size: 11px;
+  font-size: var(--text-xs);
   color: var(--fg-dim);
   letter-spacing: 0.08em;
   white-space: nowrap;
@@ -1738,8 +1739,8 @@ input:disabled {
   .view-bar .view-actions { flex-shrink: 0; }
 
   /* Input — touch friendly + sticks via dvh on the bezel */
-  .input-row { padding: 10px 14px; min-height: 56px; }
-  .input-row input.cmd { font-size: var(--text-base); }
+  .input-row { padding: 0 14px; min-height: 44px; }
+  .input-row input.cmd { font-size: var(--text-xs); }
   .input-row .submit-hint { display: none; }
   .quick-btn { min-height: 44px; }
 
