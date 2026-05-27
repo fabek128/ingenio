@@ -179,7 +179,7 @@ function saveAgentMessages(messages) {
 /* ============================================================
    BOOT SCREEN
    ============================================================ */
-function BootScreen({ onDone, theme, static: isStatic }) {
+function BootScreen({ onDone, theme }) {
   const lines = [
     { t: "INGENIO/64 KERNEL ROM v1.0.4 — BOOT SEQUENCE", cls: "bright" },
     { t: "(C) 2025 INGENIO/64. ALL RIGHTS RESERVED.", cls: "dim" },
@@ -214,7 +214,7 @@ function BootScreen({ onDone, theme, static: isStatic }) {
   }, [isStatic]);
 
   return (
-    <div className={"boot" + (isStatic ? " static" : "")}>
+    <div className="boot">
       {!isStatic && <button className="boot-skip" onClick={onDone}>SKIP &gt;&gt;</button>}
       <div className="boot-banner">{HERO.banner}</div>
       <div className="boot-subline">{HERO.ram}</div>
@@ -227,7 +227,7 @@ function BootScreen({ onDone, theme, static: isStatic }) {
             {l.t || "\u00A0"}
           </div>
         ))}
-        {!isStatic && shownCount < lines.length && <span className="boot-cursor" />}
+        {shownCount < lines.length && <span className="boot-cursor" />}
       </div>
     </div>
   );
@@ -236,7 +236,7 @@ function BootScreen({ onDone, theme, static: isStatic }) {
 /* ============================================================
    HEADER
    ============================================================ */
-function SysHeader({ theme, onTheme }) {
+function SysHeader({ theme, onTheme, onAgent }) {
   const themes = [
     {
       id: "c64", icon: (
@@ -278,6 +278,11 @@ function SysHeader({ theme, onTheme }) {
         INGENIO/64
       </div>
       <div className="status-group">
+        <button className="stat essential agent-link" onClick={onAgent} title="Abrir sesion del agente">
+          <span className="dot" />
+          <span className="label">AGENT</span>
+          <span className="val">OPEN</span>
+        </button>
       </div>
       <div className="theme-pill" aria-label="Theme selector">
         {themes.map((t) => (
@@ -340,10 +345,112 @@ function HeroBlock({ onCommand }) {
       <div className="title">{HERO.title}</div>
       <div className="sub">{HERO.sub}</div>
       <div className="hero-ctas">
-        <button className="hero-cta primary" onClick={() => onCommand("AGENT Como usas IA todos los dias?")}>&gt; PREGUNTAR_AL_AGENTE</button>
+        <button className="hero-cta primary" onClick={() => onCommand("AGENT")}>&gt; ABRIR_AGENT</button>
         <button className="hero-cta" onClick={() => onCommand("PROYECTOS")}>&gt; PROYECTOS</button>
+        <button className="hero-cta" onClick={() => onCommand("ABOUT")}>&gt; ABOUT</button>
       </div>
       <div className="stars" style={{ marginTop: 16 }}>{"* ".repeat(28).trim()}</div>
+    </div>
+  );
+}
+
+const HOME_MENU = [
+  {
+    cmd: "AGENT",
+    tag: "AGT",
+    title: "AGENT SESSION",
+    body: "Conversa con el agente del sitio. El historial se mantiene mientras navegas esta sesion.",
+    primary: true,
+  },
+  {
+    cmd: "PROYECTOS",
+    tag: "IDX",
+    title: "PROYECTOS",
+    body: "Repos y experimentos personales en curso, cargados desde Markdown.",
+  },
+  {
+    cmd: "ABOUT",
+    tag: "USR",
+    title: "ABOUT",
+    body: "Perfil, recorrido tecnico y contexto personal.",
+  },
+  {
+    cmd: "SERVICES",
+    tag: "SYS",
+    title: "SERVICIOS",
+    body: "Ideas de soluciones IA, agentes, automatizaciones y software a medida.",
+  },
+  {
+    cmd: "CASES",
+    tag: "DB",
+    title: "CASOS",
+    body: "Casos de uso y patrones de implementacion.",
+  },
+  {
+    cmd: "CONTACT",
+    tag: "IO",
+    title: "CONTACTO",
+    body: "Formulario para escribir o iniciar una conversacion.",
+  },
+];
+
+function HomeView({ onCommand, agentMessages = [] }) {
+  const lastAgent = [...agentMessages].reverse().find((m) => m.role === "assistant" && m.status === "done");
+
+  return (
+    <div className="home">
+      <div className="home-body">
+        <div className="home-content">
+          <div className="home-status">
+            <div style={{ color: "var(--sys-color)" }}>{HERO.banner}</div>
+            <div style={{ color: "var(--sys-color)" }}>{HERO.ram}</div>
+            <div className="home-modules">
+              {HERO.modules.map(([name, st]) => (
+                <div key={name}>
+                  <span style={{ color: "var(--ok-color)" }}>[ {st} ]</span>{" "}{name}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <HeroBlock onCommand={onCommand} />
+
+          <div className="home-section-head">
+            <span className="role">MENU:</span>
+            SECCIONES PRINCIPALES
+          </div>
+
+          <div className="home-menu">
+            {HOME_MENU.map((item) => (
+              <button
+                key={item.cmd}
+                className={"home-card " + (item.primary ? "primary" : "")}
+                onClick={() => onCommand(item.cmd)}
+              >
+                <span className="home-card-tag">[{item.tag}]</span>
+                <span className="home-card-title">&gt; {item.title}</span>
+                <span className="home-card-body">{item.body}</span>
+              </button>
+            ))}
+          </div>
+
+          {agentMessages.length > 0 && (
+            <div className="home-panel">
+              <div className="home-panel-title">AGENT SESSION</div>
+              <div className="home-panel-body">
+                HAY {agentMessages.length} MENSAJES EN ESTA SESION.
+                {lastAgent && (
+                  <>
+                    <br />
+                    ULTIMA RESPUESTA: {lastAgent.text.slice(0, 180)}{lastAgent.text.length > 180 ? "..." : ""}
+                  </>
+                )}
+              </div>
+              <button className="hero-cta" onClick={() => onCommand("AGENT")}>&gt; VOLVER_AL_AGENT</button>
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   );
 }
@@ -861,7 +968,7 @@ function CommandBar({ onSubmit, value, setValue, history, setHistory, disabled =
     }
   };
 
-  const quickButtons = ["HOME", "PROYECTOS", "AGENT", "ABOUT", "CONTACT"];
+  const quickButtons = ["HOME", "AGENT", "PROYECTOS", "ABOUT", "SERVICES", "CASES", "CONTACT"];
 
   return (
     <div className="command-bar">
@@ -1192,6 +1299,8 @@ function App() {
 
   const renderView = () => {
     switch (view.kind) {
+      case "home":
+        return <HomeView onCommand={programmatic} agentMessages={agentMessages} />;
       case "agent":
         const usageStr = agentUsage ? ("CTX: " + (agentUsage.total_tokens || "?") + " TOKENS") : "";
         const title = usageStr ? ("AGENT SESSION  |  " + usageStr) : "AGENT SESSION";
@@ -1236,10 +1345,11 @@ function App() {
   return (
     <div className="bezel">
       <div className="crt-screen">
-        <SysHeader theme={theme} onTheme={setTheme} />
+        <SysHeader theme={theme} onTheme={setTheme} onAgent={() => programmatic("AGENT")} />
         <div className="main-area">
-          <BootScreen onDone={() => setBootDone(true)} theme={theme} static={bootDone} />
-          {bootDone && (
+          {!bootDone ? (
+            <BootScreen onDone={() => setBootDone(true)} theme={theme} />
+          ) : (
             <div className="app-content">
               {renderView()}
               <CommandBar

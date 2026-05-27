@@ -489,6 +489,13 @@ body {
               8px 0 0 var(--fg), 0 8px 0 var(--fg), 8px 8px 0 var(--fg);
   margin-right: 6px;
 }
+.sys-header .status-group {
+  display: flex;
+  align-items: stretch;
+  flex: 1;
+  min-width: 0;
+  padding: 0;
+}
 
 .main-area {
   flex: 1;
@@ -508,11 +515,6 @@ body {
   overflow: hidden;
 }
 
-.boot.static {
-  flex-shrink: 0;
-  padding: clamp(10px, 2vw, 30px) clamp(18px, 4vw, 60px);
-  border-bottom: 1px solid color-mix(in srgb, var(--border) 40%, transparent);
-}
 .sys-header .stat {
   display: flex; gap: 8px; align-items: center;
   padding: 10px 14px;
@@ -1459,6 +1461,103 @@ body {
   flex-direction: column;
   gap: 14px;
 }
+.home-status {
+  border: 1px dashed color-mix(in srgb, var(--border) 45%, transparent);
+  padding: 12px 14px;
+  background: color-mix(in srgb, var(--bg-inner) 92%, var(--border) 8%);
+  font-family: var(--font-ui);
+  font-size: clamp(12px, 1.2vw, 15px);
+  letter-spacing: 0.06em;
+}
+.home-modules {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 4px 16px;
+  margin-top: 8px;
+  color: var(--fg-dim);
+}
+.home-section-head {
+  color: var(--agent-color);
+  font-size: clamp(20px, 2.2vw, 28px);
+  text-shadow: var(--shadow-glow);
+}
+.home-section-head .role {
+  display: block;
+  font-family: var(--font-ui);
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  color: var(--fg-dim);
+  margin-bottom: 4px;
+}
+.home-menu {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 12px;
+}
+.home-card {
+  border: 1px solid var(--border);
+  background: color-mix(in srgb, var(--bg-inner) 84%, var(--border) 16%);
+  color: var(--fg);
+  padding: 14px;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 6px 10px;
+  text-align: left;
+  cursor: pointer;
+  font-family: var(--font-mono);
+  transition: background 0.12s, transform 0.08s;
+}
+.home-card:hover,
+.home-card:focus-visible {
+  background: var(--selection);
+  color: var(--selection-fg);
+  outline: none;
+  transform: translateY(-1px);
+}
+.home-card.primary {
+  background: color-mix(in srgb, var(--border) 40%, var(--bg-inner) 60%);
+}
+.home-card-tag {
+  font-family: var(--font-ui);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  color: var(--fg-dim);
+  align-self: baseline;
+}
+.home-card-title {
+  color: var(--fg-bright);
+  font-size: clamp(20px, 2vw, 26px);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+.home-card-body {
+  grid-column: 1 / -1;
+  font-size: clamp(17px, 1.8vw, 21px);
+  line-height: 1.25;
+}
+.home-card:hover .home-card-tag,
+.home-card:hover .home-card-title,
+.home-card:focus-visible .home-card-tag,
+.home-card:focus-visible .home-card-title {
+  color: var(--selection-fg);
+}
+.home-panel {
+  border: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
+  background: color-mix(in srgb, var(--bg-inner) 88%, var(--border) 12%);
+  padding: 14px;
+}
+.home-panel-title {
+  color: var(--fg-bright);
+  font-family: var(--font-ui);
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  margin-bottom: 8px;
+}
+.home-panel-body {
+  color: var(--fg);
+  font-size: clamp(18px, 2vw, 22px);
+  margin-bottom: 12px;
+}
 
 /* ============================================================
    BOOT SCREEN
@@ -1474,14 +1573,6 @@ body {
   flex-direction: column;
   justify-content: flex-start;
   color: var(--fg);
-}
-.boot.static {
-  flex: 1;
-  justify-content: center;
-  padding-bottom: 20vh;
-}
-.boot.static .boot-cursor {
-  animation: blink 0.9s steps(2) infinite;
 }
 .boot-line { text-shadow: var(--shadow-glow); }
 .boot-line.bright { color: var(--fg-bright); }
