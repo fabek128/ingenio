@@ -24,13 +24,13 @@ const PROJECTS_SECTION = {
 };
 
 const AGENTES_DATA = {
-  title: "AGENTES IA / AUTOMACION / SISTEMAS AGENTICOS",
+  title: "AGENTES IA / AUTOMATIZACIÓN / SISTEMAS AGENTICOS",
   sections: [
     {
       title: "QUE HAGO",
       lines: [
-        "Diseno, construyo y mantengo sistemas basados en agentes de IA.",
-        "Agentes que interactuan con modelos, APIs, archivos, terminales,",
+        "Diseño, construyo y mantengo sistemas basados en agentes de IA.",
+        "Agentes que interactúan con modelos, APIs, archivos, terminales,",
         "navegadores, servicios cloud y entornos locales.",
         "",
         "No vendo magia. Vendo sistemas que hacen trabajo concreto:",
@@ -44,39 +44,39 @@ const AGENTES_DATA = {
     {
       title: "TIPOS DE AGENTES",
       lines: [
-        "PROGRAMACION: revision de codigo, tests, PRs, refactors,",
-        "  documentacion tecnica, automatizacion de tareas DevOps.",
+        "PROGRAMACIÓN: revision de código, tests, PRs, refactors,",
+        "  documentación técnica, automatización de tareas DevOps.",
         "",
-        "INVESTIGACION: buscar, comparar, resumir, monitorear cambios,",
+        "INVESTIGACIÓN: buscar, comparar, resumir, monitorear cambios,",
         "  generar reportes, mantener base de conocimiento.",
         "",
-        "OPERACION INTERNA: reportes, tickets, resumenes, actualizacion",
-        "  de docs, extraccion de datos, tareas admin.",
+        "OPERACIÓN INTERNA: reportes, tickets, resúmenes, actualización",
+        "  de docs, extracción de datos, tareas admin.",
         "",
         "PERSONALES / EJECUTIVOS: agenda, recordatorios, email,",
-        "  preparacion de contexto, seguimiento de proyectos.",
+        "  preparación de contexto, seguimiento de proyectos.",
         "",
         "MULTI-MODELO: un modelo planifica, otro ejecuta, otro verifica.",
         "  Optimiza calidad, costo y privacidad.",
         "",
-        "HERRAMIENTAS PROPIAS: tools deterministicas para que el agente",
+        "HERRAMIENTAS PROPIAS: tools determinísticas para que el agente",
         "  haga cosas confiables sin improvisar.",
       ],
     },
     {
-      title: "COMO TRABAJO",
+      title: "CÓMO TRABAJO",
       lines: [
-        "1. ENTENDER EL FLUJO REAL: que tarea, quien la hace, que datos",
-        "   usa, que errores son comunes, que requiere aprobacion.",
+        "1. ENTENDER EL FLUJO REAL: qué tarea, quién la hace, qué datos",
+        "   usa, que errores son comunes, que requiere aprobación.",
         "",
-        "2. DISENAR ARQUITECTURA: modelo, herramientas, memoria, logs,",
-        "   permisos, recuperacion de errores, limites.",
+        "2. DISEÑAR ARQUITECTURA: modelo, herramientas, memoria, logs,",
+        "   permisos, recuperación de errores, límites.",
         "",
-        "3. PROTOTIPO FUNCIONAL: primera version que hace el flujo",
-        "   principal con entrada clara y salida util.",
+        "3. PROTOTIPO FUNCIONAL: primera versión que hace el flujo",
+        "   principal con entrada clara y salida útil.",
         "",
-        "4. HARDENING: permisos minimos, validaciones, timeouts,",
-        "   control de costos, aprobacion humana, sandboxing.",
+        "4. HARDENING: permisos mínimos, validaciones, timeouts,",
+        "   control de costos, aprobación humana, sandboxing.",
         "",
         "5. MANTENIMIENTO: el agente no se termina cuando anda.",
         "   Hay que monitorear costos, comportamiento del modelo,",
@@ -86,28 +86,28 @@ const AGENTES_DATA = {
     {
       title: "ENTREGABLES",
       lines: [
-        "- Agente funcionando con documentacion",
+        "- Agente funcionando con documentación",
         "- Arquitectura del sistema y reglas",
         "- Prompts, tools, skills reutilizables",
-        "- Scripts auxiliares y configuracion",
+        "- Scripts auxiliares y configuración",
         "- Checklist de seguridad",
-        "- Pruebas basicas y ejemplos de uso",
-        "- Plan de evolucion",
+        "- Pruebas básicas y ejemplos de uso",
+        "- Plan de evolución",
       ],
     },
     {
       title: "ENFOQUE",
       lines: [
-        "No me interesa vender una fantasia.",
-        "Me interesa construir sistemas agenticos que sirvan,",
-        "que se puedan explicar, que tengan limites",
+        "No me interesa vender una fantasía.",
+        "Me interesa construir sistemas agénticos que sirvan,",
+        "que se puedan explicar, que tengan límites",
         "y que mejoren procesos reales.",
         "",
-        "La diferencia entre una demo y una herramienta util",
-        "esta en los detalles: permisos, contexto, auditoria,",
-        "riesgo, mantenimiento y criterio tecnico.",
+        "La diferencia entre una demo y una herramienta útil",
+        "está en los detalles: permisos, contexto, auditoría,",
+        "riesgo, mantenimiento y criterio técnico.",
         "",
-        "Ahi es donde puedo aportar.",
+        "Ahí es donde puedo aportar.",
       ],
     },
   ],
@@ -115,18 +115,18 @@ const AGENTES_DATA = {
 
 const DIAGNOSTIC = {
   intro: [
-    "OK. VOY A HACERTE 4 PREGUNTAS RAPIDAS.",
-    "PODES RESPONDER CON LA LETRA O HACER CLIC EN LA OPCION.",
+    "OK. VOY A HACERTE 4 PREGUNTAS RÁPIDAS.",
+    "PODES RESPONDER CON LA LETRA O HACER CLIC EN LA OPCIÓN.",
   ],
   steps: [
     {
       step: "1/4",
       q: "QUE AREA QUERES MEJORAR?",
       options: [
-        { key: "A", label: "ATENCION AL CLIENTE" },
+        { key: "A", label: "ATENCIÓN AL CLIENTE" },
         { key: "B", label: "VENTAS" },
         { key: "C", label: "PROCESOS INTERNOS" },
-        { key: "D", label: "ANALISIS DE DATOS" },
+        { key: "D", label: "ANÁLISIS DE DATOS" },
         { key: "E", label: "OTRO / NO ESTOY SEGURO" },
       ],
     },
@@ -146,10 +146,10 @@ const DIAGNOSTIC = {
     },
     {
       step: "3/4",
-      q: "QUE NIVEL DE AUTOMATIZACION BUSCAS?",
+      q: "QUE NIVEL DE AUTOMATIZACIÓN BUSCAS?",
       options: [
         { key: "A", label: "ALGO SIMPLE Y RAPIDO (1-2 SEMANAS)" },
-        { key: "B", label: "UNA SOLUCION A MEDIDA (1-2 MESES)" },
+        { key: "B", label: "UNA SOLUCIÓN A MEDIDA (1-2 MESES)" },
         { key: "C", label: "UN AGENTE IA COMPLETO (2-4 MESES)" },
         { key: "D", label: "NO ESTOY SEGURO, NECESITO ASESORAMIENTO" },
       ],
@@ -172,16 +172,16 @@ function buildDiagnosis(answers) {
   // answers: [aKey, bKeys[], cKey, dKey]
   const [area, tools, level] = answers;
   const areaMap = {
-    A: "ASISTENTE DE ATENCION 24/7 CON HANDOFF A HUMANO",
+    A: "ASISTENTE DE ATENCIÓN 24/7 CON HANDOFF A HUMANO",
     B: "AGENTE COMERCIAL + CALIFICACION AUTOMATICA DE LEADS",
-    C: "AUTOMATIZACION DE FLUJOS Y REPORTES INTERNOS",
+    C: "AUTOMATIZACIÓN DE FLUJOS Y REPORTES INTERNOS",
     D: "AGENTE DE CONSULTA SOBRE TUS DATOS (NL2SQL + DASHBOARDS)",
     E: "AUDITORIA + ROADMAP DE OPORTUNIDADES IA",
   };
   const intMap = {
     A: "WHATSAPP CLOUD API",
-    B: "INTEGRACION CON SHEETS / EXCEL",
-    C: "INTEGRACION CON TU CRM",
+    B: "INTEGRACIÓN CON SHEETS / EXCEL",
+    C: "INTEGRACIÓN CON TU CRM",
     D: "PLATAFORMA DE EMAIL",
     E: "TU ERP / SISTEMA INTERNO",
     F: "NOTION / AIRTABLE",
@@ -204,10 +204,10 @@ function buildDiagnosis(answers) {
 const COMMANDS_META = [
   { cmd: "HOME", desc: "VUELVE A LA PANTALLA PRINCIPAL" },
   { cmd: "PROYECTOS", desc: "PROYECTOS PERSONALES EN CURSO" },
-  { cmd: "AGENTES", desc: "SERVICIOS DE AGENTES IA Y AUTOMATIZACION" },
+  { cmd: "AGENTES", desc: "SERVICIOS DE AGENTES IA Y AUTOMATIZACIÓN" },
   { cmd: "AGENT", desc: "HABLA CON EL AGENTE DEL SITIO" },
   { cmd: "MODEL", desc: "MUESTRA EL MODELO ACTIVO" },
-  { cmd: "DIAGNOSE", desc: "INICIA UN DIAGNOSTICO GUIADO" },
+  { cmd: "DIAGNOSE", desc: "INICIA UN DIAGNÓSTICO GUIADO" },
   { cmd: "ABOUT", desc: "QUIEN ESTA DEL OTRO LADO" },
   { cmd: "CONTACT", desc: "ABRE EL MODULO DE CONTACTO" },
   { cmd: "WHATSAPP", desc: "ABRE WHATSAPP" },
@@ -228,7 +228,7 @@ const HERO = {
     ["BACKEND LINK", "OK"],
   ],
   title: "FABIAN + IA / DIARIO DE CAMPO",
-  sub: "MI SITIO PERSONAL PARA COMPARTIR COMO USO IA TODOS LOS DIAS: AGENTES, AUTOMATIZACIONES, CODIGO, DEVOPS, ERRORES, APRENDIZAJES Y EXPERIMENTOS REALES.",
+  sub: "MI SITIO PERSONAL PARA COMPARTIR COMO USO IA TODOS LOS DIAS: AGENTES, AUTOMATIZACIONES, CÓDIGO, DEVOPS, ERRORES, APRENDIZAJES Y EXPERIMENTOS REALES.",
 };
 
 const MODELS = [
