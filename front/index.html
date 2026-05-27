@@ -422,28 +422,6 @@ body {
   z-index: 4;
 }
 
-.main-area {
-  flex: 1;
-  min-height: 0;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  position: relative;
-  z-index: 3;
-}
-
-.home-overlay {
-  flex: 1;
-  min-height: 0;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
-
-/* Boot screen in static mode shrinks to fit */
-.boot.static {
-  flex-shrink: 0;
-}
 
 /* Noise layer */
 .crt-noise {
@@ -1461,9 +1439,12 @@ body {
   color: var(--fg);
 }
 .boot.static {
-  flex: 0 0 auto;
-  padding: clamp(10px, 2vw, 30px) clamp(18px, 4vw, 60px);
-  border-bottom: 1px solid color-mix(in srgb, var(--border) 40%, transparent);
+  flex: 1;
+  justify-content: center;
+  padding-bottom: 20vh;
+}
+.boot.static .boot-cursor {
+  animation: blink 0.9s steps(2) infinite;
 }
 .boot-line { text-shadow: var(--shadow-glow); }
 .boot-line.bright { color: var(--fg-bright); }
