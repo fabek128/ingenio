@@ -153,11 +153,11 @@ body {
 
 .about-card {
   display: grid;
-  grid-template-columns: minmax(220px, 280px) 1fr;
-  gap: clamp(18px, 3vw, 36px);
+  grid-template-columns: minmax(120px, 280px) 1fr;
+  gap: clamp(12px, 3vw, 36px);
   align-items: start;
   border: 1px solid var(--border);
-  padding: clamp(16px, 2.5vw, 28px);
+  padding: clamp(12px, 2.5vw, 28px);
   background: color-mix(in srgb, var(--bg-inner) 88%, var(--border) 12%);
 }
 
@@ -344,9 +344,10 @@ body {
 
 @media (max-width: 700px) {
   .about-card {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(100px, 160px) 1fr;
+    gap: clamp(8px, 2vw, 16px);
   }
-  .about-photo-wrap { max-width: 220px; }
+  .about-photo-wrap { max-width: 160px; }
   .about-bio { font-size: 17px; }
   .about-footer { font-size: 13px; }
 }
@@ -1626,13 +1627,13 @@ input:disabled {
   .boot-skip { font-size: 10px; padding: 6px 8px; top: 8px; right: 10px; }
 
   /* About */
-  .about-card { padding: 14px; gap: 14px; }
-  .about-photo-wrap { max-width: 180px; align-self: center; }
-  .about-title { font-size: 20px; }
-  .about-v { font-size: 16px; }
-  .about-bio { font-size: 16px; }
+  .about-card { padding: 10px; gap: 10px; }
+  .about-photo-wrap { max-width: 160px; }
+  .about-title { font-size: clamp(16px, 3.5vw, 20px); }
+  .about-rows { column-gap: 8px; row-gap: 3px; }
+  .about-v { font-size: clamp(13px, 2.8vw, 16px); }
+  .about-bio { font-size: clamp(14px, 3vw, 16px); }
   .about-footer { font-size: 12px; }
-  .bio-mark { font-size: 18px; }
 
   /* Cases — tighter expansion indent */
   .module-id { font-size: 10px; padding: 2px 5px; }
