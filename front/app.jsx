@@ -325,7 +325,6 @@ function FeedLine({ entry, onCommand }) {
 
 function BlockRenderer({ entry, onCommand }) {
   switch (entry.kind) {
-    case "hero": return <HeroBlock onCommand={onCommand} />;
     case "projects": return <ProjectsBlock />;
     case "services": return <ServicesBlock onCommand={onCommand} />;
     case "cases": return <CasesBlock />;
@@ -336,66 +335,7 @@ function BlockRenderer({ entry, onCommand }) {
   }
 }
 
-/* ---------- Hero (post-boot) ---------- */
-function HeroBlock({ onCommand }) {
-  return (
-    <div className="hero-banner">
-      <div className="stars">{"* ".repeat(28).trim()}</div>
-      <div className="title">{HERO.title}</div>
-      <div className="sub">{HERO.sub}</div>
-      <div className="hero-ctas">
-        <button className="hero-cta primary" onClick={() => onCommand("AGENT")}>&gt; ABRIR_AGENT</button>
-        <button className="hero-cta" onClick={() => onCommand("PROYECTOS")}>&gt; PROYECTOS</button>
-        <button className="hero-cta" onClick={() => onCommand("ABOUT")}>&gt; ABOUT</button>
-      </div>
-      <div className="stars" style={{ marginTop: 16 }}>{"* ".repeat(28).trim()}</div>
-    </div>
-  );
-}
-
-const HOME_MENU = [
-  {
-    cmd: "AGENT",
-    tag: "AGT",
-    title: "AGENT SESSION",
-    body: "Conversa con el agente del sitio. El historial se mantiene mientras navegas esta sesion.",
-    primary: true,
-  },
-  {
-    cmd: "PROYECTOS",
-    tag: "IDX",
-    title: "PROYECTOS",
-    body: "Repos y experimentos personales en curso, cargados desde Markdown.",
-  },
-  {
-    cmd: "ABOUT",
-    tag: "USR",
-    title: "ABOUT",
-    body: "Perfil, recorrido tecnico y contexto personal.",
-  },
-  {
-    cmd: "SERVICES",
-    tag: "SYS",
-    title: "SERVICIOS",
-    body: "Ideas de soluciones IA, agentes, automatizaciones y software a medida.",
-  },
-  {
-    cmd: "CASES",
-    tag: "DB",
-    title: "CASOS",
-    body: "Casos de uso y patrones de implementacion.",
-  },
-  {
-    cmd: "CONTACT",
-    tag: "IO",
-    title: "CONTACTO",
-    body: "Formulario para escribir o iniciar una conversacion.",
-  },
-];
-
-function HomeView({ onCommand, agentMessages = [] }) {
-  const lastAgent = [...agentMessages].reverse().find((m) => m.role === "assistant" && m.status === "done");
-
+function HomeView() {
   return (
     <div className="home">
       <div className="home-body">
@@ -411,43 +351,6 @@ function HomeView({ onCommand, agentMessages = [] }) {
               ))}
             </div>
           </div>
-
-          <HeroBlock onCommand={onCommand} />
-
-          <div className="home-section-head">
-            <span className="role">MENU:</span>
-            SECCIONES PRINCIPALES
-          </div>
-
-          <div className="home-menu">
-            {HOME_MENU.map((item) => (
-              <button
-                key={item.cmd}
-                className={"home-card " + (item.primary ? "primary" : "")}
-                onClick={() => onCommand(item.cmd)}
-              >
-                <span className="home-card-tag">[{item.tag}]</span>
-                <span className="home-card-title">&gt; {item.title}</span>
-                <span className="home-card-body">{item.body}</span>
-              </button>
-            ))}
-          </div>
-
-          {agentMessages.length > 0 && (
-            <div className="home-panel">
-              <div className="home-panel-title">AGENT SESSION</div>
-              <div className="home-panel-body">
-                HAY {agentMessages.length} MENSAJES EN ESTA SESION.
-                {lastAgent && (
-                  <>
-                    <br />
-                    ULTIMA RESPUESTA: {lastAgent.text.slice(0, 180)}{lastAgent.text.length > 180 ? "..." : ""}
-                  </>
-                )}
-              </div>
-              <button className="hero-cta" onClick={() => onCommand("AGENT")}>&gt; VOLVER_AL_AGENT</button>
-            </div>
-          )}
         </div>
       </div>
     </div>
@@ -1299,7 +1202,7 @@ function App() {
   const renderView = () => {
     switch (view.kind) {
       case "home":
-        return <HomeView onCommand={programmatic} agentMessages={agentMessages} />;
+        return <HomeView />;
       case "agent":
         const usageStr = agentUsage ? ("CTX: " + (agentUsage.total_tokens || "?") + " TOKENS") : "";
         const title = usageStr ? ("AGENT SESSION  |  " + usageStr) : "AGENT SESSION";

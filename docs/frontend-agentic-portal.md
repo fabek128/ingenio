@@ -9,8 +9,8 @@ Redisenar el frontend existente para que INGENIO/64 sea un sitio personal tipo c
 ## Cambios funcionales
 
 - Home reorientado a diario personal de IA.
-- Home debe renderizar una pantalla real de inicio, no dejar el boot como contenido permanente.
-- El menu principal debe quedar visible en la home con tarjetas para `AGENT`, `PROYECTOS`, `ABOUT`, `SERVICES`, `CASES` y `CONTACT`.
+- Home debe renderizar solo `HERO.banner`, `HERO.ram` y `HERO.modules`.
+- No debe mostrar el cuadrado CTA del hero ni tarjetas de secciones principales dentro del area central.
 - La barra inferior mantiene accesos rapidos a las secciones principales y prompt libre.
 - El boot es solo una pantalla transitoria inicial; despues de completarse no queda montado sobre la home.
 - Header simplificado: se elimina el selector visual `MODEL` y `AGENT` pasa a ser un acceso directo a la sesion del agente.
