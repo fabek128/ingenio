@@ -195,11 +195,10 @@ function BootScreen({ onDone, theme }) {
     { t: "READY.", cls: "bright" },
   ];
 
-  const [shownCount, setShownCount] = useState(isStatic ? lines.length : 0);
-  const [progress, setProgress] = useState(isStatic ? 100 : 0);
+  const [shownCount, setShownCount] = useState(0);
+  const [progress, setProgress] = useState(0);
 
   useEffect(() => {
-    if (isStatic) return;
     let i = 0;
     const interval = setInterval(() => {
       i++;
@@ -211,11 +210,11 @@ function BootScreen({ onDone, theme }) {
       }
     }, 180);
     return () => clearInterval(interval);
-  }, [isStatic]);
+  }, [onDone]);
 
   return (
     <div className="boot">
-      {!isStatic && <button className="boot-skip" onClick={onDone}>SKIP &gt;&gt;</button>}
+      <button className="boot-skip" onClick={onDone}>SKIP &gt;&gt;</button>
       <div className="boot-banner">{HERO.banner}</div>
       <div className="boot-subline">{HERO.ram}</div>
       <div className="boot-progress" aria-hidden="true">
