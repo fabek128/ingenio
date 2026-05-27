@@ -1102,23 +1102,50 @@ body {
   display: inline-block;
   animation: blink 0.9s steps(2) infinite;
 }
-.input-row input.cmd {
+.cmd-wrap {
+  position: relative;
   flex: 1;
-  background: transparent;
-  border: none;
-  outline: none;
-  color: var(--fg-bright);
+  min-width: 0;
+  min-height: 1.35em;
   font-family: var(--font-mono);
   font-size: clamp(18px, 2.6vw, 26px);
   letter-spacing: 0.03em;
-  caret-color: transparent;
   text-transform: uppercase;
 }
-.input-row input.cmd::placeholder {
+.cmd-mirror {
+  position: absolute;
+  inset: 0;
+  color: var(--fg-bright);
+  white-space: pre;
+  overflow: hidden;
+  pointer-events: none;
+}
+.cmd-placeholder {
   color: var(--fg-dim);
   opacity: 0.5;
+}
+.input-cursor {
+  display: inline-block;
+  width: 0.58em;
+  height: 1.05em;
+  background: var(--fg-bright);
+  vertical-align: -0.16em;
+  animation: blink 0.9s steps(2) infinite;
+  box-shadow: var(--shadow-glow);
+}
+.input-row input.cmd {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: transparent;
+  font-family: var(--font-mono);
+  font-size: inherit;
+  letter-spacing: 0.03em;
+  caret-color: transparent;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
 }
 .fake-cursor {
   display: inline-block;

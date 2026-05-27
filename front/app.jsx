@@ -799,6 +799,7 @@ function CommandBar({ onSubmit, value, setValue, history, setHistory, disabled =
   const [hIdx, setHIdx] = useState(-1);
   const [active, setActive] = useState(-1);
   const inputRef = useRef(null);
+  const [caretIndex, setCaretIndex] = useState(0);
 
   // Focus input on click anywhere in screen (but not on form fields)
   useEffect(() => {
@@ -865,6 +866,12 @@ function CommandBar({ onSubmit, value, setValue, history, setHistory, disabled =
   };
 
   const quickButtons = ["HOME", "AGENT", "PROYECTOS", "ABOUT", "SERVICES", "CASES", "CONTACT"];
+  const syncCaret = () => {
+    requestAnimationFrame(() => {
+      const el = inputRef.current;
+      setCaretIndex(el ? el.selectionStart ?? value.length : value.length);
+    });
+  };
 
   return (
     <div className="command-bar">
@@ -891,19 +898,33 @@ function CommandBar({ onSubmit, value, setValue, history, setHistory, disabled =
             ))}
           </div>
         )}
-        <span className="prompt-glyph">READY.<span className="prompt-gt">&gt;</span><span className="boot-cursor" /></span>
-        <input
-          ref={inputRef}
-          className="cmd"
-          value={value}
-          onChange={(e) => { setValue(e.target.value); setHIdx(-1); setActive(-1); }}
-          onKeyDown={onKey}
-          disabled={disabled}
-          placeholder={disabled ? "ESPERANDO RESPUESTA DEL MODELO..." : "ESCRIBI TU PROMPT O UN COMANDO... (TAB AUTOCOMPLETA)"}
-          autoComplete="off"
-          spellCheck="false"
-          autoFocus
-        />
+        <span className="prompt-glyph">READY.<span className="prompt-gt">&gt;</span></span>
+        <div className="cmd-wrap">
+          <span className="cmd-mirror" aria-hidden="true">
+            {value.slice(0, caretIndex)}
+            <span className="input-cursor" />
+            {value.slice(caretIndex) || (!value ? (
+              <span className="cmd-placeholder">
+                {disabled ? "ESPERANDO RESPUESTA DEL MODELO..." : "ESCRIBI TU PROMPT O UN COMANDO... (TAB AUTOCOMPLETA)"}
+              </span>
+            ) : null)}
+          </span>
+          <input
+            ref={inputRef}
+            className="cmd"
+            value={value}
+            onChange={(e) => { setValue(e.target.value); setHIdx(-1); setActive(-1); syncCaret(); }}
+            onKeyDown={(e) => { onKey(e); syncCaret(); }}
+            onClick={syncCaret}
+            onKeyUp={syncCaret}
+            onSelect={syncCaret}
+            disabled={disabled}
+            placeholder=""
+            autoComplete="off"
+            spellCheck="false"
+            autoFocus
+          />
+        </div>
         <span className="submit-hint">{disabled ? "[WAIT]" : "[ENTER]"}</span>
       </div>
     </div>
