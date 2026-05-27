@@ -160,6 +160,13 @@ body {
   padding: clamp(12px, 2.5vw, 28px);
   background: color-mix(in srgb, var(--bg-inner) 88%, var(--border) 12%);
 }
+.about-layout {
+  width: 100%;
+  max-width: none;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
 
 .about-photo-wrap {
   display: flex;
@@ -314,7 +321,8 @@ body {
   font-size: clamp(18px, 1.6vw, 21px);
   line-height: 1.45;
   color: var(--fg);
-  max-width: 78ch;
+  width: 100%;
+  max-width: none;
 }
 .about-bio p {
   margin: 0;
@@ -1352,11 +1360,15 @@ body {
 .view-body::-webkit-scrollbar-thumb { background: var(--fg-dim); }
 
 .view-content {
+  width: 100%;
   max-width: 1600px;
   margin: 0 auto;
   display: flex;
   flex-direction: column;
   gap: 18px;
+}
+.view-content:has(.about-layout) {
+  max-width: none;
 }
 
 .view-intro {

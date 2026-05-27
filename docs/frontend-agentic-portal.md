@@ -12,6 +12,7 @@ Redisenar el frontend existente para que INGENIO/64 sea un sitio personal tipo c
 - Home debe renderizar solo `HERO.banner`, `HERO.ram` y `HERO.modules`.
 - No debe mostrar el cuadrado CTA del hero ni tarjetas de secciones principales dentro del area central.
 - La barra inferior mantiene accesos rapidos a las secciones principales y prompt libre.
+- La seccion `ABOUT` debe permitir que el texto de `about.md` use el maximo ancho disponible del viewport.
 - El cursor visual del prompt inferior debe seguir la posicion real del caret: avanza al escribir y retrocede al borrar o mover el cursor.
 - En la home, `BootScreen` permanece montado. Mientras `bootDone === false` anima la secuencia; cuando termina, queda en modo `static` mostrando el estado final. En otras secciones no se monta.
 - Header simplificado: se elimina el selector visual `MODEL` y `AGENT` pasa a ser un acceso directo a la sesion del agente.

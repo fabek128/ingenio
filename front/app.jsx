@@ -539,7 +539,7 @@ function AboutBlock() {
   }, []);
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+    <div className="about-layout">
       {/* Photo + meta card */}
       <div className="about-card">
         <div className="about-photo-wrap">
