@@ -459,11 +459,15 @@ body {
   justify-content: space-between;
   border-bottom: 1px solid var(--border);
   font-family: var(--font-ui);
-  font-size: 13px;
+  font-size: clamp(11px, 1.1vw, 14px);
   letter-spacing: 0.04em;
   color: var(--fg);
   background: color-mix(in srgb, var(--bg-inner) 85%, var(--border) 15%);
+  overflow-x: auto;
+  scrollbar-width: none;
+  white-space: nowrap;
 }
+.sys-header::-webkit-scrollbar { display: none; }
 .sys-header > * {
   padding: 10px 14px;
 }
@@ -1009,12 +1013,13 @@ body {
 
 .quick-row {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   gap: 0;
   border-bottom: 1px dashed color-mix(in srgb, var(--border) 40%, transparent);
-  padding: 2px 4px;
+  padding: 0;
   overflow-x: auto;
   scrollbar-width: none;
+  white-space: nowrap;
 }
 .quick-row::-webkit-scrollbar { display: none; }
 
@@ -1023,12 +1028,13 @@ body {
   border: none;
   color: var(--fg);
   font-family: var(--font-ui);
-  font-size: 12px;
+  font-size: clamp(11px, 1.1vw, 14px);
   letter-spacing: 0.1em;
   font-weight: 600;
-  padding: 8px 12px;
+  padding: clamp(8px, 1vw, 14px) clamp(10px, 1.2vw, 16px);
   cursor: pointer;
   white-space: nowrap;
+  flex-shrink: 0;
   border-right: 1px solid color-mix(in srgb, var(--border) 20%, transparent);
   transition: all 0.1s;
 }
@@ -1164,21 +1170,26 @@ body {
   border-bottom: 1px solid var(--border);
   background: color-mix(in srgb, var(--bg-inner) 92%, var(--border) 8%);
   font-family: var(--font-ui);
-  font-size: 12px;
+  font-size: clamp(11px, 1.1vw, 14px);
   letter-spacing: 0.1em;
   flex-shrink: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+  white-space: nowrap;
 }
+.view-bar::-webkit-scrollbar { display: none; }
 .view-bar .view-tag {
-  padding: 8px 12px;
+  padding: clamp(6px, 0.8vw, 12px) clamp(8px, 1vw, 14px);
   background: var(--border);
   color: var(--selection-fg);
   font-weight: 700;
   display: flex;
   align-items: center;
   gap: 6px;
+  flex-shrink: 0;
 }
 .view-bar .view-title {
-  padding: 8px 14px;
+  padding: clamp(6px, 0.8vw, 12px) clamp(10px, 1.2vw, 16px);
   color: var(--fg-bright);
   display: flex;
   align-items: center;
@@ -1190,31 +1201,34 @@ body {
   text-overflow: ellipsis;
 }
 .view-bar .view-path {
-  padding: 8px 14px;
+  padding: clamp(6px, 0.8vw, 12px) clamp(10px, 1.2vw, 16px);
   color: var(--fg-dim);
   border-left: 1px solid color-mix(in srgb, var(--border) 40%, transparent);
   display: flex;
   align-items: center;
+  flex-shrink: 0;
 }
 .view-bar .view-actions {
   display: flex;
   align-items: stretch;
   margin-left: auto;
+  flex-shrink: 0;
 }
 .view-bar .view-reset {
-  padding: 0 14px;
+  padding: 0 clamp(10px, 1.2vw, 16px);
   background: transparent;
   border: none;
   border-left: 1px solid var(--border);
   color: var(--warn-color);
   font-family: var(--font-ui);
-  font-size: 12px;
+  font-size: clamp(11px, 1.1vw, 14px);
   font-weight: 700;
   letter-spacing: 0.1em;
   cursor: pointer;
   display: flex;
   align-items: center;
   gap: 6px;
+  white-space: nowrap;
 }
 .view-bar .view-reset:hover {
   background: var(--warn-color);
@@ -1222,27 +1236,29 @@ body {
 }
 .view-bar .view-reset .x {
   border: 1px solid currentColor;
-  width: 18px; height: 18px;
+  width: clamp(14px, 1.5vw, 18px);
+  height: clamp(14px, 1.5vw, 18px);
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 12px;
+  font-size: clamp(10px, 1vw, 12px);
   line-height: 1;
 }
 .view-bar .view-close {
-  padding: 0 14px;
+  padding: 0 clamp(10px, 1.2vw, 16px);
   background: transparent;
   border: none;
   border-left: 1px solid var(--border);
   color: var(--fg);
   font-family: var(--font-ui);
-  font-size: 12px;
+  font-size: clamp(11px, 1.1vw, 14px);
   font-weight: 700;
   letter-spacing: 0.1em;
   cursor: pointer;
   display: flex;
   align-items: center;
   gap: 6px;
+  white-space: nowrap;
 }
 .view-bar .view-close:hover {
   background: var(--selection);
@@ -1554,32 +1570,28 @@ input:disabled {
   .crt-screen::after { opacity: calc(var(--scanline-opacity) * 0.4); }
   .crt-noise { display: none; }
 
-  /* Header — collapse to a tight 2-row bar */
-  .sys-header { flex-wrap: wrap; font-size: 10.5px; }
+  /* Header — single scrollable row on mobile */
+  .sys-header { font-size: clamp(10px, 2.5vw, 12px); }
   .sys-header > * { padding: 6px 10px; }
-  .sys-header .brand { font-size: 11px; gap: 6px; }
+  .sys-header .brand { font-size: clamp(10px, 2.5vw, 12px); gap: 4px; }
   .sys-header .brand-mark {
     width: 10px; height: 10px;
     box-shadow: 3px 0 0 var(--bg-inner), 0 3px 0 var(--bg-inner), 3px 3px 0 var(--bg-inner),
                 6px 0 0 var(--fg), 0 6px 0 var(--fg), 6px 6px 0 var(--fg);
     margin-right: 4px;
   }
-  .sys-header .stat { padding: 6px 10px; }
-  .sys-header .stat:not(.essential) { display: none; }
-  .sys-header .theme-pill { width: 100%; border-left: none; border-top: 1px solid var(--border); }
-  .theme-pill button { flex: 1; padding: 10px 0; font-size: 11px; min-height: 44px; }
+  .sys-header .theme-pill { flex-shrink: 0; border-left: 1px solid var(--border); }
+  .theme-pill button { font-size: clamp(10px, 2.5vw, 12px); min-height: 44px; }
 
-  /* View bar — hide the path on small screens */
+  /* View bar — hide path on small screens, same font as header */
   .view-bar .view-path { display: none; }
-  .view-bar .view-tag { padding: 8px 10px; font-size: 11px; }
-  .view-bar .view-title { padding: 8px 10px; font-size: 11px; }
-  .view-bar .view-close { padding: 0 12px; min-height: 44px; font-size: 11px; }
+  .view-bar .view-actions { flex-shrink: 0; }
 
   /* Input — touch friendly + sticks via dvh on the bezel */
   .input-row { padding: 10px 14px; min-height: 56px; }
   .input-row input.cmd { font-size: 18px; }
   .input-row .submit-hint { display: none; }
-  .quick-btn { padding: 12px 14px; min-height: 44px; font-size: 11px; }
+  .quick-btn { min-height: 44px; }
 
   /* Suggest dropdown — show fewer + clearer */
   .suggest { left: 0; right: 0; }
@@ -1632,10 +1644,8 @@ input:disabled {
 }
 
 @media (max-width: 380px) {
-  .sys-header .stat { padding: 5px 8px; }
-  .hero-banner .title { font-size: 22px; }
-  .about-photo-wrap { max-width: 140px; }
-  .quick-btn { padding: 10px 10px; font-size: 10px; letter-spacing: 0.06em; }
+  .sys-header > * { padding: 4px 6px; }
+  .quick-btn { min-height: 40px; }
 }
 
 /* Reduced motion */
