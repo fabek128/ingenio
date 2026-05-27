@@ -945,7 +945,7 @@ function HomeView({ onCommand }) {
     <div className="home">
       <div className="home-body">
         <div className="home-content">
-          <div style={{ color: "var(--sys-color)" }}>{HERO.banner}</div>
+          <div style={{ color: "var(--sys-color)" }}>{HERO.banner}2222</div>
           <div style={{ color: "var(--sys-color)" }}>{HERO.ram}</div>
           <div style={{ display: "flex", flexDirection: "column", gap: 2, fontSize: 18 }}>
             {HERO.modules.map(([name, st]) => (
