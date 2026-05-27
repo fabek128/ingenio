@@ -86,7 +86,7 @@ const ABOUT_PROFILE = {
   company: "ASAP CONSULTING S.A.  //  INGENIO UNO",
   since: "COMMODORE 64 BASIC V2",
   stack: ".NET → JAVA → NODE.JS → PYTHON → AI",
-  title: "ACERCA DE MI.",
+  title: "DATOS:",
 };
 
 const ABOUT_SECTION = {
