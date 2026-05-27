@@ -79,16 +79,6 @@ const CASES = [
   },
 ];
 
-const STACK = [
-  ["FRONTEND", "HTML estatico / React UMD / consola retro"],
-  ["BACKEND", "Python / FastAPI / Docker"],
-  ["IA / LLM", "OpenCode Zen API / modelos OpenAI-compatible / Ollama experimental"],
-  ["AGENTES", "ChatGPT Codex / Claude Code / OpenCode"],
-  ["SEGURIDAD", "CSRF / cookies HttpOnly / rate limit / secretos fuera del repo"],
-  ["INFRA", "Dokploy / Docker / NPM / VPN / localServer"],
-  ["CONTENIDO", "Experiencias personales / herramientas / bitacora IA"],
-];
-
 const ABOUT_PROFILE = {
   photo: "assets/fabian-profile.jpg",
   name: "FABIAN FIGUEREDO",
@@ -103,37 +93,6 @@ const ABOUT_SECTION = {
   markdownPath: "secciones/about/about.md",
 };
 
-
-const EXPERIENCES = [
-  {
-    id: "01",
-    code: "DAILY_AI_WORKFLOW",
-    title: "MI FLUJO DIARIO CON IA",
-    body: "Uso agentes como copilotos reales: para leer codigo, escribir documentacion, revisar seguridad, automatizar tareas y acelerar decisiones tecnicas sin delegar criterio.",
-    tags: ["CODEX", "CLAUDE", "OPENCODE"],
-  },
-  {
-    id: "02",
-    code: "LOCAL_AND_CLOUD_MODELS",
-    title: "MODELOS LOCALES Y CLOUD",
-    body: "Experimento con modelos chicos, APIs compatibles con OpenAI y runtimes locales para entender costos, latencia, privacidad y calidad real en espanol.",
-    tags: ["LLM", "OLLAMA", "ZEN"],
-  },
-  {
-    id: "03",
-    code: "AGENTIC_CONSOLE",
-    title: "ESTA CONSOLA AGENTICA",
-    body: "INGENIO/64 es mi laboratorio publico: una web tipo terminal donde comparto pruebas, errores, decisiones y aprendizajes sobre IA aplicada al trabajo diario.",
-    tags: ["INGENIO64", "FASTAPI", "DOKPLOY"],
-  },
-  {
-    id: "04",
-    code: "SECURITY_FIRST",
-    title: "SEGURIDAD ANTES QUE MAGIA",
-    body: "Cada integracion con IA debe cuidar secretos, permisos, datos sensibles, logs y superficie publica. La IA acelera; no reemplaza criterio de seguridad.",
-    tags: ["SECRETS", "DEVOPS", "REVIEW"],
-  },
-];
 
 const PROJECTS_SECTION = {
   markdownPath: "secciones/proyectos/proyectos.md",
@@ -230,15 +189,12 @@ function buildDiagnosis(answers) {
 
 const COMMANDS_META = [
   { cmd: "HOME", desc: "VUELVE A LA PANTALLA PRINCIPAL" },
-  { cmd: "HELP", desc: "MUESTRA LOS COMANDOS DISPONIBLES" },
-  { cmd: "EXPERIENCIAS", desc: "BITACORA DE USO REAL DE IA" },
   { cmd: "PROYECTOS", desc: "PROYECTOS PERSONALES EN CURSO" },
   { cmd: "AGENT", desc: "HABLA CON EL AGENTE DEL SITIO" },
   { cmd: "MODEL", desc: "MUESTRA EL MODELO ACTIVO" },
   { cmd: "SERVICES", desc: "SERVICIOS Y SOLUCIONES QUE PUEDO CONSTRUIR" },
   { cmd: "DIAGNOSE", desc: "INICIA UN DIAGNOSTICO GUIADO" },
   { cmd: "CASES", desc: "ABRE LA BASE DE CASOS DE USO" },
-  { cmd: "STACK", desc: "MUESTRA EL STACK TECNOLOGICO" },
   { cmd: "ABOUT", desc: "QUIEN ESTA DEL OTRO LADO" },
   { cmd: "CONTACT", desc: "ABRE EL MODULO DE CONTACTO" },
   { cmd: "WHATSAPP", desc: "ABRE WHATSAPP" },
@@ -268,6 +224,6 @@ const MODELS = [
 ];
 
 Object.assign(window, {
-  SERVICES, CASES, STACK, EXPERIENCES, PROJECTS_SECTION, ABOUT_SECTION,
+  SERVICES, CASES, PROJECTS_SECTION, ABOUT_SECTION,
   ABOUT_PROFILE, DIAGNOSTIC, COMMANDS_META, HERO, MODELS, buildDiagnosis,
 });

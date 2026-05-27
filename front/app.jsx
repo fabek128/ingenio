@@ -276,7 +276,7 @@ function SysHeader({ theme, onTheme, onAgent }) {
 
 function FeedLine({ entry, onCommand }) {
   // entries can be: {type:'user'|'sys'|'agent'|'ok'|'error'|'dim', text, typed}
-  // or {type:'block', kind:'services'|'cases'|'stack'|'about'|'hero'|'diag'|'contact'|'help', data}
+  // or {type:'block', kind:'services'|'cases'|'about'|'hero'|'diag'|'contact', data}
   if (entry.type === "block") {
     return <BlockRenderer entry={entry} onCommand={onCommand} />;
   }
@@ -298,12 +298,9 @@ function FeedLine({ entry, onCommand }) {
 function BlockRenderer({ entry, onCommand }) {
   switch (entry.kind) {
     case "hero": return <HeroBlock onCommand={onCommand} />;
-    case "help": return <HelpBlock />;
-    case "experiences": return <ExperiencesBlock />;
     case "projects": return <ProjectsBlock />;
     case "services": return <ServicesBlock onCommand={onCommand} />;
     case "cases": return <CasesBlock />;
-    case "stack": return <StackBlock />;
     case "about": return <AboutBlock />;
     case "diag": return <DiagnosticBlock onCommand={onCommand} initial={entry.initial} />;
     case "contact": return <ContactBlock onCommand={onCommand} prefill={entry.prefill} />;
@@ -319,8 +316,7 @@ function HeroBlock({ onCommand }) {
       <div className="title">{HERO.title}</div>
       <div className="sub">{HERO.sub}</div>
       <div className="hero-ctas">
-        <button className="hero-cta primary" onClick={() => onCommand("EXPERIENCIAS")}>&gt; VER_EXPERIENCIAS</button>
-        <button className="hero-cta" onClick={() => onCommand("AGENT Como usas IA todos los dias?")}>&gt; PREGUNTAR_AL_AGENTE</button>
+        <button className="hero-cta primary" onClick={() => onCommand("AGENT Como usas IA todos los dias?")}>&gt; PREGUNTAR_AL_AGENTE</button>
         <button className="hero-cta" onClick={() => onCommand("PROYECTOS")}>&gt; PROYECTOS</button>
       </div>
       <div className="stars" style={{ marginTop: 16 }}>{"* ".repeat(28).trim()}</div>
@@ -328,52 +324,8 @@ function HeroBlock({ onCommand }) {
   );
 }
 
-/* ---------- HELP ---------- */
-function HelpBlock() {
-  return (
-    <div className="block">
-      <div className="block-title"><span className="badge">HELP</span>COMANDOS DISPONIBLES</div>
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 2fr", gap: "4px 18px", fontSize: 20 }}>
-        {COMMANDS_META.map((c) => (
-          <React.Fragment key={c.cmd}>
-            <div style={{ color: "var(--fg-bright)", fontWeight: 600 }}>&gt; {c.cmd}</div>
-            <div style={{ color: "var(--fg-dim)" }}>{c.desc}</div>
-          </React.Fragment>
-        ))}
-      </div>
-      <div style={{ marginTop: 14, color: "var(--fg-dim)", fontSize: 16, fontFamily: "var(--font-ui)", letterSpacing: "0.06em" }}>
-        TIP: PODES USAR FLECHA ARRIBA/ABAJO PARA NAVEGAR EL HISTORIAL. TAB AUTOCOMPLETA.
-      </div>
-    </div>
-  );
-}
 
 
-/* ---------- EXPERIENCES ---------- */
-function ExperiencesBlock() {
-  return (
-    <div className="block">
-      <div className="block-title"><span className="badge">LOG</span>AI_EXPERIENCES.LOG</div>
-      <div style={{ color: "var(--fg-dim)", fontSize: 16, marginBottom: 8, fontFamily: "var(--font-ui)" }}>
-        REGISTRO PERSONAL DE USO REAL DE IA. NO ES UN WHITEPAPER: ES DIARIO DE CAMPO.
-      </div>
-      <div className="modules">
-        {EXPERIENCES.map((e) => (
-          <div key={e.id} className="module">
-            <div className="module-header">
-              <span className="module-id">[{e.id}]</span>
-              <span className="module-title">{e.title}</span>
-            </div>
-            <div className="module-body">{e.body}</div>
-            <div className="module-meta">
-              {e.tags.map((t) => <span key={t} className="tag">{t}</span>)}
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
 
 /* ---------- PROYECTOS ---------- */
 function renderMarkdownInline(text) {
@@ -542,22 +494,6 @@ function CasesBlock() {
   );
 }
 
-/* ---------- STACK ---------- */
-function StackBlock() {
-  return (
-    <div className="block">
-      <div className="block-title"><span className="badge">SYS</span>TECH_STACK_DETECTED</div>
-      <div style={{ display: "grid", gridTemplateColumns: "minmax(140px, max-content) 1fr", gap: "4px 18px", fontSize: 22 }}>
-        {STACK.map(([k, v]) => (
-          <React.Fragment key={k}>
-            <div style={{ color: "var(--fg-dim)", fontFamily: "var(--font-ui)", fontSize: 13, alignSelf: "center", letterSpacing: "0.08em" }}>{k}</div>
-            <div style={{ color: "var(--fg-bright)" }}>{v}</div>
-          </React.Fragment>
-        ))}
-      </div>
-    </div>
-  );
-}
 
 /* ---------- ABOUT ---------- */
 function AboutBlock() {
@@ -901,7 +837,7 @@ function CommandBar({ onSubmit, value, setValue, history, setHistory, disabled =
     }
   };
 
-  const quickButtons = ["HOME", "HELP", "EXPERIENCIAS", "PROYECTOS", "AGENT", "STACK", "ABOUT", "CONTACT"];
+  const quickButtons = ["HOME", "PROYECTOS", "AGENT", "ABOUT", "CONTACT"];
 
   return (
     <div className="command-bar">
@@ -1001,7 +937,7 @@ function HomeView({ onCommand }) {
             <span className="role">AGENT:</span>
             HOLA. SOY EL AGENTE DEL SISTEMA.
             <br/>PODES ESCRIBIR UN COMANDO O HACER UNA PREGUNTA EN LENGUAJE NATURAL.
-            <br/>PROBA CON <span style={{ color: "var(--fg-bright)" }}>&gt; EXPERIENCIAS</span>, <span style={{ color: "var(--fg-bright)" }}>&gt; PROYECTOS</span> O ESCRIBI UNA PREGUNTA LIBRE.
+            <br/>PROBA CON <span style={{ color: "var(--fg-bright)" }}>&gt; PROYECTOS</span>, <span style={{ color: "var(--fg-bright)" }}>&gt; ABOUT</span> O ESCRIBI UNA PREGUNTA LIBRE.
           </div>
         </div>
       </div>
@@ -1182,13 +1118,10 @@ function App() {
   const runCommand = async (cmd, raw, opts = {}) => {
     if (sound) beep(660, 0.025, 0.025);
     switch (cmd) {
-      case "HELP":     return setView({ kind: "help" });
-      case "EXPERIENCIAS": return setView({ kind: "experiences" });
       case "PROYECTOS": return setView({ kind: "projects" });
       case "TOOLS":    return setView({ kind: "projects" });
       case "SERVICES": return setView({ kind: "services" });
       case "CASES":    return setView({ kind: "cases" });
-      case "STACK":    return setView({ kind: "stack" });
       case "ABOUT":    return setView({ kind: "about" });
       case "DIAGNOSE": return setView({ kind: "diag" });
       case "CONTACT":  return setView({ kind: "contact", prefill: opts.prefill });
@@ -1253,10 +1186,9 @@ function App() {
         });
       case "GREET":
         return setView({ kind: "response", title: "HOLA",
-          body: "HOLA. AGENTE ONLINE.\nPODES ESCRIBIR > HELP PARA VER LOS COMANDOS, O DIRECTAMENTE CONTARME QUE NECESITAS.",
+          body: "HOLA. AGENTE ONLINE.\nESCRIBI UN COMANDO O DIRECTAMENTE CONTARME QUE NECESITAS.",
           ctas: [
-            { cmd: "HELP", label: "HELP", primary: true },
-            { cmd: "DIAGNOSE", label: "DIAGNOSTICO" },
+            { cmd: "DIAGNOSE", label: "DIAGNOSTICO", primary: true },
           ],
         });
 
@@ -1310,15 +1242,6 @@ function App() {
           />
         </ViewShell>;
       }
-      case "help":
-        return <ViewShell tag="HELP" title="COMANDOS DISPONIBLES" path="/SYS/HELP" onClose={closeView}>
-          <HelpBlock />
-        </ViewShell>;
-      case "experiences":
-        return <ViewShell tag="LOG" title="AI EXPERIENCES" path="/USR/EXPERIENCIAS.LOG" onClose={closeView}>
-          <div className="view-intro"><span className="role">AGENT:</span>ABRIENDO BITACORA PERSONAL DE IA.</div>
-          <ExperiencesBlock />
-        </ViewShell>;
       case "projects":
         return <ViewShell tag="IDX" title="PROYECTOS" path="/USR/PROYECTOS.MD" onClose={closeView}>
           <div className="view-intro"><span className="role">AGENT:</span>LEYENDO PROYECTOS PERSONALES DESDE MARKDOWN.</div>
@@ -1333,11 +1256,6 @@ function App() {
         return <ViewShell tag="DB" title="USE CASE DATABASE" path="/DB/CASES.IDX" onClose={closeView}>
           <div className="view-intro"><span className="role">AGENT:</span>ABRIENDO BASE DE CASOS. TOCA CADA UNO PARA EXPANDIR.</div>
           <CasesBlock />
-        </ViewShell>;
-      case "stack":
-        return <ViewShell tag="SYS" title="TECH STACK DETECTED" path="/SYS/STACK" onClose={closeView}>
-          <div className="view-intro"><span className="role">AGENT:</span>ESTE ES EL STACK QUE USAMOS POR DEFECTO. SE ADAPTA AL PROYECTO.</div>
-          <StackBlock />
         </ViewShell>;
       case "about":
         return <ViewShell tag="FILE" title="ABOUT_OPERATOR.TXT" path="/USR/ABOUT.TXT" onClose={closeView}>
