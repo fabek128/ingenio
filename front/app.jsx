@@ -214,7 +214,6 @@ function BootScreen({ onDone, theme }) {
 
   return (
     <div className="boot">
-      <button className="boot-skip" onClick={onDone}>SKIP &gt;&gt;</button>
       <div className="boot-banner">{HERO.banner}</div>
       <div className="boot-subline">{HERO.ram}</div>
       <div className="boot-progress" aria-hidden="true">
