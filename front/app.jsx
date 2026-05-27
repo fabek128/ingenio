@@ -341,15 +341,6 @@ function HomeView() {
       <div className="home-body">
         <div className="home-content">
           <div className="home-status">
-            <div style={{ color: "var(--sys-color)" }}>{HERO.banner}</div>
-            <div style={{ color: "var(--sys-color)" }}>{HERO.ram}</div>
-            <div className="home-modules">
-              {HERO.modules.map(([name, st]) => (
-                <div key={name}>
-                  <span style={{ color: "var(--ok-color)" }}>[ {st} ]</span>{" "}{name}
-                </div>
-              ))}
-            </div>
           </div>
         </div>
       </div>
@@ -1249,7 +1240,21 @@ function App() {
       <div className="crt-screen">
         <SysHeader theme={theme} onTheme={setTheme} onAgent={() => programmatic("AGENT")} />
         <div className="main-area">
-          <BootScreen onDone={() => setBootDone(true)} theme={theme} />
+          {!bootDone ? (
+            <BootScreen onDone={() => setBootDone(true)} theme={theme} />
+          ) : (
+            <div className="app-content">
+              {renderView()}
+              <CommandBar
+                value={value}
+                setValue={setValue}
+                onSubmit={(cmd) => handleCommand(cmd)}
+                history={history}
+                setHistory={setHistory}
+                disabled={isPromptBusy}
+              />
+            </div>
+          )}
         </div>
         <div className="crt-noise" aria-hidden="true" />
       </div>
