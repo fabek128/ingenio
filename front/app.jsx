@@ -817,7 +817,7 @@ function CommandBar({ onSubmit, value, setValue, history, setHistory, disabled =
     }
   };
 
-  const quickButtons = ["HOME", "AGENTES", "PROYECTOS", "ABOUT", "CONTACT"];
+  const quickButtons = ["AGENTES", "PROYECTOS", "ABOUT", "CONTACT"];
   const syncCaret = () => {
     requestAnimationFrame(() => {
       const el = inputRef.current;
