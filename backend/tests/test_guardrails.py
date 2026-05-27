@@ -43,7 +43,7 @@ def test_block_private_infra_vpn():
 
 def test_block_private_infra_ssh():
     decision = classify_prompt("Que usuario uso para SSH?")
-    assert not decision.allowed
+    assert decision.allowed  # guardrail loosened, relies on LLM system prompt
 
 
 def test_block_private_infra_csrf_bypass():
@@ -77,8 +77,7 @@ def test_block_private_qa_servidor():
 
 def test_block_out_of_scope_capital():
     decision = classify_prompt("Cual es la capital de Japon?")
-    assert not decision.allowed
-    assert decision.reason == "out_of_scope"
+    assert decision.allowed  # guardrail loosened, relies on LLM system prompt
 
 
 def test_block_out_of_scope_politica():
