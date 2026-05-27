@@ -12,7 +12,7 @@ Redisenar el frontend existente para que INGENIO/64 sea un sitio personal tipo c
 - Home debe renderizar solo `HERO.banner`, `HERO.ram` y `HERO.modules`.
 - No debe mostrar el cuadrado CTA del hero ni tarjetas de secciones principales dentro del area central.
 - La barra inferior mantiene accesos rapidos a las secciones principales y prompt libre.
-- El boot es solo una pantalla transitoria inicial de la home: `BootScreen` solo se monta si `bootDone === false` y `view.kind === "home"`. Despues de completarse no queda montado sobre la home ni sobre otras secciones.
+- En la home, `BootScreen` permanece montado. Mientras `bootDone === false` anima la secuencia; cuando termina, queda en modo `static` mostrando el estado final. En otras secciones no se monta.
 - Header simplificado: se elimina el selector visual `MODEL` y `AGENT` pasa a ser un acceso directo a la sesion del agente.
 - Nuevos comandos:
   - `EXPERIENCIAS`: bitacora de uso real de IA.

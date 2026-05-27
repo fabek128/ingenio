@@ -179,7 +179,7 @@ function saveAgentMessages(messages) {
 /* ============================================================
    BOOT SCREEN
    ============================================================ */
-function BootScreen({ onDone, theme }) {
+function BootScreen({ onDone, theme, static: isStatic = false }) {
   const lines = [
     { t: "INGENIO/64 KERNEL ROM v1.0.4 — BOOT SEQUENCE", cls: "bright" },
     { t: "(C) 2025 INGENIO/64. ALL RIGHTS RESERVED.", cls: "dim" },
@@ -195,10 +195,15 @@ function BootScreen({ onDone, theme }) {
     { t: "READY.", cls: "bright" },
   ];
 
-  const [shownCount, setShownCount] = useState(0);
-  const [progress, setProgress] = useState(0);
+  const [shownCount, setShownCount] = useState(isStatic ? lines.length : 0);
+  const [progress, setProgress] = useState(isStatic ? 100 : 0);
 
   useEffect(() => {
+    if (isStatic) {
+      setShownCount(lines.length);
+      setProgress(100);
+      return;
+    }
     let i = 0;
     const interval = setInterval(() => {
       i++;
@@ -210,10 +215,10 @@ function BootScreen({ onDone, theme }) {
       }
     }, 180);
     return () => clearInterval(interval);
-  }, [onDone]);
+  }, [isStatic, onDone]);
 
   return (
-    <div className="boot">
+    <div className={"boot" + (isStatic ? " static" : "")}>
       <div className="boot-banner">{HERO.banner}</div>
       <div className="boot-subline">{HERO.ram}</div>
       <div className="boot-progress" aria-hidden="true">
@@ -225,7 +230,7 @@ function BootScreen({ onDone, theme }) {
             {l.t || "\u00A0"}
           </div>
         ))}
-        {shownCount < lines.length && <span className="boot-cursor" />}
+        {!isStatic && shownCount < lines.length && <span className="boot-cursor" />}
       </div>
     </div>
   );
@@ -1240,8 +1245,12 @@ function App() {
         <SysHeader theme={theme} onTheme={setTheme} onAgent={() => programmatic("AGENT")} />
         <div className="main-area">
           <div className="app-content">
-            {!bootDone && view.kind === "home" ? (
-              <BootScreen onDone={() => { setBootDone(true); setView({ kind: "home" }); }} theme={theme} />
+            {view.kind === "home" ? (
+              <BootScreen
+                onDone={() => { setBootDone(true); setView({ kind: "home" }); }}
+                theme={theme}
+                static={bootDone}
+              />
             ) : (
               renderView()
             )}
