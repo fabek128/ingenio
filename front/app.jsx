@@ -228,7 +228,6 @@ function BootScreen({ onDone, theme, static: isStatic }) {
           </div>
         ))}
         {!isStatic && shownCount < lines.length && <span className="boot-cursor" />}
-        {isStatic && <span className="boot-cursor blink" />}
       </div>
     </div>
   );
@@ -881,7 +880,7 @@ function CommandBar({ onSubmit, value, setValue, history, setHistory, disabled =
             ))}
           </div>
         )}
-        <span className="prompt-glyph">&gt;</span>
+        <span className="prompt-glyph">READY.<span className="prompt-gt">&gt;</span><span className="boot-cursor" /></span>
         <input
           ref={inputRef}
           className="cmd"
@@ -894,7 +893,6 @@ function CommandBar({ onSubmit, value, setValue, history, setHistory, disabled =
           spellCheck="false"
           autoFocus
         />
-        {!value && <span className="fake-cursor" />}
         <span className="submit-hint">{disabled ? "[WAIT]" : "[ENTER]"}</span>
       </div>
     </div>

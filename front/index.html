@@ -513,9 +513,6 @@ body {
   padding: clamp(10px, 2vw, 30px) clamp(18px, 4vw, 60px);
   border-bottom: 1px solid color-mix(in srgb, var(--border) 40%, transparent);
 }
-.boot.static .boot-cursor {
-  animation: blink 0.9s steps(2) infinite;
-}
 .sys-header .stat {
   display: flex; gap: 8px; align-items: center;
   padding: 10px 14px;
@@ -1083,7 +1080,25 @@ body {
   color: var(--fg-bright);
   font-weight: 700;
   text-shadow: var(--shadow-glow);
-  font-size: clamp(18px, 2.6vw, 26px);
+  font-size: clamp(16px, 2.2vw, 22px);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+  letter-spacing: 0.04em;
+}
+.input-row .prompt-gt {
+  color: var(--fg);
+  font-weight: 400;
+}
+.input-row .prompt-glyph .boot-cursor {
+  width: 0.5em;
+  height: 0.85em;
+  vertical-align: baseline;
+  margin-left: 2px;
+  background: var(--fg-bright);
+  display: inline-block;
+  animation: blink 0.9s steps(2) infinite;
 }
 .input-row input.cmd {
   flex: 1;
