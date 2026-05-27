@@ -1240,21 +1240,18 @@ function App() {
       <div className="crt-screen">
         <SysHeader theme={theme} onTheme={setTheme} onAgent={() => programmatic("AGENT")} />
         <div className="main-area">
-          {!bootDone ? (
+          <div className="app-content">
             <BootScreen onDone={() => setBootDone(true)} theme={theme} />
-          ) : (
-            <div className="app-content">
-              {renderView()}
-              <CommandBar
-                value={value}
-                setValue={setValue}
-                onSubmit={(cmd) => handleCommand(cmd)}
-                history={history}
-                setHistory={setHistory}
-                disabled={isPromptBusy}
-              />
-            </div>
-          )}
+            {renderView()}
+            <CommandBar
+              value={value}
+              setValue={setValue}
+              onSubmit={(cmd) => handleCommand(cmd)}
+              history={history}
+              setHistory={setHistory}
+              disabled={isPromptBusy}
+            />
+          </div>
         </div>
         <div className="crt-noise" aria-hidden="true" />
       </div>
