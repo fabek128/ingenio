@@ -1192,8 +1192,8 @@ function App() {
 
   const renderView = () => {
     switch (view.kind) {
-      case "home":
-        return <HomeView />;
+      // case "home":
+      //   return <HomeView />;
       case "agent":
         const usageStr = agentUsage ? ("CTX: " + (agentUsage.total_tokens || "?") + " TOKENS") : "";
         const title = usageStr ? ("AGENT SESSION  |  " + usageStr) : "AGENT SESSION";
