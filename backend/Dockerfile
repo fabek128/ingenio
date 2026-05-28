@@ -6,6 +6,7 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY app/ app/
+COPY knowledge/ knowledge/
 COPY tests/ tests/
 
 EXPOSE 8080

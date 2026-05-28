@@ -29,6 +29,16 @@ backend/
 ├── app/
 │   ├── __init__.py
 │   └── main.py
+├── knowledge/
+│   ├── public/
+│   │   ├── about.md
+│   │   ├── proyectos.md
+│   │   ├── experiencias-ia.md
+│   │   ├── servicios.md
+│   │   └── imagenes.md
+│   └── policies/
+│       ├── scope.md
+│       └── refusals.md
 ├── tests/
 │   └── test_health.py
 ├── requirements.txt
@@ -140,6 +150,55 @@ Resultado esperado:
 
 ```text
 !! .env
+```
+
+## 2.4 Crear base de conocimiento publica versionada
+
+El agente no debe leer todo el repo. Debe usar una allowlist de Markdown curado:
+
+```text
+backend/knowledge/public/
+backend/knowledge/policies/
+```
+
+Crear archivos publicos:
+
+```text
+backend/knowledge/public/README.md
+backend/knowledge/public/about.md
+backend/knowledge/public/proyectos.md
+backend/knowledge/public/experiencias-ia.md
+backend/knowledge/public/servicios.md
+backend/knowledge/public/imagenes.md
+```
+
+Crear politicas:
+
+```text
+backend/knowledge/policies/scope.md
+backend/knowledge/policies/refusals.md
+```
+
+Reglas:
+
+- Todo lo que se agregue en `backend/knowledge/public/` debe poder publicarse sin riesgo.
+- No incluir `.env`, logs, tokens, passwords, IPs privadas, VPN, usuarios, clientes privados ni documentos internos.
+- Para imagenes, agregar descripciones/captions en Markdown. No inferir datos sensibles desde imagenes.
+- No usar `docs/`, `front/`, `logs/` ni todo el repo como contexto del modelo.
+- Ignorar carpetas privadas o generadas:
+
+```gitignore
+backend/knowledge/private/
+backend/knowledge/cache/
+backend/knowledge/generated/
+```
+
+Si se usa Docker, copiar `knowledge/` en la imagen:
+
+```dockerfile
+COPY app/ app/
+COPY knowledge/ knowledge/
+COPY tests/ tests/
 ```
 
 ## 3. Instalar Ollama

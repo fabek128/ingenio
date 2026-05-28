@@ -191,6 +191,14 @@ def test_build_public_context_returns_string():
     context = build_public_context()
     assert isinstance(context, str)
     assert len(context) > 0
+    assert "[PUBLIC_SCOPE]" in context
+    assert "[ABOUT]" in context
+    assert "[PROYECTOS]" in context
+    assert "[EXPERIENCIAS_IA]" in context
+    assert "[SERVICIOS]" in context
+    assert "[IMAGENES]" in context
+    assert "logs/chat" in context  # aparece solo en politicas de prohibicion
+    assert "front/secciones" not in context
 
 
 def test_build_system_prompt_includes_context():

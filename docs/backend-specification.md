@@ -384,6 +384,29 @@ No inventes datos personales, clientes, credenciales ni informacion privada.
 No ejecutes acciones externas.
 ```
 
+### 8.1 Base de conocimiento publica
+
+El contexto del modelo se construye solamente desde una allowlist versionada:
+
+```text
+backend/knowledge/public/about.md
+backend/knowledge/public/proyectos.md
+backend/knowledge/public/experiencias-ia.md
+backend/knowledge/public/servicios.md
+backend/knowledge/public/imagenes.md
+backend/knowledge/policies/scope.md
+backend/knowledge/policies/refusals.md
+```
+
+Reglas:
+
+- El backend no debe cargar todo el repo, toda la carpeta `docs/`, `front/`, `.env`, `logs/` ni archivos ignorados por Git.
+- La carpeta `backend/knowledge/public/` es publica y versionada: cada cambio debe revisarse como contenido publicable.
+- Las politicas viven en `backend/knowledge/policies/`.
+- Las imagenes se agregan como captions/descripciones curadas en Markdown; no se deben inferir datos sensibles desde imagenes.
+- Si hace falta conocimiento privado o generado, usar carpetas ignoradas: `backend/knowledge/private/`, `backend/knowledge/cache/` o `backend/knowledge/generated/`.
+- En Docker, `backend/Dockerfile` debe copiar `knowledge/` dentro de la imagen.
+
 ## 9. Layout esperado del backend
 
 ```text
@@ -391,6 +414,9 @@ backend/
 ├── app/
 │   ├── __init__.py
 │   └── main.py
+├── knowledge/
+│   ├── public/
+│   └── policies/
 ├── tests/
 │   └── test_health.py
 ├── requirements.txt

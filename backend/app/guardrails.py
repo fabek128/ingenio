@@ -9,7 +9,18 @@ from pathlib import Path
 logger = logging.getLogger(__name__)
 
 _KNOWLEDGE_DIR = Path(__file__).resolve().parent.parent / "knowledge"
-_FRONT_SECCIONES = Path(__file__).resolve().parent.parent.parent / "front" / "secciones"
+_KNOWLEDGE_PUBLIC_DIR = _KNOWLEDGE_DIR / "public"
+_KNOWLEDGE_POLICY_DIR = _KNOWLEDGE_DIR / "policies"
+
+_PUBLIC_CONTEXT_SOURCES: tuple[tuple[str, Path], ...] = (
+    ("PUBLIC_SCOPE", _KNOWLEDGE_POLICY_DIR / "scope.md"),
+    ("ABOUT", _KNOWLEDGE_PUBLIC_DIR / "about.md"),
+    ("PROYECTOS", _KNOWLEDGE_PUBLIC_DIR / "proyectos.md"),
+    ("EXPERIENCIAS_IA", _KNOWLEDGE_PUBLIC_DIR / "experiencias-ia.md"),
+    ("SERVICIOS", _KNOWLEDGE_PUBLIC_DIR / "servicios.md"),
+    ("IMAGENES", _KNOWLEDGE_PUBLIC_DIR / "imagenes.md"),
+    ("REFUSALS", _KNOWLEDGE_POLICY_DIR / "refusals.md"),
+)
 
 _SECRET_PATTERNS = [
     r"\.env",
@@ -159,17 +170,11 @@ def _load_file(path: Path) -> str:
 
 
 def build_public_context() -> str:
-    about = _load_file(_FRONT_SECCIONES / "about" / "about.md")
-    proyectos = _load_file(_FRONT_SECCIONES / "proyectos" / "proyectos.md")
-    public_scope = _load_file(_KNOWLEDGE_DIR / "public_scope.md")
-
     parts = []
-    if public_scope:
-        parts.append(f"[PUBLIC_SCOPE]\n{public_scope}\n[/PUBLIC_SCOPE]")
-    if about:
-        parts.append(f"[ABOUT]\n{about}\n[/ABOUT]")
-    if proyectos:
-        parts.append(f"[PROYECTOS]\n{proyectos}\n[/PROYECTOS]")
+    for label, path in _PUBLIC_CONTEXT_SOURCES:
+        content = _load_file(path)
+        if content:
+            parts.append(f"[{label}]\n{content}\n[/{label}]")
 
     return "\n\n".join(parts)
 

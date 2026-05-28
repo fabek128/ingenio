@@ -21,6 +21,11 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 
+# Private or generated knowledge sources
+backend/knowledge/private/
+backend/knowledge/cache/
+backend/knowledge/generated/
+
 # Python
 __pycache__/
 *.py[cod]

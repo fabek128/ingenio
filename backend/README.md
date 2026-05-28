@@ -59,6 +59,25 @@ cd backend
 PYTHONPATH="$PWD" pytest
 ```
 
+## Base de conocimiento publica
+
+El modelo recibe contexto solo desde una allowlist versionada:
+
+```text
+backend/knowledge/public/
+backend/knowledge/policies/
+```
+
+Reglas:
+
+- `backend/knowledge/public/` contiene Markdown curado y publicable.
+- `backend/knowledge/policies/` contiene alcance permitido y rechazos.
+- No se carga todo el repo, `docs/`, `front/`, `.env` ni `logs/` como contexto del modelo.
+- `backend/knowledge/private/`, `backend/knowledge/cache/` y `backend/knowledge/generated/` estan ignorados por Git.
+- Si se agregan imagenes como conocimiento, usar captions/descripciones curadas en Markdown.
+
+En Docker, `backend/Dockerfile` copia `knowledge/` dentro de la imagen para que el contexto exista en produccion.
+
 
 ## Logs de chat
 
