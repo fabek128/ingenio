@@ -33,6 +33,7 @@ backend/
 │   ├── public/
 │   │   ├── about.md
 │   │   ├── proyectos.md
+│   │   ├── agentes.md
 │   │   ├── experiencias-ia.md
 │   │   ├── servicios.md
 │   │   └── imagenes.md
@@ -167,6 +168,7 @@ Crear archivos publicos:
 backend/knowledge/public/README.md
 backend/knowledge/public/about.md
 backend/knowledge/public/proyectos.md
+backend/knowledge/public/agentes.md
 backend/knowledge/public/experiencias-ia.md
 backend/knowledge/public/servicios.md
 backend/knowledge/public/imagenes.md

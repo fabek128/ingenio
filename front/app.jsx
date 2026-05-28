@@ -355,16 +355,20 @@ function HomeView() {
 /* ---------- PROYECTOS ---------- */
 function renderMarkdownInline(text) {
   const parts = [];
-  const re = /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g;
+  const re = /(\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)|\*\*([^*]+)\*\*)/g;
   let last = 0;
   let m;
   while ((m = re.exec(text)) !== null) {
     if (m.index > last) parts.push(text.slice(last, m.index));
-    parts.push(
-      <a key={m.index} href={m[2]} target="_blank" rel="noopener noreferrer">
-        {m[1]}
-      </a>
-    );
+    if (m[2] && m[3]) {
+      parts.push(
+        <a key={m.index} href={m[3]} target="_blank" rel="noopener noreferrer">
+          {m[2]}
+        </a>
+      );
+    } else if (m[4]) {
+      parts.push(<strong key={m.index}>{m[4]}</strong>);
+    }
     last = re.lastIndex;
   }
   if (last < text.length) parts.push(text.slice(last));
@@ -376,6 +380,7 @@ function MarkdownDocument({ source }) {
   const nodes = [];
   let paragraph = [];
   let list = [];
+  let listKind = "ul";
 
   const flushParagraph = () => {
     if (!paragraph.length) return;
@@ -385,17 +390,26 @@ function MarkdownDocument({ source }) {
   };
   const flushList = () => {
     if (!list.length) return;
-    nodes.push(
-      <ul key={nodes.length}>
-        {list.map((item, i) => <li key={i}>{renderMarkdownInline(item)}</li>)}
-      </ul>
-    );
+    const children = list.map((item, i) => <li key={i}>{renderMarkdownInline(item)}</li>);
+    nodes.push(listKind === "ol" ? <ol key={nodes.length}>{children}</ol> : <ul key={nodes.length}>{children}</ul>);
     list = [];
+    listKind = "ul";
   };
 
   lines.forEach((line) => {
     const raw = line.trim();
     if (!raw) { flushParagraph(); flushList(); return; }
+    if (/^-{3,}$/.test(raw)) {
+      flushParagraph(); flushList();
+      nodes.push(<hr key={nodes.length} />);
+      return;
+    }
+    const quote = raw.match(/^>\s?(.+)$/);
+    if (quote) {
+      flushParagraph(); flushList();
+      nodes.push(<blockquote key={nodes.length}>{renderMarkdownInline(quote[1])}</blockquote>);
+      return;
+    }
     const heading = raw.match(/^(#{1,3})\s+(.+)$/);
     if (heading) {
       flushParagraph(); flushList();
@@ -409,7 +423,17 @@ function MarkdownDocument({ source }) {
     const bullet = raw.match(/^-\s+(.+)$/);
     if (bullet) {
       flushParagraph();
+      if (list.length && listKind !== "ul") flushList();
+      listKind = "ul";
       list.push(bullet[1]);
+      return;
+    }
+    const ordered = raw.match(/^\d+\.\s+(.+)$/);
+    if (ordered) {
+      flushParagraph();
+      if (list.length && listKind !== "ol") flushList();
+      listKind = "ol";
+      list.push(ordered[1]);
       return;
     }
     flushList();
@@ -452,21 +476,30 @@ function ProjectsBlock() {
 
 /* ---------- AGENTES ---------- */
 function AgentesBlock() {
+  const [state, setState] = useState({ status: "loading", source: "" });
+
+  useEffect(() => {
+    let active = true;
+    fetch(AGENTES_SECTION.markdownPath, { cache: "no-cache" })
+      .then((res) => {
+        if (!res.ok) throw new Error("AGENTES_MD_NOT_FOUND");
+        return res.text();
+      })
+      .then((source) => { if (active) setState({ status: "ready", source }); })
+      .catch(() => { if (active) setState({ status: "error", source: "" }); });
+    return () => { active = false; };
+  }, []);
+
   return (
     <div className="block agentes-block">
-      <div className="block-title"><span className="badge">AGT</span>{AGENTES_DATA.title}</div>
-      <div className="agentes-sections">
-        {AGENTES_DATA.sections.map((sec, i) => (
-          <div key={i} className="agentes-section">
-            <div className="agentes-section-title">{">"} {sec.title}</div>
-            {sec.lines.map((line, j) => (
-              <div key={j} className={line === "" ? "agentes-spacer" : "agentes-line"}>
-                {line || "\u00A0"}
-              </div>
-            ))}
-          </div>
-        ))}
-      </div>
+      <div className="block-title"><span className="badge">AGT</span>{AGENTES_SECTION.fallbackTitle}</div>
+      {state.status === "loading" && <div className="module-body">LEYENDO /SECCIONES/AGENTES/AGENTES.MD...</div>}
+      {state.status === "error" && (
+        <div className="module-body" style={{ color: "var(--error-color)" }}>
+          NO PUDE CARGAR EL ARCHIVO DE AGENTES. VERIFICAR front/secciones/agentes/agentes.md.
+        </div>
+      )}
+      {state.status === "ready" && <MarkdownDocument source={state.source} />}
       <div className="agentes-footer">
         <span className="dim">ESCRIBI &gt; AGENT PARA HABLAR CON EL AGENTE DEL SITIO. &nbsp;O &gt; CONTACT PARA CONSULTAR.</span>
       </div>
@@ -1177,8 +1210,8 @@ function App() {
           <AgentSessionView messages={agentMessages} typingMessageId={typingMessageId} onTypedDone={(id) => setTypingMessageId((current) => current === id ? null : current)} />
         </ViewShell>;
       case "agentes":
-        return <ViewShell tag="AGT" title="AGENTES IA" path="/SYS/AGENTES.SYS" onClose={closeView}>
-          <div className="view-intro"><span className="role">AGENT:</span>SERVICIOS DE AGENTES IA, AUTOMATIZACION Y SISTEMAS AGENTICOS.</div>
+        return <ViewShell tag="AGT" title="AGENTES IA" path="/SYS/AGENTES.MD" onClose={closeView}>
+          <div className="view-intro"><span className="role">AGENT:</span>LEYENDO SERVICIOS DE AGENTES IA DESDE MARKDOWN.</div>
           <AgentesBlock />
         </ViewShell>;
       case "projects":

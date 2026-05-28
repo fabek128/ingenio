@@ -16,6 +16,7 @@ _PUBLIC_CONTEXT_SOURCES: tuple[tuple[str, Path], ...] = (
     ("PUBLIC_SCOPE", _KNOWLEDGE_POLICY_DIR / "scope.md"),
     ("ABOUT", _KNOWLEDGE_PUBLIC_DIR / "about.md"),
     ("PROYECTOS", _KNOWLEDGE_PUBLIC_DIR / "proyectos.md"),
+    ("AGENTES", _KNOWLEDGE_PUBLIC_DIR / "agentes.md"),
     ("EXPERIENCIAS_IA", _KNOWLEDGE_PUBLIC_DIR / "experiencias-ia.md"),
     ("SERVICIOS", _KNOWLEDGE_PUBLIC_DIR / "servicios.md"),
     ("IMAGENES", _KNOWLEDGE_PUBLIC_DIR / "imagenes.md"),

@@ -498,7 +498,14 @@ content/
     └── ingenio64.md
 ```
 
-Para el MVP, la seccion `PROYECTOS` ya se carga desde `front/secciones/proyectos/proyectos.md`. Cuando haya mas contenido, conviene aplicar el mismo patron a experiencias o pasar a un build simple que indexe Markdown/JSON.
+Para el MVP, las secciones `PROYECTOS` y `AGENTES` se cargan desde Markdown en runtime:
+
+```text
+front/secciones/proyectos/proyectos.md
+front/secciones/agentes/agentes.md
+```
+
+Cuando haya mas contenido, conviene aplicar el mismo patron a experiencias o pasar a un build simple que indexe Markdown/JSON.
 
 ## 9. Seguridad y privacidad
 

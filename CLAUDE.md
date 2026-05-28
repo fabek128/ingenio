@@ -9,6 +9,7 @@ Frontend estatico con estetica Commodore 64 / terminal CRT. La vision objetivo e
 - `front/index.html`: documento principal, CSS y carga de scripts.
 - `front/app.jsx`: componentes React, comandos, estado de UI y bloques interactivos.
 - `front/content.jsx`: textos, servicios, casos, stack, diagnostico y comandos mostrados al usuario.
+- `front/secciones/`: Markdown publico de secciones renderizadas en runtime (`about`, `proyectos`, `agentes`).
 - `front/assets/`, `front/uploads/`: imagenes.
 - `backend/app/main.py`: API, sesiones, CSRF, rate limit y llamada al modelo.
 - `backend/app/chat_logs.py`: logging seguro de interacciones del agente con rotacion y compresion.

@@ -391,6 +391,7 @@ El contexto del modelo se construye solamente desde una allowlist versionada:
 ```text
 backend/knowledge/public/about.md
 backend/knowledge/public/proyectos.md
+backend/knowledge/public/agentes.md
 backend/knowledge/public/experiencias-ia.md
 backend/knowledge/public/servicios.md
 backend/knowledge/public/imagenes.md

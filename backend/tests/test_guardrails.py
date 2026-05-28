@@ -194,6 +194,7 @@ def test_build_public_context_returns_string():
     assert "[PUBLIC_SCOPE]" in context
     assert "[ABOUT]" in context
     assert "[PROYECTOS]" in context
+    assert "[AGENTES]" in context
     assert "[EXPERIENCIAS_IA]" in context
     assert "[SERVICIOS]" in context
     assert "[IMAGENES]" in context

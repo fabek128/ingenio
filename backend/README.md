@@ -73,6 +73,7 @@ Reglas:
 - `backend/knowledge/public/` contiene Markdown curado y publicable.
 - `backend/knowledge/policies/` contiene alcance permitido y rechazos.
 - No se carga todo el repo, `docs/`, `front/`, `.env` ni `logs/` como contexto del modelo.
+- Si se actualiza la seccion publica `front/secciones/agentes/agentes.md`, revisar si corresponde sincronizar `backend/knowledge/public/agentes.md` para el agente del backend.
 - `backend/knowledge/private/`, `backend/knowledge/cache/` y `backend/knowledge/generated/` estan ignorados por Git.
 - Si se agregan imagenes como conocimiento, usar captions/descripciones curadas en Markdown.
 

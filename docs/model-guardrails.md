@@ -42,6 +42,7 @@ Fuentes permitidas iniciales:
 ```text
 backend/knowledge/public/about.md
 backend/knowledge/public/proyectos.md
+backend/knowledge/public/agentes.md
 backend/knowledge/public/experiencias-ia.md
 backend/knowledge/public/servicios.md
 backend/knowledge/public/imagenes.md
@@ -211,6 +212,7 @@ CONTEXTO_PUBLICO:
 <backend/knowledge/policies/scope.md>
 <backend/knowledge/public/about.md>
 <backend/knowledge/public/proyectos.md>
+<backend/knowledge/public/agentes.md>
 <backend/knowledge/public/experiencias-ia.md>
 <backend/knowledge/public/servicios.md>
 <backend/knowledge/public/imagenes.md>
@@ -259,6 +261,7 @@ backend/app/guardrails.py
 backend/knowledge/public/README.md
 backend/knowledge/public/about.md
 backend/knowledge/public/proyectos.md
+backend/knowledge/public/agentes.md
 backend/knowledge/public/experiencias-ia.md
 backend/knowledge/public/servicios.md
 backend/knowledge/public/imagenes.md

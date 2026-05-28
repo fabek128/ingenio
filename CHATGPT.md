@@ -9,6 +9,7 @@ Mantener y evolucionar INGENIO/64, un sitio personal con UI de terminal retro in
 - `front/index.html`: estructura HTML, estilos CSS, root y carga de React/scripts.
 - `front/app.jsx`: aplicacion React, boot screen, header, comandos, bloques e interacciones.
 - `front/content.jsx`: fuente principal de contenido editable.
+- `front/secciones/`: Markdown publico de secciones renderizadas en runtime (`about`, `proyectos`, `agentes`).
 - `front/assets/` y `front/uploads/`: recursos graficos.
 - `backend/app/main.py`: API, sesiones, CSRF, rate limit y llamada al modelo.
 - `backend/app/chat_logs.py`: logging seguro de interacciones del agente con rotacion y compresion.

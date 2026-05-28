@@ -25,7 +25,9 @@ Redisenar el frontend existente para que INGENIO/64 sea un sitio personal tipo c
 - El frontend inicializa sesion con `/api/session`, guarda CSRF en memoria y llama `/api/chat` con cookie HttpOnly + `X-Ingenio-CSRF`.
 - En desarrollo local, si el frontend se sirve en `localhost:8000`, la API se busca en `http://127.0.0.1:8080`.
 - En produccion, la API se llama por mismo origen usando `/api/*`.
-- La seccion `PROYECTOS` lee `front/secciones/proyectos/proyectos.md` en runtime con `fetch`, para editar contenido sin tocar componentes React.
+- Las secciones `ABOUT`, `PROYECTOS` y `AGENTES` leen Markdown desde `front/secciones/` en runtime con `fetch`, para editar contenido sin tocar componentes React.
+- `ABOUT` usa `front/secciones/about/about.md`.
+- `AGENTES` usa `front/secciones/agentes/agentes.md`.
 
 ## Integracion prompt -> backend -> web
 

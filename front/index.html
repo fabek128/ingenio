@@ -931,7 +931,10 @@ body {
 .markdown-doc h3,
 .markdown-doc h4,
 .markdown-doc p,
-.markdown-doc ul {
+.markdown-doc ul,
+.markdown-doc ol,
+.markdown-doc blockquote,
+.markdown-doc hr {
   margin: 0;
 }
 .markdown-doc h2 {
@@ -955,7 +958,8 @@ body {
 .markdown-doc p {
   color: var(--fg);
 }
-.markdown-doc ul {
+.markdown-doc ul,
+.markdown-doc ol {
   padding-left: 0;
   list-style: none;
   display: flex;
@@ -965,9 +969,33 @@ body {
   font-family: var(--font-ui);
   font-size: 14px;
 }
+.markdown-doc ol {
+  counter-reset: md-step;
+}
 .markdown-doc li::before {
   content: "> ";
   color: var(--fg-bright);
+}
+.markdown-doc ol li {
+  counter-increment: md-step;
+}
+.markdown-doc ol li::before {
+  content: counter(md-step) ". ";
+}
+.markdown-doc strong {
+  color: var(--fg-bright);
+  font-weight: 700;
+}
+.markdown-doc blockquote {
+  color: var(--fg-dim);
+  border-left: 2px solid var(--border);
+  padding-left: 12px;
+  font-style: italic;
+}
+.markdown-doc hr {
+  border: none;
+  border-top: 1px dashed color-mix(in srgb, var(--border) 50%, transparent);
+  width: 100%;
 }
 .markdown-doc a {
   color: var(--fg-bright);

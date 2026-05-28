@@ -18,6 +18,7 @@ Este archivo aplica a OpenCode y a cualquier agente compatible con `AGENTS.md` t
 - `front/index.html`: HTML, estilos globales y montaje de la app.
 - `front/app.jsx`: componentes React, flujo de terminal, comandos e interacciones.
 - `front/content.jsx`: contenido editable del sitio: servicios, casos, stack, about, diagnostico y metadata de comandos.
+- `front/secciones/`: Markdown publico de secciones renderizadas en runtime (`about`, `proyectos`, `agentes`).
 - `front/assets/` y `front/uploads/`: imagenes usadas por la web.
 - `backend/`: backend FastAPI (Python).
   - `backend/app/main.py`: API, sesiones, CSRF, rate limit, cliente OpenAI-compatible (OpenCode Zen).
