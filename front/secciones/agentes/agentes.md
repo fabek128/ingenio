@@ -1,140 +1,112 @@
 # Servicios de agentes IA, automatización y sistemas agenticos
 
-## La idea corta
+## Enfoque técnico
 
-Trabajo en programación e IA, con foco en agentes reales.
+Diseño, construyo e integro sistemas basados en agentes de IA sobre **OpenClaw**, **Hermes Agent** y runtimes cloud/locales compatibles con OpenAI API. Los agentes operan sobre modelos, herramientas, APIs, sistemas de archivos, navegadores, terminales, bases de datos y servicios cloud.
 
-Diseño, creo, mantengo y mejoro sistemas basados en agentes que interactúan con modelos, herramientas, APIs, archivos, navegadores, terminales, servicios cloud y entornos locales.
-
-Mi objetivo es construir sistemas que:
-
-- hagan trabajo concreto
-- tengan permisos claros
-- sean mantenibles
-- se puedan auditar
-- reduzcan trabajo repetitivo
-- permitan usar modelos cloud o locales según costo, privacidad y performance
-- no se rompan al primer cambio de contexto
+Cada sistema se diseña con arquitectura clara: definición de tools, permisos mínimos, memoria sessionada o persistente, logs estructurados y puntos de aprobación humana para acciones sensibles.
 
 ---
 
-## Qué entiendo por agente
+## Stack de ejecución
 
-Un agente útil es un sistema que puede:
-
-1. **Recibir una intención** — revisar reportes, armar resúmenes, buscar errores, actualizar docs, controlar flujos.
-2. **Razonar un plan** — qué mirar, qué herramienta usar, qué validar, qué no tocar.
-3. **Usar herramientas** — APIs, terminal, navegador, base de datos, GitHub, email, docs, calendarios, CRMs, scripts.
-4. **Ejecutar pasos** — leer, escribir, consultar, transformar, revisar, disparar procesos, generar archivos, abrir PRs.
-5. **Mantener contexto** — saber qué se hizo antes, qué reglas existen, qué datos no tocar, qué permisos tiene.
-6. **Pedir revisión** — acciones automáticas y otras que requieren aprobación humana.
-7. **Ser observable** — logs, trazas, decisiones, errores, costos. Si algo sale mal, hay que poder entender qué pasó.
+- **OpenClaw**: asistentes persistentes, mensajería (Telegram, Discord, Slack, WhatsApp), ejecución en entorno controlado, integración con herramientas del sistema.
+- **Hermes Agent**: agentes con skills reutilizables, pipelines de automatización, memoria operativa, ejecución CLI o server-side, scheduling de tareas.
+- **Modelos cloud**: OpenAI, Anthropic, OpenCode Zen, Google — según razonamiento, tool calling y costo.
+- **Modelos locales**: Ollama, vLLM, LM Studio — para datos sensibles, off-line, costo fijo o baja latencia on-prem.
+- **Stack híbrido**: clasificador local ligero + razonador cloud para decisiones críticas + reglas determinísticas para acciones sin LLM.
 
 ---
 
-## Creación de agentes
+## Gobernanza de datos y flujos
 
-Armo agentes para tareas específicas o sistemas completos:
+La gobernanza no es opcional cuando un agente toca datos reales.
 
-- agente personal o de equipo
-- asistente técnico para programación
-- agente para revisar repositorios y PRs
-- agente para investigar y generar reportes
-- agente para interactuar con APIs internas
-- agente para manejar documentos y tickets
-- agente para soporte interno y automatizaciones
-- agente conectado a Telegram, Discord, Slack, WhatsApp
-- agente con herramientas propias, memoria y skills
-
-Primero entiendo el flujo. Después decido si hace falta un agente, un script, una integración o una mezcla.
+- trazabilidad por sesión con IDs correlativos
+- logs de decisión, tool calls, errores y latencia
+- control de acceso granular por herramienta y dominio
+- políticas de retención y rotación de contexto
+- separación estricta entre entornos dev, test y prod
+- sandboxing de ejecución para código generado
+- listas blancas y negras de acciones, archivos y endpoints
 
 ---
 
-## Mantenimiento de agentes existentes
+## Análisis de procesos y automatización
 
-Muchos agentes acumulan deuda técnica: prompts viejos, permisos amplios, costos altos, modelos que cambiaron, errores silenciosos, falta de logs, memoria contaminada.
+Antes de construir un agente, se analiza el flujo real:
 
-Puedo ordenar eso:
-
-- revisión de arquitectura y prompts
-- separación de herramientas peligrosas y seguras
-- mejora de tool calling y manejo de errores
-- testing de flujos y control de costos
-- actualización de modelos y migraciones
-- documentación, monitoreo y hardening de seguridad
-- definición de reglas de aprobación humana
+- identificación de cuellos de botella y tareas repetitivas
+- mapeo de decisiones: automáticas vs. con aprobación humana
+- definición de KPIs de impacto (tiempo ahorrado, errores reducidos, costo operativo)
+- prototipado rápido con validación sobre datos reales
+- monitoreo post-deploy con alertas sobre desviaciones de comportamiento
 
 ---
 
-## Modelos cloud y locales
+## Consultas semánticas y RAG
 
-Trabajo con ambos. No siempre conviene lo mismo.
+Implementación de sistemas de recuperación aumentada para dar contexto relevante al agente sin exponer todo el repositorio:
 
-**Cloud**: mejor razonamiento, setup inicial rápido, modelos frontier, buen tool calling, escalable.
+- ingestión y chunking de documentación técnica, manuals, contratos o bases de conocimiento
+- embeddings locales o cloud con almacenamiento vectorial (Chroma, FAISS, Qdrant, pgvector)
+- búsqueda híbrida: semántica + lexical + reranking
+- citas con fuente y scoring de relevancia
+- actualización incremental sin re-indexar todo
 
-**Local**: privacidad, costo recurrente bajo, control de datos, independencia de proveedores, offline.
+---
 
-**Híbrido**: modelo barato/local para tareas repetitivas, modelo fuerte para planificación, reglas determinísticas para validaciones, scripts para acciones sin LLM.
+## Dashboards y reporting agentico
+
+Los agentes pueden generar y mantener paneles operativos:
+
+- reportes periódicos extraídos de APIs internas, bases de datos o logs
+- resúmenes ejecutivos con datos cuantitativos
+- detección de anomalías en métricas de negocio o sistema
+- alertas proactivas por cambio de comportamiento o umbrales superados
+- integración con herramientas de BI (Grafana, Metabase, Google Sheets)
 
 ---
 
 ## Agentes para programación
 
-- revisión de código y análisis de bugs
-- generación de tests y refactors controlados
-- documentación técnica y revisión de PRs
-- búsqueda en repositorios y generación de scripts
-- automatización de tareas DevOps
-- agentes conectados a entornos locales, Docker, SSH o cloud
+- revisión automatizada de PRs con contexto del repositorio completo
+- generación de tests, refactors controlados y documentación técnica
+- análisis de bugs con trazas de error, stacktrace y propuestas de fix
+- pipelines de CI/CD asistidos por agente
+- agentes conectados a entornos Docker, SSH o cloud con permisos restringidos
 
 ---
 
-## Agentes de investigación
+## Agentes para datos e investigación
 
-- buscar información y comparar fuentes
-- resumir documentación y monitorear cambios
-- generar reportes y seguir releases
-- leer papers y extraer conclusiones
-- mantener una base de conocimiento
-
----
-
-## Agentes de operación interna
-
-- reportes diarios y control de tareas
-- seguimiento de tickets y clasificación de mensajes
-- generación de resúmenes y actualización de docs
-- preparación de reuniones y extracción de datos
-- automatización de tareas administrativas
+- scraping, transformación y carga de fuentes externas con validación de esquema
+- resúmenes técnicos con referencias y citas
+- extracción de conclusiones accionables desde papers, logs o documentación
+- mantenimiento de bases de conocimiento versionadas con control de cambios
 
 ---
 
 ## Seguridad y control
 
-Un agente con herramientas puede hacer daño aunque no tenga mala intención.
-
-Principios de trabajo:
-
-- mínimo privilegio: solo los permisos necesarios
-- separación de entornos: dev, test, prod
-- aprobación humana para acciones sensibles
-- logs y trazabilidad
-- sandboxing cuando ejecuta código
-- control de secretos
-- herramientas determinísticas para operaciones críticas
-- listas de acciones permitidas y prohibidas
+- mínimo privilegio en tools, archivos y endpoints
+- secretos gestionados por entorno, nunca en prompts ni logs
+- aprobación humana obligatoria para acciones destructivas o sobre producción
+- auditoría completa con replay de decisiones
+- rate limiting, timeouts y circuit breakers por tool
+- validaciones pre-flight antes de ejecutar comandos o escribir archivos
 
 ---
 
 ## Entregables
 
-- agente funcionando con documentación
-- arquitectura del sistema y reglas
-- prompts, tools, skills reutilizables
-- scripts auxiliares y configuración
-- checklist de seguridad
-- pruebas básicas y ejemplos de uso
-- plan de evolución
+- agente funcionando en el entorno objetivo
+- arquitectura documentada con diagrama de flujo y permisos
+- definición completa de tools, prompts y reglas de negocio
+- scripts de deploy, configuración y tests básicos
+- skills reutilizables para Hermes Agent
+- checklist de seguridad y guía de operación
+- plan de evolución con métricas de impacto
 
 ---
 
@@ -144,23 +116,4 @@ Principios de trabajo:
 
 **MVP / prototipo**: primera versión funcional para validar flujo, modelo, herramientas, costo y confiabilidad.
 
-**Implementación completa**: diseño, construcción, integración, documentación y puesta en marcha.
-
-**Mantenimiento mensual**: ajustes, monitoreo, mejoras, actualización de modelos, control de costos.
-
-**Consultoría técnica**: arquitectura, stack, seguridad, diseño de tools, estrategia cloud/local, debugging.
-
----
-
-## Qué no vendo
-
-No vendo humo. No vendo magia.
-
-- un empleado virtual que reemplaza todo
-- automatización 100% autónoma sin supervisión
-- un agente que nunca se equivoca
-- IA mágica que entiende tu negocio sin contexto
-- hacer todo con prompts
-- usar el modelo más caro para cualquier cosa
-
-Un sistema bueno combina: programación, arquitectura, prompts, herramientas, modelos, permisos, seguridad, documentación, mantenimiento y criterio.
+**Implementación completa**: diseño, construcción, integración, documentación y puesta en marcha en el entorno destino.
