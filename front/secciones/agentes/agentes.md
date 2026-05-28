@@ -1,4 +1,4 @@
-# Servicios de agentes IA, automatización y sistemas agenticos
+# Agentes IA, automatización y sistemas agenticos
 
 ## Enfoque técnico
 
