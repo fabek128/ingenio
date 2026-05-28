@@ -3,13 +3,16 @@
 Instrucciones locales para ChatGPT Codex en este repo. Este archivo complementa `AGENTS.md` y debe mantenerse sincronizado con `CLAUDE.md` y las instrucciones de OpenCode.
 
 ## Objetivo
-Mantener y evolucionar INGENIO/64, un sitio personal con UI de terminal retro inspirada en Commodore 64. La vision objetivo esta en `docs/ingenio-agentic-site-spec.md`: consola agentica para compartir experiencias diarias con IA, conectada a un backend basico con modelo local via Ollama.
+Mantener y evolucionar INGENIO/64, un sitio personal con UI de terminal retro inspirada en Commodore 64. La vision objetivo esta en `docs/ingenio-agentic-site-spec.md`: consola agentica para compartir experiencias diarias con IA, conectada a un backend FastAPI con modelo via OpenCode Zen API.
 
 ## Mapa rapido
 - `front/index.html`: estructura HTML, estilos CSS, root y carga de React/scripts.
 - `front/app.jsx`: aplicacion React, boot screen, header, comandos, estado de UI y bloques interactivos.
 - `front/content.jsx`: fuente principal de contenido editable: servicios, casos, stack, about, diagnostico y metadata de comandos.
 - `front/assets/` y `front/uploads/`: recursos graficos.
+- `backend/app/main.py`: API, sesiones, CSRF, rate limit y llamada al modelo.
+- `backend/app/chat_logs.py`: logging seguro de interacciones del agente con rotacion y compresion.
+- `logs/chat/`: salida runtime de conversaciones del agente; ignorada por Git y nunca debe versionarse.
 - `docs/`: documentacion del proyecto y notas operativas.
 
 ## Consulta de documentacion
@@ -40,6 +43,8 @@ Mantener y evolucionar INGENIO/64, un sitio personal con UI de terminal retro in
 - Jamas exponer keys, tokens, passwords, credenciales, URLs privadas ni datos personales sensibles en el repo, prompts, logs, commits, PRs o respuestas.
 - Usar `.env` solo para configuracion local/desarrollo y mantenerlo ignorado por Git.
 - Versionar solamente nombres de variables y valores no sensibles en `.env.example`.
+- No copiar valores de `logs/chat/` a documentacion, issues, commits o respuestas. Si se inspeccionan logs, resumir sin reproducir secretos ni datos sensibles.
+- El endpoint de lectura de logs `/api/admin/chat-logs/latest` debe requerir `INGENIO_CHAT_LOG_VIEW_TOKEN`; no exponer ese token ni guardarlo en frontend.
 - Si se detecta un secreto en texto plano, no reproducirlo: indicar archivo/riesgo y recomendar rotacion.
 - Para secretos sensibles o productivos, preferir secret manager o `/Users/fabian/.agent-secrets/with-secrets.sh` segun `/Users/fabian/docs/agent-secret-management.md`.
 - Evitar HTML dinamico inseguro; no introducir `dangerouslySetInnerHTML` sin sanitizacion explicita.

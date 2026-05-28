@@ -215,9 +215,16 @@ INGENIO_SESSION_SECRET=GENERAR_EN_CADA_AMBIENTE
 INGENIO_SESSION_TTL_SECONDS=3600
 INGENIO_RATE_LIMIT_PER_MINUTE=12
 INGENIO_MAX_MESSAGE_CHARS=2000
+
+INGENIO_CHAT_LOG_ENABLED=true
+INGENIO_CHAT_LOG_DIR=logs/chat
+INGENIO_CHAT_LOG_MAX_BYTES=1048576
+INGENIO_CHAT_LOG_INCLUDE_TEXT=true
+INGENIO_CHAT_LOG_VIEW_TOKEN=
 ```
 
 `INGENIO_SESSION_SECRET` e `INGENIO_LLM_API_KEY` son secretos. Deben generarse por ambiente y no commitearse.
+`INGENIO_CHAT_LOG_VIEW_TOKEN` tambien es secreto: debe tener al menos 32 caracteres, vivir solo en `.env`/secret manager y rotarse si se expone.
 
 Comando recomendado para generar valor local:
 
@@ -319,6 +326,51 @@ Respuesta sugerida:
 }
 ```
 
+### 7.5 `GET /api/admin/chat-logs/latest`
+
+Uso: inspeccion administrativa del ultimo archivo de log de chat que no este comprimido.
+
+Seguridad:
+
+- No es publico.
+- Requiere header `X-Ingenio-Log-Token`.
+- El valor esperado viene de `INGENIO_CHAT_LOG_VIEW_TOKEN`.
+- Si `INGENIO_CHAT_LOG_VIEW_TOKEN` esta vacio, el endpoint responde `404 not_found`.
+- El token debe tener al menos 32 caracteres; si es menor, el endpoint responde `503 log_view_token_misconfigured`.
+- Valida `Origin`/`Referer` si esos headers vienen presentes.
+- No requiere cookie de usuario ni CSRF porque esta pensado para uso administrativo con `curl`/herramientas internas.
+
+Request:
+
+```bash
+curl -H "X-Ingenio-Log-Token: $INGENIO_CHAT_LOG_VIEW_TOKEN" \
+  https://ingenio.example.com/api/admin/chat-logs/latest
+```
+
+Respuesta:
+
+- `200 text/plain`: contenido del `.txt` activo o mas reciente.
+- Header `Cache-Control: no-store`.
+- Header `X-Ingenio-Log-File` con el nombre del archivo devuelto.
+- El contenido vuelve a pasar por redaccion de secretos antes de enviarse.
+
+Errores:
+
+```text
+401 log_token_required
+403 bad_log_token
+404 not_found
+404 chat_log_not_found
+503 log_view_token_misconfigured
+```
+
+Reglas:
+
+- No mostrar archivos `.tar.gz`.
+- No permitir elegir rutas desde el request.
+- No usar este endpoint desde el frontend publico.
+- No guardar el token en JavaScript, Markdown, issues, commits ni screenshots.
+
 ## 8. Prompt de sistema
 
 Prompt inicial recomendado:
@@ -368,25 +420,55 @@ Debe correr como `ingenio-api.service`:
 
 ## 11. Logging
 
-Permitido:
+El backend debe guardar las interacciones de `/api/chat` en archivos `.txt` dentro de:
 
-- timestamp
-- endpoint
-- status code
-- duracion
-- IP truncada o hash
+```text
+logs/chat/
+```
+
+Formato:
+
+- JSON Lines (`.jsonl`) dentro de archivo `.txt`.
+- Un registro por interaccion.
+- Archivo activo: `chat-active.txt`.
+- Rotacion por tamano: `INGENIO_CHAT_LOG_MAX_BYTES=1048576` (1 MiB).
+- Al rotar, el `.txt` cerrado se comprime como `chat-<timestamp>-<id>.txt.tar.gz`.
+- Luego se crea un nuevo `chat-active.txt`.
+
+Campos permitidos:
+
+- timestamp UTC
+- request_id aleatorio
+- evento: `completed`, `blocked`, `output_blocked`, `model_error`, `model_empty_response`, `message_too_long`
+- status code devuelto
+- hash de sesion
+- hash de IP/cliente
 - modelo usado
-- cantidad aproximada de caracteres/tokens
+- duracion
+- reason/error cuando aplique
+- usage/tokens si el proveedor lo devuelve
+- cantidad de caracteres del prompt y respuesta
+- prompt y respuesta, siempre con redaccion automatica si `INGENIO_CHAT_LOG_INCLUDE_TEXT=true`
 
 No permitido:
 
-- prompts completos
-- respuestas completas
 - cookies
 - CSRF tokens
-- `INGENIO_SESSION_SECRET`
+- headers completos
 - headers de autenticacion
-- datos personales del formulario de contacto
+- `INGENIO_SESSION_SECRET`
+- `INGENIO_LLM_API_KEY`
+- valores de `.env`
+- respuestas inseguras bloqueadas por guardrails
+
+Reglas de seguridad:
+
+- `logs/` debe permanecer ignorado por Git.
+- Los textos se guardan con redaccion de patrones comunes: `Bearer ...`, `*_TOKEN=...`, `*_KEY=...`, `*_SECRET=...`, passwords, JWT y bloques de private key.
+- Para mayor privacidad, configurar `INGENIO_CHAT_LOG_INCLUDE_TEXT=false`; en ese modo quedan solo metadatos y longitudes.
+- En produccion, montar `logs/chat` en un volumen persistente y protegerlo con permisos restrictivos.
+- No usar estos logs como fuente de contexto del modelo.
+- Si un usuario pega un secreto en el prompt, el log debe guardar el valor redactado y se debe recomendar rotacion si se detecta exposicion.
 
 ## 12. Tests minimos
 

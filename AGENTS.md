@@ -21,7 +21,9 @@ Este archivo aplica a OpenCode y a cualquier agente compatible con `AGENTS.md` t
 - `front/assets/` y `front/uploads/`: imagenes usadas por la web.
 - `backend/`: backend FastAPI (Python).
   - `backend/app/main.py`: API, sesiones, CSRF, rate limit, cliente OpenAI-compatible (OpenCode Zen).
+  - `backend/app/chat_logs.py`: logging seguro de interacciones del agente con rotacion y compresion.
   - `backend/Dockerfile`: imagen para desarrollo local.
+- `logs/chat/`: salida runtime de conversaciones del agente; ignorada por Git y nunca debe versionarse.
 - `docker-compose.yml`: servicio backend para desarrollo local (modelo cloud, sin Ollama).
 - `.env`: configuracion local y secreto de sesion (ignorado por Git).
 - `.env.example`: plantilla con valores no sensibles (versionado).
@@ -48,6 +50,8 @@ Este archivo aplica a OpenCode y a cualquier agente compatible con `AGENTS.md` t
 - Jamas exponer keys, tokens, passwords, credenciales, URLs privadas ni datos sensibles en archivos versionados, prompts, logs, commits, PRs o respuestas.
 - Usar `.env` solo para configuracion local/desarrollo y mantenerlo ignorado por Git.
 - Versionar solamente nombres de variables y valores no sensibles en `.env.example`.
+- No copiar valores de `logs/chat/` a documentacion, issues, commits o respuestas. Si se inspeccionan logs, resumir sin reproducir secretos ni datos sensibles.
+- El endpoint de lectura de logs `/api/admin/chat-logs/latest` debe requerir `INGENIO_CHAT_LOG_VIEW_TOKEN`; no exponer ese token ni guardarlo en frontend.
 - Si se detecta un secreto en texto plano, no reproducirlo: indicar archivo/riesgo y recomendar rotacion.
 - Para secretos sensibles o productivos, preferir secret manager o `/Users/fabian/.agent-secrets/with-secrets.sh` segun `/Users/fabian/docs/agent-secret-management.md`.
 

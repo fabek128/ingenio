@@ -94,6 +94,12 @@ INGENIO_SESSION_SECRET=
 INGENIO_SESSION_TTL_SECONDS=3600
 INGENIO_RATE_LIMIT_PER_MINUTE=12
 INGENIO_MAX_MESSAGE_CHARS=2000
+
+INGENIO_CHAT_LOG_ENABLED=true
+INGENIO_CHAT_LOG_DIR=logs/chat
+INGENIO_CHAT_LOG_MAX_BYTES=1048576
+INGENIO_CHAT_LOG_INCLUDE_TEXT=true
+INGENIO_CHAT_LOG_VIEW_TOKEN=
 ```
 
 ### 2.3 Crear `.env` local
@@ -804,10 +810,65 @@ Ver logs sin imprimir secretos:
 journalctl -u ingenio-api -e
 ```
 
+Los logs propios de interacciones del agente quedan en:
+
+```text
+logs/chat/chat-active.txt
+```
+
+Cuando `chat-active.txt` supera `INGENIO_CHAT_LOG_MAX_BYTES` (`1048576`, 1 MiB por defecto), el backend lo comprime como `chat-<timestamp>-<id>.txt.tar.gz` y crea un nuevo `chat-active.txt`.
+
+Reglas:
+
+- No versionar `logs/chat/`.
+- No copiar contenido de estos logs a tickets, documentacion o respuestas.
+- Los prompts y respuestas se guardan con redaccion automatica de secretos.
+- Para guardar solo metadatos, usar `INGENIO_CHAT_LOG_INCLUDE_TEXT=false`.
+
+### Ver el ultimo log no comprimido por API
+
+El endpoint administrativo es:
+
+```text
+GET /api/admin/chat-logs/latest
+```
+
+Debe estar protegido con token. Generar un token local o productivo:
+
+```bash
+openssl rand -hex 32
+```
+
+Guardar el valor solo en `.env`, Dokploy secrets o secret manager:
+
+```env
+INGENIO_CHAT_LOG_VIEW_TOKEN=<valor-generado>
+```
+
+No pegar ese valor en Git, documentacion, screenshots, issues ni respuestas.
+
+Consultar:
+
+```bash
+curl -H "X-Ingenio-Log-Token: $INGENIO_CHAT_LOG_VIEW_TOKEN" \
+  http://127.0.0.1:8080/api/admin/chat-logs/latest
+```
+
+Comportamiento esperado:
+
+- si el token no esta configurado: `404 not_found`;
+- si falta el header: `401 log_token_required`;
+- si el token es incorrecto: `403 bad_log_token`;
+- si no hay `.txt` activo: `404 chat_log_not_found`;
+- si esta autorizado: `200 text/plain` con `Cache-Control: no-store`.
+
+Aunque los logs se escriben con redaccion automatica, el endpoint vuelve a redactar patrones sensibles antes de devolver el contenido.
+
 ## 12. Checklist de seguridad antes de publicar
 
 - [ ] `.env` no aparece en `git status` salvo como ignorado.
 - [ ] `INGENIO_SESSION_SECRET` no esta en ningun archivo versionado.
+- [ ] `INGENIO_CHAT_LOG_VIEW_TOKEN` esta configurado solo como secreto y tiene al menos 32 caracteres.
 - [ ] Ollama escucha en `127.0.0.1:11434`.
 - [ ] Backend escucha en `127.0.0.1:8080`.
 - [ ] Reverse proxy expone solo HTTPS.
@@ -816,7 +877,9 @@ journalctl -u ingenio-api -e
 - [ ] `/api/chat` con Origin invalido falla.
 - [ ] Rate limit devuelve `429` al exceder el limite.
 - [ ] Mensajes largos son rechazados.
-- [ ] Logs no muestran prompts completos ni tokens.
+- [ ] `logs/chat/` esta ignorado por Git y protegido con permisos restrictivos.
+- [ ] Logs no muestran tokens, cookies, CSRF, headers de autenticacion ni valores de `.env`.
+- [ ] Si se guardan prompts/respuestas, se guardan con redaccion automatica de secretos.
 - [ ] El frontend no contiene secrets ni URLs privadas.
 
 ## 13. Problemas comunes

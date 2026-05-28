@@ -456,7 +456,23 @@ Esperado:
 
 ## 9. Criterios de logging
 
-No loguear:
+El backend guarda interacciones del agente en `logs/chat/` con rotacion a 1 MiB y compresion `.tar.gz`.
+
+Importante: esta seccion define que datos puede guardar el backend en archivos de auditoria. No amplia el alcance del modelo y no permite que el agente lea, use ni responda sobre el contenido de `logs/chat`.
+
+Campos permitidos dentro del archivo de log:
+
+- timestamp;
+- estado de la interaccion;
+- razon de bloqueo;
+- hash de sesion;
+- hash de cliente/IP;
+- modelo usado;
+- duracion;
+- usage/tokens si existe;
+- prompt y respuesta con redaccion automatica de secretos cuando `INGENIO_CHAT_LOG_INCLUDE_TEXT=true`.
+
+No loguear sin redaccion:
 
 - prompts completos;
 - respuestas completas del modelo;
@@ -466,7 +482,7 @@ No loguear:
 - IPs si no hace falta;
 - headers completos.
 
-Loguear solo metadata:
+Loguear metadata operativa y texto solo despues de aplicar redaccion:
 
 ```text
 event=chat_guardrail_blocked reason=secret_keyword message_hash=<sha256 parcial>
@@ -474,7 +490,15 @@ event=chat_allowed category=site_context message_len=123
 event=model_output_blocked reason=secret_pattern
 ```
 
-Si hace falta depurar, usar ambiente local y datos ficticios.
+Reglas:
+
+- `logs/` debe estar ignorado por Git.
+- No usar `logs/chat` como fuente publica, fuente de RAG ni contexto del modelo.
+- El agente del sitio no debe responder preguntas sobre el contenido de los logs.
+- El endpoint `GET /api/admin/chat-logs/latest` solo debe estar disponible con `INGENIO_CHAT_LOG_VIEW_TOKEN` y header `X-Ingenio-Log-Token`.
+- No exponer `INGENIO_CHAT_LOG_VIEW_TOKEN` en frontend, Markdown, issues, commits, screenshots ni respuestas.
+- No guardar respuestas inseguras bloqueadas por guardrails.
+- Si hace falta depurar con texto real, hacerlo en ambiente local y revisar que no haya secretos.
 
 ## 10. Tradeoffs
 
