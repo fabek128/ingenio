@@ -13,6 +13,7 @@ from urllib.parse import urlparse
 
 import httpx
 from app.chat_logs import ChatLogWriter, redact_sensitive_text
+from app.rate_limit import init_rate_limiter, get_rate_limiter
 from fastapi import Cookie, Depends, FastAPI, Header, HTTPException, Request, Response, status
 from app.guardrails import (
     build_public_context,
@@ -49,6 +50,8 @@ class Settings(BaseSettings):
     ingenio_session_secret: str = ""
     ingenio_session_ttl_seconds: int = 3600
     ingenio_rate_limit_per_minute: int = 12
+    ingenio_rate_limit_per_hour: int = 100
+    ingenio_rate_limit_per_day: int = 500
     ingenio_max_message_chars: int = 2000
     ingenio_chat_log_enabled: bool = True
     ingenio_chat_log_dir: str = "logs/chat"
@@ -76,6 +79,13 @@ chat_log_writer = ChatLogWriter(
     include_text=settings.ingenio_chat_log_include_text,
 )
 
+# Inicializar rate limiter avanzado
+rate_limiter = init_rate_limiter(
+    per_minute=settings.ingenio_rate_limit_per_minute,
+    per_hour=settings.ingenio_rate_limit_per_hour,
+    per_day=settings.ingenio_rate_limit_per_day,
+)
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[settings.ingenio_allowed_origin],
@@ -83,8 +93,6 @@ app.add_middleware(
     allow_methods=["GET", "POST"],
     allow_headers=["Content-Type", CSRF_HEADER, LOG_VIEW_TOKEN_HEADER],
 )
-
-_hits: dict[str, deque[float]] = defaultdict(deque)
 
 
 class ChatRequest(BaseModel):
@@ -194,15 +202,28 @@ def _validate_optional_origin(request: Request) -> None:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="bad_referer")
 
 
-def _rate_limit(key: str) -> None:
-    now = time.time()
-    window_start = now - 60
-    q = _hits[key]
-    while q and q[0] < window_start:
-        q.popleft()
-    if len(q) >= settings.ingenio_rate_limit_per_minute:
-        raise HTTPException(status_code=status.HTTP_429_TOO_MANY_REQUESTS, detail="rate_limited")
-    q.append(now)
+def _check_rate_limit(key: str) -> None:
+    """Verifica rate limit usando el sistema avanzado."""
+    limiter = get_rate_limiter()
+    violation = limiter.check_rate_limit(key)
+
+    if violation:
+        # Registrar intento bloqueado para detectar ataques
+        limiter.record_blocked_attempt(key)
+
+        # Preparar mensaje de error
+        if violation.limit_type == "blacklist":
+            detail = f"rate_limited_blacklist:{violation.window_seconds}"
+        else:
+            detail = f"rate_limited_{violation.limit_type}"
+
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail=detail,
+        )
+
+    # Registrar request exitoso
+    limiter.record_request(key)
 
 
 def _client_identifier(request: Request) -> str:
@@ -221,6 +242,41 @@ def _usage_dict(data: dict[str, Any]) -> dict[str, int] | None:
     return None
 
 
+def _log_security_attack(
+    *,
+    request: Request,
+    session: dict[str, Any],
+    reason: str,
+    message: str,
+) -> None:
+    """Loguea intentos de ataque con información completa para análisis forense."""
+    client_ip = _client_identifier(request)
+    user_agent = request.headers.get("user-agent", "unknown")
+    referer = request.headers.get("referer", "none")
+    origin = request.headers.get("origin", "none")
+
+    # Log estructurado con toda la información del ataque
+    logger.warning(
+        "event=security_attack_detected "
+        "reason=%s "
+        "client_ip_hash=%s "
+        "session_hash=%s "
+        "user_agent=%s "
+        "origin=%s "
+        "referer=%s "
+        "message_length=%d "
+        "full_message=%s",
+        reason,
+        _log_hash(client_ip),
+        _log_hash(str(session.get("sid", "unknown"))),
+        user_agent,
+        origin,
+        referer,
+        len(message),
+        repr(message),  # repr() para escapar caracteres especiales
+    )
+
+
 def _write_chat_log(
     *,
     request: Request,
@@ -234,6 +290,15 @@ def _write_chat_log(
     usage: dict[str, int] | None = None,
     error: str | None = None,
 ) -> None:
+    # Para eventos de seguridad, loguear información completa adicional
+    if reason in ("prompt_injection_attempt", "secret_keyword", "private_logs", "private_qa"):
+        _log_security_attack(
+            request=request,
+            session=session,
+            reason=reason,
+            message=message or "",
+        )
+
     chat_log_writer.write_interaction(
         event=event,
         status_code=status_code,
@@ -285,8 +350,8 @@ def require_browser_session(
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="bad_csrf")
 
     client_host = _client_identifier(request)
-    _rate_limit(f"sid:{payload['sid']}")
-    _rate_limit(f"ip:{client_host}")
+    _check_rate_limit(f"sid:{payload['sid']}")
+    _check_rate_limit(f"ip:{client_host}")
     return payload
 
 
@@ -391,8 +456,34 @@ async def site_context() -> dict[str, Any]:
     return {
         "agent_name": "INGENIO/64",
         "model": settings.ingenio_llm_model,
-        "capabilities": ["chat", "site_context"],
-        "limits": {"max_message_chars": settings.ingenio_max_message_chars},
+        "capabilities": ["chat", "site_context", "rate_limit_stats"],
+        "limits": {
+            "max_message_chars": settings.ingenio_max_message_chars,
+            "rate_limit_per_minute": settings.ingenio_rate_limit_per_minute,
+            "rate_limit_per_hour": settings.ingenio_rate_limit_per_hour,
+            "rate_limit_per_day": settings.ingenio_rate_limit_per_day,
+        },
+    }
+
+
+@app.get("/api/rate-limit-stats")
+async def rate_limit_stats(
+    request: Request,
+    _session: dict[str, Any] = Depends(require_browser_session),
+) -> dict[str, Any]:
+    """Retorna estadísticas de rate limiting para el usuario actual."""
+    _validate_optional_origin(request)
+
+    limiter = get_rate_limiter()
+    client_host = _client_identifier(request)
+
+    # Obtener stats para sesión e IP
+    session_stats = limiter.get_stats(f"sid:{_session['sid']}")
+    ip_stats = limiter.get_stats(f"ip:{client_host}")
+
+    return {
+        "session": session_stats,
+        "ip": ip_stats,
     }
 
 
@@ -569,6 +660,30 @@ async def chat(
         safe_reply = output_decision.safe_reply or "No puedo devolver esa respuesta."
         original_reply_preview = reply[:200] if reply else ""
         error_detail = f"output_blocked: {output_decision.reason}. Original reply preview: {original_reply_preview}"
+
+        # Loguear el output bloqueado con información completa para análisis forense
+        logger.warning(
+            "event=security_output_blocked "
+            "reason=%s "
+            "client_ip_hash=%s "
+            "session_hash=%s "
+            "user_agent=%s "
+            "origin=%s "
+            "prompt_length=%d "
+            "reply_length=%d "
+            "full_prompt=%s "
+            "full_reply=%s",
+            output_decision.reason,
+            _log_hash(_client_identifier(request)),
+            _log_hash(str(_session.get("sid", "unknown"))),
+            request.headers.get("user-agent", "unknown"),
+            request.headers.get("origin", "none"),
+            len(message),
+            len(reply),
+            repr(message),
+            repr(reply),  # Loguear respuesta completa del modelo bloqueada
+        )
+
         _write_chat_log(
             request=request,
             session=_session,

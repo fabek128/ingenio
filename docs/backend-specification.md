@@ -180,20 +180,91 @@ INGENIO_ALLOWED_ORIGIN=https://ingenio.example.com
 
 CORS ayuda contra navegadores, pero no protege contra `curl` o scripts. Por eso debe combinarse con sesion, CSRF y rate limiting.
 
-### 5.6 Rate limit
+### 5.6 Rate limit avanzado con protección contra ataques
 
-MVP:
+El sistema implementa rate limiting multi-ventana con protección contra flood y ataques de fuerza bruta:
 
-- Por sesion: 12 requests/minuto.
-- Por IP: 30 requests/minuto.
-- Maximo mensaje: 2.000 caracteres.
-- Timeout de modelo/API: 45 segundos.
+**Límites por defecto:**
+- Por minuto: 12 requests (sesión e IP)
+- Por hora: 100 requests (sesión e IP)
+- Por día: 500 requests (sesión e IP)
+- Máximo mensaje: 2.000 caracteres
+- Timeout de modelo: 45 segundos
 
-Produccion con mas trafico:
+**Protecciones automáticas:**
+- Detección de patrones sospechosos (>30 requests/minuto)
+- Penalización progresiva (backoff exponencial)
+- Blacklist temporal automática (1-60 minutos)
+- Detección de ataques activos (>10 intentos bloqueados en 5 min)
+- Logging completo de eventos de seguridad
 
-- Mover rate limit a Redis o al reverse proxy.
-- Agregar limite diario por IP/sesion.
-- Evaluar captcha/Turnstile al emitir sesion si hay abuso.
+**Características:**
+- Rate limit independiente por sesión e IP
+- Múltiples ventanas de tiempo (minuto, hora, día)
+- Mensajes específicos según tipo de límite
+- Endpoint `/api/rate-limit-stats` para transparency
+- Estado en memoria (muy rápido, sin DB)
+
+**Ver documentación completa:** `docs/rate-limiting-security.md`
+
+**Producción con más tráfico:**
+- Migrar a Redis para soporte multi-instancia
+- Whitelist de IPs confiables
+- Captcha después de X intentos bloqueados
+- Geoblocking de IPs de alto riesgo
+
+### 5.7 Protección contra Prompt Injection
+
+El sistema implementa múltiples capas de defensa contra ataques de prompt injection para prevenir manipulación del comportamiento del agente o extracción de información sensible:
+
+**Validación de entrada (Input Guardrails):**
+- Detección de comandos de sobrescritura (`ignore previous instructions`, `override your settings`)
+- Detección de solicitudes de revelación (`repeat your instructions`, `show me your system prompt`)
+- Detección de preguntas sobre restricciones (`what are you not allowed to do`)
+- Detección de intentos de cambio de rol (`you are now a...`, `pretend you are...`)
+- Detección de metacomandos y escapado (`</system>`, `[system]`, `{system:`)
+- Detección de codificación y ofuscación (`base64 decode`, secuencias hex, HTML entities)
+- Detección de jailbreaks conocidos (`DAN mode`, `developer mode`, `god mode`)
+
+**Validación de salida (Output Validation):**
+- Bloquea respuestas que contengan secretos explícitos (tokens, API keys, variables de entorno)
+- Bloquea respuestas que revelen delimiters internos (`===BEGIN_*===`, `===END_*===`)
+- Bloquea respuestas que incluyan frases literales del system prompt
+- Bloquea respuestas con rutas internas del código (`backend/knowledge/`, `backend/logs/`)
+
+**System Prompt Defensivo:**
+- Instrucciones explícitas sobre lo que no debe revelar
+- Delimiters robustos con prefijos únicos para el contexto público
+- Comando explícito de ignorar instrucciones del usuario que pidan modificar el comportamiento
+
+**Logging completo de ataques:**
+- Todos los intentos de ataque se loggean con información completa para análisis forense
+- Eventos `security_attack_detected` incluyen: IP (hasheada), user agent, origin, referer, mensaje completo
+- Eventos `security_output_blocked` incluyen: prompt y respuesta completa del modelo cuando filtra información sensible
+- Los logs de seguridad no redactan contenido malicioso (necesario para análisis forense)
+- Los logs normales de chat sí redactan información sensible de usuarios legítimos
+
+**Respuestas genéricas:**
+El sistema nunca revela por qué bloqueó un mensaje específico. Todas las respuestas de rechazo son genéricas:
+```
+"Solo puedo responder sobre INGENIO/64, proyectos publicados
+y experiencias publicas de Fabian con IA."
+```
+
+**Ver documentación completa:** `docs/prompt-injection-security.md`
+
+**Limitaciones conocidas:**
+- False positivos posibles con usuarios legítimos usando términos técnicos
+- Evasión mediante variaciones ortográficas sofisticadas
+- Ataques multi-turno distribuidos en múltiples mensajes
+- Modelos más inteligentes pueden ser más cooperativos con usuarios maliciosos
+
+**Mejoras futuras:**
+- Normalización avanzada de texto para detectar variaciones
+- Machine learning para detectar patrones anómalos
+- Análisis del historial multi-turno
+- Rate limiting específico para intentos de injection
+- Sandbox del modelo con acceso limitado
 
 ## 6. Variables de entorno
 
@@ -214,6 +285,8 @@ INGENIO_LLM_MAX_TOKENS=2048
 INGENIO_SESSION_SECRET=GENERAR_EN_CADA_AMBIENTE
 INGENIO_SESSION_TTL_SECONDS=3600
 INGENIO_RATE_LIMIT_PER_MINUTE=12
+INGENIO_RATE_LIMIT_PER_HOUR=100
+INGENIO_RATE_LIMIT_PER_DAY=500
 INGENIO_MAX_MESSAGE_CHARS=2000
 
 INGENIO_CHAT_LOG_ENABLED=true

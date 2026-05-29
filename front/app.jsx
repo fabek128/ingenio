@@ -97,7 +97,23 @@ async function askBackendAgent(message) {
     _apiCsrfToken = null;
     throw new Error("SESSION_REJECTED");
   }
-  if (res.status === 429) throw new Error("RATE_LIMITED");
+  if (res.status === 429) {
+    let detail = "";
+    try { detail = (await res.json()).detail || ""; } catch (e) { }
+
+    // Parsear tipo de rate limit
+    if (detail.startsWith("rate_limited_blacklist:")) {
+      const seconds = detail.split(":")[1];
+      throw new Error(`RATE_LIMITED_BLACKLIST:${seconds}`);
+    } else if (detail === "rate_limited_per_hour") {
+      throw new Error("RATE_LIMITED_HOUR");
+    } else if (detail === "rate_limited_per_day") {
+      throw new Error("RATE_LIMITED_DAY");
+    } else if (detail === "rate_limited_suspicious") {
+      throw new Error("RATE_LIMITED_SUSPICIOUS");
+    }
+    throw new Error("RATE_LIMITED");
+  }
   if (res.status === 413) throw new Error("MESSAGE_TOO_LONG");
   if (!res.ok) {
     let detail = "";
@@ -112,10 +128,21 @@ async function askBackendAgent(message) {
 
 function agentErrorMessage(error) {
   const code = error?.message || "AGENT_FAILED";
+
+  // Manejar rate limit con blacklist temporal
+  if (code.startsWith("RATE_LIMITED_BLACKLIST:")) {
+    const seconds = code.split(":")[1];
+    const minutes = Math.ceil(seconds / 60);
+    return `DEMASIADAS CONSULTAS. ACCESO TEMPORALMENTE BLOQUEADO POR ${minutes} MINUTO${minutes > 1 ? "S" : ""}. SI NECESITAS AYUDA URGENTE, CONTACTANOS.`;
+  }
+
   const map = {
     SESSION_FAILED: "NO PUDE INICIAR SESION CON EL BACKEND. VERIFICA QUE LA API ESTE ONLINE.",
     SESSION_REJECTED: "LA SESION FUE RECHAZADA. RECARGA LA PAGINA O INTENTA DE NUEVO.",
     RATE_LIMITED: "DEMASIADAS CONSULTAS EN POCO TIEMPO. ESPERA UN MINUTO Y PROBA DE NUEVO.",
+    RATE_LIMITED_HOUR: "ALCANZASTE EL LIMITE DE CONSULTAS POR HORA. ESPERA UN RATO O CONTACTANOS PARA ACCESO PRIORITARIO.",
+    RATE_LIMITED_DAY: "ALCANZASTE EL LIMITE DIARIO DE CONSULTAS. VOLVE MANANA O CONTACTANOS PARA ACCESO EXTENDIDO.",
+    RATE_LIMITED_SUSPICIOUS: "PATRON DE USO SOSPECHOSO DETECTADO. SI NO SOS UN BOT, ESPERA UN MINUTO Y PROBA DE NUEVO.",
     MESSAGE_TOO_LONG: "EL MENSAJE ES DEMASIADO LARGO. RESUMILO Y VOLVE A ENVIARLO.",
     SITE_CONTEXT_FAILED: "NO PUDE LEER EL ESTADO DEL MODELO EN EL BACKEND.",
     MODEL_EMPTY_RESPONSE: "EL MODELO RESPONDIO SIN TEXTO FINAL. PROBA REFORMULAR EL PROMPT O INTENTA DE NUEVO.",
