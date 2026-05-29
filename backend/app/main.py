@@ -789,7 +789,21 @@ Timestamp: {time.strftime("%Y-%m-%d %H:%M:%S UTC", time.gmtime())}
             "reply_to": payload.email,
         }
 
+        logger.info(
+            "event=contact_sending "
+            "from=%s to=%s reply_to=%s",
+            settings.resend_from_email,
+            settings.contact_recipient_email,
+            payload.email,
+        )
+
         resend_response = resend.Emails.send(params)
+
+        logger.info(
+            "event=contact_resend_responded "
+            "response_type=%s",
+            type(resend_response).__name__,
+        )
 
         # La respuesta de resend.Emails.send() puede ser un dict o un objeto
         # Intentar acceder como dict primero, luego como atributo
@@ -825,15 +839,18 @@ Timestamp: {time.strftime("%Y-%m-%d %H:%M:%S UTC", time.gmtime())}
     except Exception as exc:
         logger.error(
             "event=contact_failed "
+            "error_type=%s "
             "error=%s "
             "session_hash=%s "
             "client_hash=%s "
             "duration_ms=%d",
+            type(exc).__name__,
             str(exc)[:200],
             _log_hash(str(_session.get("sid", "unknown"))),
             _log_hash(_client_identifier(request)),
             _duration_ms(start),
         )
+        logger.exception("Contact form exception details:")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="contact_send_failed",
