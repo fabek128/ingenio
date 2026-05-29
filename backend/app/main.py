@@ -4,6 +4,7 @@ import base64
 import hashlib
 import hmac
 import json
+import logging
 import secrets
 import time
 from collections import defaultdict, deque
@@ -23,6 +24,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import PlainTextResponse
 from pydantic import BaseModel, Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+logger = logging.getLogger(__name__)
 
 COOKIE_NAME = "ingenio_session"
 CSRF_HEADER = "X-Ingenio-CSRF"
@@ -306,28 +309,55 @@ def _content_to_text(content: Any) -> str:
 
 
 def _extract_llm_reply(data: dict[str, Any]) -> str:
+    """Extrae el texto de respuesta del modelo desde varias ubicaciones posibles."""
     choices = data.get("choices")
     if isinstance(choices, list) and choices:
         first = choices[0] if isinstance(choices[0], dict) else {}
+
+        # Intenta extraer desde message.content (formato OpenAI)
         message = first.get("message")
         if isinstance(message, dict):
             content = _content_to_text(message.get("content"))
             if content:
                 return content
 
+            # Algunos modelos usan "text" dentro de message
+            text = _content_to_text(message.get("text"))
+            if text:
+                return text
+
+        # Intenta extraer desde text directo (formato alternativo)
         text = _content_to_text(first.get("text"))
         if text:
             return text
 
+        # Intenta extraer desde delta.content (streaming format)
+        delta = first.get("delta")
+        if isinstance(delta, dict):
+            content = _content_to_text(delta.get("content"))
+            if content:
+                return content
+
+    # Formato alternativo: output_text o output
     output_text = _content_to_text(data.get("output_text"))
     if output_text:
         return output_text
 
+    output = _content_to_text(data.get("output"))
+    if output:
+        return output
+
+    # Formato alternativo: message directo
     message = data.get("message")
     if isinstance(message, dict):
         content = _content_to_text(message.get("content"))
         if content:
             return content
+
+    # Formato alternativo: text directo
+    text = _content_to_text(data.get("text"))
+    if text:
+        return text
 
     return ""
 
@@ -510,6 +540,16 @@ async def chat(
     reply = _extract_llm_reply(data)
     usage_dict = _usage_dict(data)
     if not reply:
+        # Log completo para debugging (primeros 1000 chars)
+        raw_data_full = json.dumps(data, ensure_ascii=False, indent=2)
+        logger.warning(
+            "model_empty_response: extraction failed but model returned data. "
+            "usage=%s data_preview=%s",
+            usage_dict,
+            raw_data_full[:1000]
+        )
+
+        # Preview corto para el log de chat
         raw_data_preview = json.dumps(data, ensure_ascii=False)[:300]
         error_detail = f"model_empty_response: no text extracted. Raw preview: {raw_data_preview}"
         _write_chat_log(
