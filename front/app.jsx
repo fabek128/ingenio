@@ -1000,17 +1000,48 @@ function AgentMessage({ message, typing, onTypedDone }) {
     if (typing && done) onTypedDone?.(message.id);
   }, [typing, done, message.id, onTypedDone]);
 
+  const renderContent = () => {
+    if (message.status === "pending") return <AnimatedPending text={message.text} />;
+    if (typing && !done) return <span className="console-output">{rendered}</span>;
+    const text = message.text || "";
+    const lines = text.split(/\r?\n/);
+    const nodes = [];
+    let paraLines = [];
+    const reImg = /^!\[([^\]]*)\]\(([^\s)]+)\)$/;
+    const flushPara = () => {
+      if (!paraLines.length) return;
+      const joined = paraLines.join(" ").trim();
+      if (joined) nodes.push(<p key={nodes.length}>{renderMarkdownInline(joined)}</p>);
+      paraLines = [];
+    };
+    lines.forEach((line) => {
+      const raw = line.trim();
+      if (!raw) { flushPara(); return; }
+      const imgMatch = raw.match(reImg);
+      if (imgMatch) {
+        flushPara();
+        const thumbSrc = imgMatch[2];
+        const fullSrc = thumbSrc.replace("/thumbs/", "/");
+        nodes.push(
+          <p key={nodes.length}>
+            <a href={fullSrc} target="_blank" rel="noopener noreferrer">
+              <img src={thumbSrc} alt={imgMatch[1] || ""} className="md-image" loading="lazy" />
+            </a>
+          </p>
+        );
+        return;
+      }
+      paraLines.push(raw);
+    });
+    flushPara();
+    return <div className="markdown-doc">{nodes}</div>;
+  };
+
   return (
     <div className={"agent-message " + message.role + " " + (message.status || "done")}>
       <div className={"agent-message-role" + (message.status === "pending" ? " pending" : "")}>{message.role === "user" ? "USER" : "AGENT"}</div>
       <div className="agent-message-body">
-        {message.status === "pending" ? <AnimatedPending text={message.text} /> : (
-          typing && !done ? (
-            <span className="console-output">{rendered}</span>
-          ) : (
-            <MarkdownDocument source={message.text || ""} />
-          )
-        )}
+        {renderContent()}
         {(message.status === "pending" || (typing && !done)) && <span className="console-cursor" aria-hidden="true" />}
       </div>
     </div>
