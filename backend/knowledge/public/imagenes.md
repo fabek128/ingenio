@@ -27,10 +27,10 @@ Otto nacio en 2012. Tiene tumores perianales. En un momento avanzaron mucho y va
 
 Fotos disponibles (thumbnails 300px, click para original):
 
-- `/uploads/thumbs/OTTO1.jpg` — [Original](/uploads/OTTO1.jpg) — Otto sentado en el sillon, mirada frontal, orejas paradas.
-- `/uploads/thumbs/OTTO2.jpg` — [Original](/uploads/OTTO2.jpg) — Otto en el sillon con la cabeza ladeada, expresion curiosa.
-- `/uploads/thumbs/OTTO3.jpg` — [Original](/uploads/OTTO3.jpg) — Otto acostado en el sillon, cabeza apoyada, mirada tranquila.
-- `/uploads/thumbs/OTTO4.jpg` — [Original](/uploads/OTTO4.jpg) — Otto de costado en el sillon, perfil completo, lengua afuera.
+- `/uploads/thumbs/OTTO1.jpg` — [Original](/uploads/OTTO1.jpg) — Otto jugando con palo en la plaza.
+- `/uploads/thumbs/OTTO2.jpg` — [Original](/uploads/OTTO2.jpg) — Otto reflexivo en la plaza.
+- `/uploads/thumbs/OTTO3.jpg` — [Original](/uploads/OTTO3.jpg) — Otto jugando con palo en la plaza.
+- `/uploads/thumbs/OTTO4.jpg` — [Original](/uploads/OTTO4.jpg) — Otto jugando con palo en la plaza.
 
 Cuando el usuario pregunte por Otto o pida ver fotos:
 
