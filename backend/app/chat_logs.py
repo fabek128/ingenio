@@ -33,6 +33,14 @@ class ChatLogWriter:
     The active file is `chat-active.txt`. When the active file would exceed
     `max_bytes`, it is archived as `chat-<timestamp>-<id>.txt.tar.gz` and a new
     active file is started.
+
+    Events logged:
+    - completed: Successful chat completion
+    - blocked: User prompt blocked by guardrails
+    - output_blocked: Model response blocked by output validation
+    - model_error: Error calling the model (timeout, connection, HTTP error)
+    - model_empty_response: Model returned empty response
+    - message_too_long: User message exceeded max length
     """
 
     def __init__(

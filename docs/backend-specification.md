@@ -371,6 +371,23 @@ Reglas:
 - No usar este endpoint desde el frontend publico.
 - No guardar el token en JavaScript, Markdown, issues, commits ni screenshots.
 
+### 7.6 Sistema de logging de errores
+
+El backend registra **todos** los eventos del chat, incluyendo:
+
+- Interacciones exitosas (`completed`)
+- Errores de conexión con el modelo (`model_error`)
+- Respuestas vacías del modelo (`model_empty_response`)
+- Respuestas bloqueadas por seguridad (`output_blocked`)
+- Prompts bloqueados por guardrails (`blocked`)
+- Mensajes demasiado largos (`message_too_long`)
+
+Cada evento se guarda en formato JSONL con timestamp, duración, hashes de sesión/cliente, mensaje, respuesta, uso de tokens, y detalles del error cuando aplica.
+
+Para análisis y monitoreo, ver documentación completa en:
+- **`docs/chat-error-logging.md`**: Descripción detallada del sistema de logging
+- **`backend/scripts/analyze_chat_errors.py`**: Script de análisis automático de logs
+
 ## 8. Prompt de sistema
 
 Prompt inicial recomendado:

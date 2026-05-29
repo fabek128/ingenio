@@ -459,6 +459,7 @@ async def chat(
             resp.raise_for_status()
             data = resp.json()
     except httpx.TimeoutException as exc:
+        error_detail = f"model_timeout: {str(exc)[:200]}"
         _write_chat_log(
             request=request,
             session=_session,
@@ -466,10 +467,11 @@ async def chat(
             event="model_error",
             status_code=status.HTTP_504_GATEWAY_TIMEOUT,
             message=message,
-            error="model_timeout",
+            error=error_detail,
         )
         raise HTTPException(status_code=status.HTTP_504_GATEWAY_TIMEOUT, detail="model_timeout") from exc
-    except httpx.HTTPError as exc:
+    except httpx.HTTPStatusError as exc:
+        error_detail = f"model_http_error: status={exc.response.status_code} {str(exc)[:200]}"
         _write_chat_log(
             request=request,
             session=_session,
@@ -477,13 +479,39 @@ async def chat(
             event="model_error",
             status_code=status.HTTP_502_BAD_GATEWAY,
             message=message,
-            error="model_unavailable",
+            error=error_detail,
         )
         raise HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail="model_unavailable") from exc
+    except httpx.HTTPError as exc:
+        error_detail = f"model_connection_error: {str(exc)[:200]}"
+        _write_chat_log(
+            request=request,
+            session=_session,
+            start=start,
+            event="model_error",
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            message=message,
+            error=error_detail,
+        )
+        raise HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail="model_unavailable") from exc
+    except Exception as exc:
+        error_detail = f"model_unexpected_error: {type(exc).__name__} {str(exc)[:200]}"
+        _write_chat_log(
+            request=request,
+            session=_session,
+            start=start,
+            event="model_error",
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            message=message,
+            error=error_detail,
+        )
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="model_unavailable") from exc
 
     reply = _extract_llm_reply(data)
     usage_dict = _usage_dict(data)
     if not reply:
+        raw_data_preview = json.dumps(data, ensure_ascii=False)[:300]
+        error_detail = f"model_empty_response: no text extracted. Raw preview: {raw_data_preview}"
         _write_chat_log(
             request=request,
             session=_session,
@@ -492,13 +520,15 @@ async def chat(
             status_code=status.HTTP_502_BAD_GATEWAY,
             message=message,
             usage=usage_dict,
-            error="model_empty_response",
+            error=error_detail,
         )
         raise HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail="model_empty_response")
 
     output_decision = validate_model_output(reply)
     if not output_decision.allowed:
         safe_reply = output_decision.safe_reply or "No puedo devolver esa respuesta."
+        original_reply_preview = reply[:200] if reply else ""
+        error_detail = f"output_blocked: {output_decision.reason}. Original reply preview: {original_reply_preview}"
         _write_chat_log(
             request=request,
             session=_session,
@@ -509,6 +539,7 @@ async def chat(
             reply=safe_reply,
             reason=output_decision.reason,
             usage=usage_dict,
+            error=error_detail,
         )
         return ChatResponse(
             reply=safe_reply,
