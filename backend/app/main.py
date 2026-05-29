@@ -91,6 +91,13 @@ class JSONFormatter(logging.Formatter):
         return json.dumps(log_entry, ensure_ascii=False, default=str)
 
 
+class RawJSONFormatter(logging.Formatter):
+    """Formatter que imprime el mensaje tal cual (para logs que ya son JSON)."""
+
+    def format(self, record: logging.LogRecord) -> str:
+        return record.getMessage()
+
+
 def setup_logging(log_format: str, log_level: str) -> None:
     level = getattr(logging, log_level.upper(), logging.INFO)
 
@@ -107,6 +114,15 @@ def setup_logging(log_format: str, log_level: str) -> None:
             logging.getLogger(name).handlers.clear()
             logging.getLogger(name).setLevel(level)
             logging.getLogger(name).addHandler(handler)
+
+        # Chat logger emite JSON ya formateado, usar RawJSONFormatter
+        chat_handler = logging.StreamHandler(sys.stdout)
+        chat_handler.setFormatter(RawJSONFormatter())
+        chat_log = logging.getLogger("ingenio.chat")
+        chat_log.handlers.clear()
+        chat_log.setLevel(level)
+        chat_log.addHandler(chat_handler)
+        chat_log.propagate = False  # No propagar al root logger
     else:
         logging.basicConfig(
             level=level,

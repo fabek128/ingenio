@@ -3,12 +3,12 @@ from __future__ import annotations
 import json
 import logging
 import re
-import sys
 import uuid
 from datetime import datetime, timezone
 from typing import Any
 
 logger = logging.getLogger(__name__)
+chat_logger = logging.getLogger("ingenio.chat")
 
 _PRIVATE_KEY_BLOCK_RE = re.compile(
     r"-----BEGIN\s+[^-]*PRIVATE\s+KEY-----.*?-----END\s+[^-]*PRIVATE\s+KEY-----",
@@ -82,9 +82,8 @@ class ChatLogWriter:
             if reply is not None:
                 record["reply"] = redact_sensitive_text(reply)
 
-        line = json.dumps(record, ensure_ascii=False, sort_keys=True) + "\n"
-        sys.stdout.write(line)
-        sys.stdout.flush()
+        # Emitir a traves del logger para que pase por el pipeline de logging configurado
+        chat_logger.info(json.dumps(record, ensure_ascii=False, sort_keys=True))
 
 
 def redact_sensitive_text(text: str) -> str:
