@@ -802,7 +802,7 @@ function ContactBlock({ onCommand, prefill }) {
 /* ============================================================
    COMMAND BAR (input + quick buttons + autocomplete)
    ============================================================ */
-function CommandBar({ onSubmit, value, setValue, history, setHistory, disabled = false }) {
+function CommandBar({ onSubmit, value, setValue, history, setHistory, disabled = false, autoFocusActive = false }) {
   const [hIdx, setHIdx] = useState(-1);
   const [active, setActive] = useState(-1);
   const inputRef = useRef(null);
@@ -818,6 +818,46 @@ function CommandBar({ onSubmit, value, setValue, history, setHistory, disabled =
     document.addEventListener("click", handler);
     return () => document.removeEventListener("click", handler);
   }, []);
+
+  // Keep focus on input when autoFocusActive is true (agent view)
+  useEffect(() => {
+    if (!autoFocusActive) return;
+
+    // Focus immediately
+    inputRef.current?.focus();
+
+    // Re-focus on scroll, mouse movement, or any interaction
+    const refocus = () => {
+      if (document.activeElement !== inputRef.current) {
+        const activeTag = document.activeElement?.tagName?.toLowerCase();
+        // Don't steal focus from other inputs, textareas, or buttons being used
+        if (activeTag === "input" || activeTag === "textarea" || activeTag === "button") return;
+        inputRef.current?.focus();
+      }
+    };
+
+    const events = ['scroll', 'mousemove', 'touchstart', 'keydown'];
+    events.forEach(event => {
+      document.addEventListener(event, refocus, { passive: true });
+    });
+
+    // Also refocus periodically (backup)
+    const interval = setInterval(() => {
+      if (document.activeElement !== inputRef.current) {
+        const activeTag = document.activeElement?.tagName?.toLowerCase();
+        if (activeTag !== "input" && activeTag !== "textarea" && activeTag !== "button") {
+          inputRef.current?.focus();
+        }
+      }
+    }, 1000);
+
+    return () => {
+      events.forEach(event => {
+        document.removeEventListener(event, refocus);
+      });
+      clearInterval(interval);
+    };
+  }, [autoFocusActive]);
 
   const suggestions = useMemo(() => {
     if (!value) return [];
@@ -1363,6 +1403,7 @@ function App() {
                 history={history}
                 setHistory={setHistory}
                 disabled={isPromptBusy}
+                autoFocusActive={view.kind === "agent"}
               />
             )}
           </div>
