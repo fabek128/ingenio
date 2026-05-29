@@ -14,7 +14,7 @@ from urllib.parse import urlparse
 
 import httpx
 import resend
-from app.chat_logs import ChatLogWriter, redact_sensitive_text
+from app.chat_logs import ChatLogWriter
 from app.rate_limit import init_rate_limiter, get_rate_limiter
 from fastapi import Cookie, Depends, FastAPI, Header, HTTPException, Request, Response, status
 from app.guardrails import (
@@ -24,7 +24,6 @@ from app.guardrails import (
     validate_model_output,
 )
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import PlainTextResponse
 from pydantic import BaseModel, Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -32,7 +31,6 @@ logger = logging.getLogger(__name__)
 
 COOKIE_NAME = "ingenio_session"
 CSRF_HEADER = "X-Ingenio-CSRF"
-LOG_VIEW_TOKEN_HEADER = "X-Ingenio-Log-Token"
 
 
 class Settings(BaseSettings):
@@ -56,10 +54,7 @@ class Settings(BaseSettings):
     ingenio_rate_limit_per_day: int = 500
     ingenio_max_message_chars: int = 2000
     ingenio_chat_log_enabled: bool = True
-    ingenio_chat_log_dir: str = "logs/chat"
-    ingenio_chat_log_max_bytes: int = 1024 * 1024
     ingenio_chat_log_include_text: bool = True
-    ingenio_chat_log_view_token: str = ""
     log_format: str = "text"
     log_level: str = "INFO"
     resend_api_key: str = ""
@@ -126,8 +121,6 @@ async def _configure_logging_on_startup() -> None:
 
 chat_log_writer = ChatLogWriter(
     enabled=settings.ingenio_chat_log_enabled,
-    log_dir=settings.ingenio_chat_log_dir,
-    max_bytes=settings.ingenio_chat_log_max_bytes,
     include_text=settings.ingenio_chat_log_include_text,
 )
 
@@ -143,7 +136,7 @@ app.add_middleware(
     allow_origins=[settings.ingenio_allowed_origin],
     allow_credentials=True,
     allow_methods=["GET", "POST"],
-    allow_headers=["Content-Type", CSRF_HEADER, LOG_VIEW_TOKEN_HEADER],
+    allow_headers=["Content-Type", CSRF_HEADER],
 )
 
 
@@ -379,29 +372,6 @@ def _write_chat_log(
     )
 
 
-def require_chat_log_view_token(
-    request: Request,
-    log_token: str | None = Header(default=None, alias=LOG_VIEW_TOKEN_HEADER),
-) -> None:
-    _validate_optional_origin(request)
-
-    expected = settings.ingenio_chat_log_view_token
-    if not expected:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="not_found")
-
-    if len(expected) < 32:
-        raise HTTPException(
-            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="log_view_token_misconfigured",
-        )
-
-    if not log_token:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="log_token_required")
-
-    if not hmac.compare_digest(log_token, expected):
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="bad_log_token")
-
-
 def require_browser_session(
     request: Request,
     ingenio_session: str | None = Cookie(default=None, alias=COOKIE_NAME),
@@ -550,32 +520,6 @@ async def rate_limit_stats(
         "session": session_stats,
         "ip": ip_stats,
     }
-
-
-@app.get("/api/admin/chat-logs/latest", response_class=PlainTextResponse)
-async def latest_chat_log(
-    _authorized: None = Depends(require_chat_log_view_token),
-) -> PlainTextResponse:
-    latest_path = chat_log_writer.latest_uncompressed_path()
-    if not latest_path:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="chat_log_not_found")
-
-    try:
-        content = redact_sensitive_text(latest_path.read_text(encoding="utf-8"))
-    except OSError as exc:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="chat_log_read_failed",
-        ) from exc
-
-    return PlainTextResponse(
-        content=content,
-        media_type="text/plain; charset=utf-8",
-        headers={
-            "Cache-Control": "no-store",
-            "X-Ingenio-Log-File": latest_path.name,
-        },
-    )
 
 
 @app.post("/api/chat", response_model=ChatResponse)

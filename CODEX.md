@@ -12,10 +12,10 @@ Mantener y evolucionar INGENIO/64, un sitio personal con UI de terminal retro in
 - `front/secciones/`: Markdown publico de secciones renderizadas en runtime (`about`, `proyectos`, `agentes`).
 - `front/assets/` y `front/uploads/`: recursos graficos.
 - `backend/app/main.py`: API, sesiones, CSRF, rate limit y llamada al modelo.
-- `backend/app/chat_logs.py`: logging seguro de interacciones del agente con rotacion y compresion.
+- `backend/app/chat_logs.py`: logging seguro de interacciones del agente emitido como JSON a stdout.
 - `backend/knowledge/public/`: base de conocimiento publica, curada y versionada que el modelo puede usar.
 - `backend/knowledge/policies/`: politicas versionadas de alcance y rechazos.
-- `logs/chat/`: salida runtime de conversaciones del agente; ignorada por Git y nunca debe versionarse.
+
 - `docs/private/`: documentacion privada; excluida del repo y del contexto de agentes.
 - `docs/`: documentacion del proyecto y notas operativas.
 
@@ -47,8 +47,7 @@ Mantener y evolucionar INGENIO/64, un sitio personal con UI de terminal retro in
 - Jamas exponer keys, tokens, passwords, credenciales, URLs privadas ni datos personales sensibles en el repo, prompts, logs, commits, PRs o respuestas.
 - Usar `.env` solo para configuracion local/desarrollo y mantenerlo ignorado por Git.
 - Versionar solamente nombres de variables y valores no sensibles en `.env.example`.
-- No copiar valores de `logs/chat/` a documentacion, issues, commits o respuestas. Si se inspeccionan logs, resumir sin reproducir secretos ni datos sensibles.
-- El endpoint de lectura de logs `/api/admin/chat-logs/latest` debe requerir `INGENIO_CHAT_LOG_VIEW_TOKEN`; no exponer ese token ni guardarlo en frontend.
+- No copiar valores de logs de interacciones a documentacion, issues, commits o respuestas. Si se inspeccionan logs, resumir sin reproducir secretos ni datos sensibles.
 - El modelo solo debe recibir contexto desde la allowlist `backend/knowledge/public/` y `backend/knowledge/policies/`; no cargar `docs/`, `front/`, `logs/` ni todo el repo como conocimiento.
 - Si se detecta un secreto en texto plano, no reproducirlo: indicar archivo/riesgo y recomendar rotacion.
 - Para secretos sensibles o productivos, preferir secret manager o `/Users/fabian/.agent-secrets/with-secrets.sh` segun `/Users/fabian/docs/agent-secret-management.md`.

@@ -83,40 +83,20 @@ En Docker, `backend/Dockerfile` copia `knowledge/` dentro de la imagen para que 
 
 ## Logs de chat
 
-El backend registra cada interaccion de `/api/chat` en formato JSONL dentro de archivos `.txt`:
-
-```text
-logs/chat/chat-active.txt
-```
-
-Cuando el archivo activo supera `INGENIO_CHAT_LOG_MAX_BYTES` (`1048576`, 1 MiB por defecto), se comprime como `.tar.gz` y se inicia un nuevo `chat-active.txt`.
+El backend emite cada interaccion de `/api/chat` como JSON a stdout para ingestion via Promtail/Loki.
 
 Configuracion:
 
 ```env
 INGENIO_CHAT_LOG_ENABLED=true
-INGENIO_CHAT_LOG_DIR=logs/chat
-INGENIO_CHAT_LOG_MAX_BYTES=1048576
 INGENIO_CHAT_LOG_INCLUDE_TEXT=true
-INGENIO_CHAT_LOG_VIEW_TOKEN=
 ```
 
 Seguridad:
 
-- Los logs estan ignorados por Git mediante `logs/`.
 - No se guardan cookies, CSRF, headers ni API keys.
-- Los prompts y respuestas se escriben con redaccion automatica de patrones sensibles.
-- Si `INGENIO_CHAT_LOG_INCLUDE_TEXT=false`, se guardan solo metadatos, longitudes, estado y razon.
-- El endpoint `GET /api/admin/chat-logs/latest` queda deshabilitado si `INGENIO_CHAT_LOG_VIEW_TOKEN` esta vacio.
-- Para consultar el ultimo `.txt` no comprimido, enviar `X-Ingenio-Log-Token` con un token de al menos 32 caracteres.
-- Antes de devolver el archivo, el endpoint vuelve a aplicar redaccion de secretos como defensa adicional.
-
-Ejemplo local:
-
-```bash
-curl -H "X-Ingenio-Log-Token: $INGENIO_CHAT_LOG_VIEW_TOKEN" \
-  http://127.0.0.1:8080/api/admin/chat-logs/latest
-```
+- Los prompts y respuestas se escriben con redaccion automatica de patrones sensibles antes de emitirlos.
+- Si `INGENIO_CHAT_LOG_INCLUDE_TEXT=false`, se emiten solo metadatos, longitudes, estado y razon sin textos.
 
 ## Formulario de contacto
 

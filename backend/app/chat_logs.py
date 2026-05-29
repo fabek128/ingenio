@@ -4,11 +4,8 @@ import json
 import logging
 import re
 import sys
-import tarfile
-import threading
 import uuid
 from datetime import datetime, timezone
-from pathlib import Path
 from typing import Any
 
 logger = logging.getLogger(__name__)
@@ -29,35 +26,16 @@ _SK_STYLE_RE = re.compile(r"\b(?:sk|pk|rk)-[A-Za-z0-9_-]{8,}\b", re.IGNORECASE)
 
 
 class ChatLogWriter:
-    """Append-only JSONL .txt writer with size rotation and tar.gz compression.
-
-    The active file is `chat-active.txt`. When the active file would exceed
-    `max_bytes`, it is archived as `chat-<timestamp>-<id>.txt.tar.gz` and a new
-    active file is started.
-
-    Events logged:
-    - completed: Successful chat completion
-    - blocked: User prompt blocked by guardrails
-    - output_blocked: Model response blocked by output validation
-    - model_error: Error calling the model (timeout, connection, HTTP error)
-    - model_empty_response: Model returned empty response
-    - message_too_long: User message exceeded max length
-    """
+    """Escribe logs de interacciones del agente como JSON a stdout para ingestion via Promtail/Loki."""
 
     def __init__(
         self,
         *,
         enabled: bool,
-        log_dir: str | Path,
-        max_bytes: int,
         include_text: bool,
     ) -> None:
         self.enabled = enabled
-        self.log_dir = Path(log_dir)
-        self.max_bytes = max(1024, int(max_bytes))
         self.include_text = include_text
-        self.active_path = self.log_dir / "chat-active.txt"
-        self._lock = threading.Lock()
 
     def write_interaction(
         self,
@@ -104,61 +82,13 @@ class ChatLogWriter:
             if reply is not None:
                 record["reply"] = redact_sensitive_text(reply)
 
-        self._append_line(json.dumps(record, ensure_ascii=False, sort_keys=True) + "\n")
-
-    def _append_line(self, line: str) -> None:
-        encoded = line.encode("utf-8")
-        with self._lock:
-            try:
-                self.log_dir.mkdir(parents=True, exist_ok=True)
-                if self._should_rotate(len(encoded)):
-                    self._compress_active_locked()
-                with self.active_path.open("ab") as fh:
-                    fh.write(encoded)
-            except OSError:
-                logger.exception("event=chat_log_write_failed")
-
-        # Emitir a stdout para que Promtail lo capture hacia Loki
+        line = json.dumps(record, ensure_ascii=False, sort_keys=True) + "\n"
         sys.stdout.write(line)
         sys.stdout.flush()
 
-    def _should_rotate(self, incoming_bytes: int) -> bool:
-        if not self.active_path.exists():
-            return False
-        current_size = self.active_path.stat().st_size
-        return current_size > 0 and current_size + incoming_bytes > self.max_bytes
-
-    def _compress_active_locked(self) -> None:
-        if not self.active_path.exists() or self.active_path.stat().st_size == 0:
-            return
-
-        stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
-        archive_base = f"chat-{stamp}-{uuid.uuid4().hex[:8]}.txt"
-        archive_path = self.log_dir / f"{archive_base}.tar.gz"
-
-        with tarfile.open(archive_path, "w:gz") as tar:
-            tar.add(self.active_path, arcname=archive_base)
-
-        self.active_path.unlink()
-
-    def latest_uncompressed_path(self) -> Path | None:
-        """Return the newest plain .txt chat log, excluding compressed archives."""
-        try:
-            if not self.log_dir.exists():
-                return None
-
-            candidates = [path for path in self.log_dir.glob("*.txt") if path.is_file()]
-            if not candidates:
-                return None
-
-            return max(candidates, key=lambda path: (path.stat().st_mtime, path.name))
-        except OSError:
-            logger.exception("event=chat_log_latest_lookup_failed")
-            return None
-
 
 def redact_sensitive_text(text: str) -> str:
-    """Redact common secret shapes before writing user/model text to disk."""
+    """Redact common secret shapes before writing user/model text."""
     redacted = _PRIVATE_KEY_BLOCK_RE.sub("[REDACTED_PRIVATE_KEY]", text)
     redacted = _BEARER_RE.sub("Bearer [REDACTED]", redacted)
     redacted = _BASIC_AUTH_RE.sub("Basic [REDACTED]", redacted)
