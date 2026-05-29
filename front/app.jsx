@@ -126,6 +126,34 @@ async function askBackendAgent(message) {
   return res.json();
 }
 
+async function sendContactForm(formData) {
+  const csrf = await ensureApiSession();
+  const res = await fetch(apiBaseUrl() + "/api/contact", {
+    method: "POST",
+    credentials: "include",
+    headers: {
+      "Content-Type": "application/json",
+      "X-Ingenio-CSRF": csrf,
+    },
+    body: JSON.stringify(formData),
+  });
+  if (res.status === 401 || res.status === 403) {
+    _apiCsrfToken = null;
+    throw new Error("SESSION_REJECTED");
+  }
+  if (res.status === 429) {
+    throw new Error("RATE_LIMITED");
+  }
+  if (res.status === 400) {
+    const data = await res.json();
+    if (data.detail === "invalid_email") throw new Error("INVALID_EMAIL");
+    throw new Error("VALIDATION_ERROR");
+  }
+  if (res.status === 503) throw new Error("CONTACT_SERVICE_UNAVAILABLE");
+  if (!res.ok) throw new Error("CONTACT_SEND_FAILED");
+  return res.json();
+}
+
 function agentErrorMessage(error) {
   const code = error?.message || "AGENT_FAILED";
 
@@ -738,22 +766,45 @@ function ContactBlock({ onCommand, prefill }) {
   const [form, setForm] = useState({
     nombre: "", email: "", empresa: "", que: prefill?.que || "", presupuesto: "",
   });
-  const [submitted, setSubmitted] = useState(false);
-  const [confirmStage, setConfirmStage] = useState(false);
+  const [status, setStatus] = useState("editing"); // editing | confirming | sending | success | error
+  const [error, setError] = useState("");
 
   const setF = (k, v) => setForm((f) => ({ ...f, [k]: v }));
   const filled = form.nombre.trim() && form.email.trim() && form.que.trim();
 
-  if (submitted) {
+  const handleSend = async () => {
+    setStatus("sending");
+    setError("");
+    try {
+      await sendContactForm(form);
+      setStatus("success");
+    } catch (err) {
+      setStatus("error");
+      const code = err?.message || "CONTACT_SEND_FAILED";
+      const errorMap = {
+        SESSION_REJECTED: "LA SESION EXPIRO. RECARGA LA PAGINA E INTENTA DE NUEVO.",
+        RATE_LIMITED: "DEMASIADAS CONSULTAS EN POCO TIEMPO. ESPERA UN MINUTO Y PROBA DE NUEVO.",
+        INVALID_EMAIL: "EL EMAIL NO ES VALIDO. VERIFICA Y CORRIGE.",
+        VALIDATION_ERROR: "HAY ERRORES EN EL FORMULARIO. VERIFICA LOS DATOS.",
+        CONTACT_SERVICE_UNAVAILABLE: "EL SERVICIO DE CONTACTO NO ESTA DISPONIBLE. INTENTA MAS TARDE O ESCRIBENOS A WHATSAPP.",
+        CONTACT_SEND_FAILED: "NO SE PUDO ENVIAR EL MENSAJE. VERIFICA TU CONEXION O INTENTA MAS TARDE.",
+      };
+      setError(errorMap[code] || errorMap.CONTACT_SEND_FAILED);
+    }
+  };
+
+  if (status === "success") {
     return (
       <div className="block">
         <div className="block-title"><span className="badge">SENT</span>CONTACT_MODULE.LOG</div>
         <div style={{ color: "var(--ok-color)", fontSize: 24 }}>&gt; TRANSMISION COMPLETA.</div>
         <div style={{ marginTop: 8 }}>RECIBIMOS TU CONSULTA. RESPONDEMOS EN MENOS DE 24HS HABILES.</div>
-        <div style={{ marginTop: 8, color: "var(--fg-dim)" }}>
-          ID DE TICKET: <span style={{ color: "var(--fg-bright)" }}>#{Math.random().toString(36).slice(2, 8).toUpperCase()}</span>
+        <div style={{ marginTop: 16 }}>
+          <div style={{ color: "var(--fg-dim)", fontSize: 12 }}>
+            TE CONTACTAREMOS A: <span style={{ color: "var(--fg-bright)" }}>{form.email}</span>
+          </div>
         </div>
-        <div className="hero-ctas">
+        <div className="hero-ctas" style={{ marginTop: 16 }}>
           <button className="hero-cta" onClick={() => onCommand("AGENDAR")}>&gt; AGENDAR_LLAMADA</button>
           <button className="hero-cta" onClick={() => onCommand("WHATSAPP")}>&gt; WHATSAPP</button>
           <button className="hero-cta" onClick={() => onCommand("CLEAR")}>&gt; CLEAR</button>
@@ -779,6 +830,7 @@ function ContactBlock({ onCommand, prefill }) {
               placeholder={ph}
               autoComplete="off"
               spellCheck="false"
+              disabled={status === "sending"}
             />
           </div>
         ))}
@@ -789,6 +841,7 @@ function ContactBlock({ onCommand, prefill }) {
             onChange={(e) => setF("que", e.target.value)}
             placeholder="CONTAME BREVEMENTE..."
             rows={2}
+            disabled={status === "sending"}
           />
         </div>
         <div className="field">
@@ -797,29 +850,52 @@ function ContactBlock({ onCommand, prefill }) {
             value={form.presupuesto}
             onChange={(e) => setF("presupuesto", e.target.value)}
             placeholder="OPCIONAL — USD"
+            disabled={status === "sending"}
           />
         </div>
       </div>
 
-      {!confirmStage ? (
+      {error && (
+        <div style={{ marginTop: 12, padding: 12, background: "rgba(255,0,0,0.1)", border: "1px solid var(--error-color)", color: "var(--error-color)" }}>
+          <div style={{ fontWeight: "bold" }}>&gt; ERROR:</div>
+          <div style={{ marginTop: 4 }}>{error}</div>
+        </div>
+      )}
+
+      {status === "sending" && (
+        <div style={{ marginTop: 12, color: "var(--fg-bright)" }}>
+          &gt; ENVIANDO...
+        </div>
+      )}
+
+      {status === "editing" && (
         <div className="confirm-row">
           <button
             className="btn-confirm"
             disabled={!filled}
             style={!filled ? { opacity: 0.5, cursor: "not-allowed" } : {}}
-            onClick={() => setConfirmStage(true)}
+            onClick={() => setStatus("confirming")}
           >REVISAR Y ENVIAR</button>
           <div style={{ color: "var(--fg-dim)", fontFamily: "var(--font-ui)", fontSize: 12 }}>
             CAMPOS REQUERIDOS: NOMBRE, EMAIL, QUE NECESITAS
           </div>
         </div>
-      ) : (
+      )}
+
+      {status === "confirming" && (
         <div style={{ marginTop: 12 }}>
           <div style={{ color: "var(--fg-bright)" }}>ENVIAR? [Y/N]</div>
           <div className="confirm-row">
-            <button className="btn-confirm" onClick={() => setSubmitted(true)}>[Y] CONFIRMAR</button>
-            <button className="btn-confirm ghost" onClick={() => setConfirmStage(false)}>[N] EDITAR</button>
+            <button className="btn-confirm" onClick={handleSend}>[Y] CONFIRMAR</button>
+            <button className="btn-confirm ghost" onClick={() => setStatus("editing")}>[N] EDITAR</button>
           </div>
+        </div>
+      )}
+
+      {status === "error" && (
+        <div className="confirm-row" style={{ marginTop: 12 }}>
+          <button className="btn-confirm" onClick={handleSend}>REINTENTAR</button>
+          <button className="btn-confirm ghost" onClick={() => { setStatus("editing"); setError(""); }}>EDITAR</button>
         </div>
       )}
     </div>

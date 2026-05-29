@@ -12,6 +12,7 @@ from typing import Any
 from urllib.parse import urlparse
 
 import httpx
+import resend
 from app.chat_logs import ChatLogWriter, redact_sensitive_text
 from app.rate_limit import init_rate_limiter, get_rate_limiter
 from fastapi import Cookie, Depends, FastAPI, Header, HTTPException, Request, Response, status
@@ -58,6 +59,9 @@ class Settings(BaseSettings):
     ingenio_chat_log_max_bytes: int = 1024 * 1024
     ingenio_chat_log_include_text: bool = True
     ingenio_chat_log_view_token: str = ""
+    resend_api_key: str = ""
+    resend_from_email: str = "contacto@ingenio64.com"
+    contact_recipient_email: str = ""
 
     @property
     def secure_cookie(self) -> bool:
@@ -103,6 +107,19 @@ class ChatResponse(BaseModel):
     reply: str
     model: str
     usage: dict[str, int] | None = None
+
+
+class ContactRequest(BaseModel):
+    nombre: str = Field(min_length=1, max_length=200)
+    email: str = Field(min_length=3, max_length=200)
+    empresa: str = Field(default="", max_length=200)
+    que: str = Field(min_length=1, max_length=2000)
+    presupuesto: str = Field(default="", max_length=200)
+
+
+class ContactResponse(BaseModel):
+    success: bool
+    message: str
 
 
 def _b64url_encode(data: bytes) -> str:
@@ -713,3 +730,101 @@ async def chat(
     )
 
     return ChatResponse(reply=reply, model=settings.ingenio_llm_model, usage=usage_dict)
+
+
+@app.post("/api/contact", response_model=ContactResponse)
+async def contact(
+    request: Request,
+    payload: ContactRequest,
+    _session: dict[str, Any] = Depends(require_browser_session),
+) -> ContactResponse:
+    """Endpoint para envío de formulario de contacto con envío de email."""
+    start = time.perf_counter()
+
+    # Validación básica de email
+    import re
+    email_pattern = r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
+    if not re.match(email_pattern, payload.email):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="invalid_email",
+        )
+
+    # Validar que Resend esté configurado
+    if not settings.resend_api_key or not settings.contact_recipient_email:
+        logger.error("Resend not configured: missing RESEND_API_KEY or CONTACT_RECIPIENT_EMAIL")
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="contact_service_unavailable",
+        )
+
+    # Configurar Resend
+    resend.api_key = settings.resend_api_key
+
+    # Construir contenido del email
+    email_body = f"""Nueva consulta desde INGENIO/64
+
+NOMBRE: {payload.nombre}
+EMAIL: {payload.email}
+EMPRESA: {payload.empresa or "No especificada"}
+PRESUPUESTO: {payload.presupuesto or "No especificado"}
+
+QUE NECESITA:
+{payload.que}
+
+---
+Enviado desde: {_origin_host(request.headers.get("origin", "unknown"))}
+Session: {_log_hash(str(_session.get("sid", "unknown")))}
+IP: {_log_hash(_client_identifier(request))}
+Timestamp: {time.strftime("%Y-%m-%d %H:%M:%S UTC", time.gmtime())}
+"""
+
+    try:
+        # Enviar email con Resend
+        params = {
+            "from": settings.resend_from_email,
+            "to": [settings.contact_recipient_email],
+            "subject": f"[INGENIO/64] Consulta de {payload.nombre}",
+            "text": email_body,
+            "reply_to": payload.email,
+        }
+
+        resend_response = resend.Emails.send(params)
+
+        logger.info(
+            "event=contact_sent "
+            "email_id=%s "
+            "nombre=%s "
+            "empresa=%s "
+            "session_hash=%s "
+            "client_hash=%s "
+            "duration_ms=%d",
+            resend_response.get("id", "unknown"),
+            payload.nombre,
+            payload.empresa or "none",
+            _log_hash(str(_session.get("sid", "unknown"))),
+            _log_hash(_client_identifier(request)),
+            _duration_ms(start),
+        )
+
+        return ContactResponse(
+            success=True,
+            message="contact_sent",
+        )
+
+    except Exception as exc:
+        logger.error(
+            "event=contact_failed "
+            "error=%s "
+            "session_hash=%s "
+            "client_hash=%s "
+            "duration_ms=%d",
+            str(exc)[:200],
+            _log_hash(str(_session.get("sid", "unknown"))),
+            _log_hash(_client_identifier(request)),
+            _duration_ms(start),
+        )
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="contact_send_failed",
+        ) from exc
