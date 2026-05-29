@@ -155,7 +155,6 @@ class ContactRequest(BaseModel):
     email: str = Field(min_length=3, max_length=200)
     empresa: str = Field(default="", max_length=200)
     que: str = Field(min_length=1, max_length=2000)
-    presupuesto: str = Field(default="", max_length=200)
 
 
 class ContactResponse(BaseModel):
@@ -759,7 +758,6 @@ async def contact(
 NOMBRE: {payload.nombre}
 EMAIL: {payload.email}
 EMPRESA: {payload.empresa or "No especificada"}
-PRESUPUESTO: {payload.presupuesto or "No especificado"}
 
 QUE NECESITA:
 {payload.que}

@@ -764,7 +764,7 @@ function DiagnosticBlock({ onCommand }) {
 /* ---------- CONTACT FORM ---------- */
 function ContactBlock({ onCommand, prefill }) {
   const [form, setForm] = useState({
-    nombre: "", email: "", empresa: "", que: prefill?.que || "", presupuesto: "",
+    nombre: "", email: "", empresa: "", que: prefill?.que || "",
   });
   const [status, setStatus] = useState("editing"); // editing | confirming | sending | success | error
   const [error, setError] = useState("");
@@ -841,15 +841,6 @@ function ContactBlock({ onCommand, prefill }) {
             onChange={(e) => setF("que", e.target.value)}
             placeholder="CONTAME BREVEMENTE..."
             rows={2}
-            disabled={status === "sending"}
-          />
-        </div>
-        <div className="field">
-          <div className="field-label">PRESUPUESTO?:</div>
-          <input
-            value={form.presupuesto}
-            onChange={(e) => setF("presupuesto", e.target.value)}
-            placeholder="OPCIONAL — USD"
             disabled={status === "sending"}
           />
         </div>
