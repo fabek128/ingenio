@@ -32,6 +32,8 @@ services:
       INGENIO_CHAT_LOG_MAX_BYTES: ${INGENIO_CHAT_LOG_MAX_BYTES:-1048576}
       INGENIO_CHAT_LOG_INCLUDE_TEXT: ${INGENIO_CHAT_LOG_INCLUDE_TEXT:-true}
       INGENIO_CHAT_LOG_VIEW_TOKEN: ${INGENIO_CHAT_LOG_VIEW_TOKEN:-}
+      LOG_FORMAT: ${LOG_FORMAT:-json}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
     volumes:
       - ./logs/chat:/app/logs/chat
     restart: unless-stopped

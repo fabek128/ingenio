@@ -6,6 +6,7 @@ import hmac
 import json
 import logging
 import secrets
+import sys
 import time
 from collections import defaultdict, deque
 from typing import Any
@@ -59,6 +60,8 @@ class Settings(BaseSettings):
     ingenio_chat_log_max_bytes: int = 1024 * 1024
     ingenio_chat_log_include_text: bool = True
     ingenio_chat_log_view_token: str = ""
+    log_format: str = "text"
+    log_level: str = "INFO"
     resend_api_key: str = ""
     resend_from_email: str = "contacto@ingenio64.com"
     contact_recipient_email: str = ""
@@ -75,6 +78,51 @@ if not settings.ingenio_llm_api_key:
     raise RuntimeError("Falta INGENIO_LLM_API_KEY en .env o en el entorno")
 
 app = FastAPI(title="INGENIO/64 API", version="0.2.0")
+
+
+class JSONFormatter(logging.Formatter):
+    """Formatea logs como JSON para ingestion via Promtail/Loki."""
+
+    def format(self, record: logging.LogRecord) -> str:
+        log_entry = {
+            "timestamp": self.formatTime(record, "%Y-%m-%dT%H:%M:%S.000Z"),
+            "level": record.levelname,
+            "logger": record.name,
+            "service": "ingenio-api",
+            "message": record.getMessage(),
+        }
+        if record.exc_info and record.exc_info[0]:
+            log_entry["exception"] = self.formatException(record.exc_info)
+        return json.dumps(log_entry, ensure_ascii=False, default=str)
+
+
+def setup_logging(log_format: str, log_level: str) -> None:
+    level = getattr(logging, log_level.upper(), logging.INFO)
+
+    if log_format == "json":
+        handler = logging.StreamHandler(sys.stdout)
+        handler.setFormatter(JSONFormatter())
+
+        root = logging.getLogger()
+        root.setLevel(level)
+        root.handlers.clear()
+        root.addHandler(handler)
+
+        for name in ("uvicorn", "uvicorn.access", "uvicorn.error"):
+            logging.getLogger(name).handlers.clear()
+            logging.getLogger(name).setLevel(level)
+            logging.getLogger(name).addHandler(handler)
+    else:
+        logging.basicConfig(
+            level=level,
+            format="%(asctime)s %(levelname)s %(name)s: %(message)s",
+            force=True,
+        )
+
+@app.on_event("startup")
+async def _configure_logging_on_startup() -> None:
+    """Reconfigura logging luego del setup de uvicorn."""
+    setup_logging(settings.log_format, settings.log_level)
 
 chat_log_writer = ChatLogWriter(
     enabled=settings.ingenio_chat_log_enabled,
