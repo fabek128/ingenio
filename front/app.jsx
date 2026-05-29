@@ -361,8 +361,12 @@ function renderMarkdownInline(text) {
   while ((m = re.exec(text)) !== null) {
     if (m.index > last) parts.push(text.slice(last, m.index));
     if (m[1] && m[1].startsWith("!")) {
+      const thumbSrc = m[3];
+      const fullSrc = thumbSrc.replace("/thumbs/", "/");
       parts.push(
-        <img key={m.index} src={m[3]} alt={m[2] || ""} className="md-image" loading="lazy" />
+        <a key={m.index} href={fullSrc} target="_blank" rel="noopener noreferrer">
+          <img src={thumbSrc} alt={m[2] || ""} className="md-image" loading="lazy" />
+        </a>
       );
     } else if (m[4] && m[5]) {
       parts.push(

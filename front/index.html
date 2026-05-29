@@ -1007,11 +1007,16 @@ body {
   color: var(--fg-bright);
 }
 .markdown-doc .md-image {
-  max-width: 100%;
+  max-width: 300px;
   height: auto;
   border: 1px solid var(--border);
   margin: 8px 0;
   display: block;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+.markdown-doc .md-image:hover {
+  opacity: 0.8;
 }
 
 /* Diagnostic wizard */
