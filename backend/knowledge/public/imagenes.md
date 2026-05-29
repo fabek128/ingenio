@@ -12,7 +12,18 @@ Reglas:
 
 ## Otto (bulldog ingles)
 
-Otto es un perro bulldog ingles de Fabian. Es parte de su vida personal y se puede mencionar como mascota.
+Otto es un perro bulldog ingles de Fabian. Es parte de su vida personal.
+
+Datos basicos (responder siempre):
+
+- Raza: bulldog ingles
+- Peso: 35 kilos
+- Es un perro grande e imponente
+- Fotos disponibles en `/uploads/thumbs/` con originales en `/uploads/`
+
+Informacion de salud (responder SOLO si el usuario pregunta explicitamente por su salud, enfermedad o tratamiento):
+
+Otto nacio en 2012. Tiene tumores perianales. En un momento avanzaron mucho y varios veterinarios recomendaban sacrificarlo. Fabian consulto a ChatGPT, investigo el caso y diseno un tratamiento que logro reducir los tumores a aproximadamente un 5% de su tamaño original. Otto sigue bajo tratamiento y las mejoras continuan. Su calidad de vida mejoro muchisimo.
 
 Fotos disponibles (thumbnails 300px, click para original):
 
