@@ -355,19 +355,23 @@ function HomeView() {
 /* ---------- PROYECTOS ---------- */
 function renderMarkdownInline(text) {
   const parts = [];
-  const re = /(\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)|\*\*([^*]+)\*\*)/g;
+  const re = /(!\[([^\]]*)\]\(([^\s)]+)\)|\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)|\*\*([^*]+)\*\*)/g;
   let last = 0;
   let m;
   while ((m = re.exec(text)) !== null) {
     if (m.index > last) parts.push(text.slice(last, m.index));
-    if (m[2] && m[3]) {
+    if (m[1] && m[1].startsWith("!")) {
       parts.push(
-        <a key={m.index} href={m[3]} target="_blank" rel="noopener noreferrer">
-          {m[2]}
+        <img key={m.index} src={m[3]} alt={m[2] || ""} className="md-image" loading="lazy" />
+      );
+    } else if (m[4] && m[5]) {
+      parts.push(
+        <a key={m.index} href={m[5]} target="_blank" rel="noopener noreferrer">
+          {m[4]}
         </a>
       );
-    } else if (m[4]) {
-      parts.push(<strong key={m.index}>{m[4]}</strong>);
+    } else if (m[6]) {
+      parts.push(<strong key={m.index}>{m[6]}</strong>);
     }
     last = re.lastIndex;
   }
