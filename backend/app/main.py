@@ -781,17 +781,18 @@ Timestamp: {time.strftime("%Y-%m-%d %H:%M:%S UTC", time.gmtime())}
 
     try:
         # Enviar email con Resend
+        # Nota: No usamos reply_to porque Resend requiere que el dominio esté verificado.
+        # El email del usuario ya está incluido en el cuerpo del mensaje.
         params = {
             "from": settings.resend_from_email,
             "to": [settings.contact_recipient_email],
             "subject": f"[INGENIO/64] Consulta de {payload.nombre}",
             "text": email_body,
-            "reply_to": payload.email,
         }
 
         logger.info(
             "event=contact_sending "
-            "from=%s to=%s reply_to=%s",
+            "from=%s to=%s user_email=%s",
             settings.resend_from_email,
             settings.contact_recipient_email,
             payload.email,
