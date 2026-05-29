@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import logging
 import re
+import sys
 import tarfile
 import threading
 import uuid
@@ -116,6 +117,10 @@ class ChatLogWriter:
                     fh.write(encoded)
             except OSError:
                 logger.exception("event=chat_log_write_failed")
+
+        # Emitir a stdout para que Promtail lo capture hacia Loki
+        sys.stdout.write(line)
+        sys.stdout.flush()
 
     def _should_rotate(self, incoming_bytes: int) -> bool:
         if not self.active_path.exists():
