@@ -791,6 +791,16 @@ Timestamp: {time.strftime("%Y-%m-%d %H:%M:%S UTC", time.gmtime())}
 
         resend_response = resend.Emails.send(params)
 
+        # La respuesta de resend.Emails.send() puede ser un dict o un objeto
+        # Intentar acceder como dict primero, luego como atributo
+        email_id = "unknown"
+        if isinstance(resend_response, dict):
+            email_id = resend_response.get("id", "unknown")
+        elif hasattr(resend_response, "id"):
+            email_id = resend_response.id
+        elif hasattr(resend_response, "get"):
+            email_id = resend_response.get("id", "unknown")
+
         logger.info(
             "event=contact_sent "
             "email_id=%s "
@@ -799,7 +809,7 @@ Timestamp: {time.strftime("%Y-%m-%d %H:%M:%S UTC", time.gmtime())}
             "session_hash=%s "
             "client_hash=%s "
             "duration_ms=%d",
-            resend_response.get("id", "unknown"),
+            email_id,
             payload.nombre,
             payload.empresa or "none",
             _log_hash(str(_session.get("sid", "unknown"))),
