@@ -1399,7 +1399,7 @@ function App() {
         </ViewShell>;
       case "contact":
         return <ViewShell tag="FORM" title="CONTACT MODULE" path="/IO/CONTACT" onClose={closeView}>
-          <div className="view-intro"><span className="role">AGENT:</span>COMPLETA EL FORMULARIO. CAMPOS REQUERIDOS: NOMBRE, EMAIL Y BREVE DESCRIPCION.</div>
+          <div className="view-intro"><span className="role">CONTACT:</span>COMPLETA EL FORMULARIO. CAMPOS REQUERIDOS: NOMBRE, EMAIL Y BREVE DESCRIPCION.</div>
           <ContactBlock onCommand={programmatic} prefill={view.prefill} />
         </ViewShell>;
       case "response":
