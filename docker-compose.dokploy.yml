@@ -4,6 +4,8 @@
 # - INGENIO_ALLOWED_ORIGIN=https://<DOMAIN_INGENIO>
 # - INGENIO_LLM_API_KEY=<secret>
 # - INGENIO_SESSION_SECRET=<secret>
+# - RESEND_API_KEY=<secret>
+# - CONTACT_RECIPIENT_EMAIL=tu-email@dominio.com
 #
 # Publicar el dominio en Dokploy apuntando al servicio ingenio-front puerto 80.
 
@@ -27,6 +29,9 @@ services:
       INGENIO_CHAT_LOG_MAX_BYTES: ${INGENIO_CHAT_LOG_MAX_BYTES:-1048576}
       INGENIO_CHAT_LOG_INCLUDE_TEXT: ${INGENIO_CHAT_LOG_INCLUDE_TEXT:-true}
       INGENIO_CHAT_LOG_VIEW_TOKEN: ${INGENIO_CHAT_LOG_VIEW_TOKEN}
+      RESEND_API_KEY: ${RESEND_API_KEY}
+      RESEND_FROM_EMAIL: ${RESEND_FROM_EMAIL:-contacto@ingenio64.com}
+      CONTACT_RECIPIENT_EMAIL: ${CONTACT_RECIPIENT_EMAIL}
     volumes:
       - ingenio-chat-logs:/app/logs/chat
     expose:

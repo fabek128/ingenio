@@ -51,6 +51,7 @@ Ver `docs/backend-specification.md` y `docs/backend-tutorial.md`.
 | GET    | /api/session       | Iniciar sesion (cookie)    |
 | GET    | /api/site-context  | Metadata publica           |
 | POST   | /api/chat          | Enviar mensaje al modelo   |
+| POST   | /api/contact       | Enviar formulario contacto |
 
 ## Tests
 
@@ -116,6 +117,24 @@ Ejemplo local:
 curl -H "X-Ingenio-Log-Token: $INGENIO_CHAT_LOG_VIEW_TOKEN" \
   http://127.0.0.1:8080/api/admin/chat-logs/latest
 ```
+
+## Formulario de contacto
+
+El endpoint `POST /api/contact` permite enviar consultas desde el frontend con envío de email via Resend.
+
+Configuracion requerida:
+
+```env
+RESEND_API_KEY=re_xxxxx
+RESEND_FROM_EMAIL=contacto@tudominio.com
+CONTACT_RECIPIENT_EMAIL=tu-email@dominio.com
+```
+
+- `RESEND_API_KEY`: obtener en [resend.com/api-keys](https://resend.com/api-keys)
+- `RESEND_FROM_EMAIL`: debe ser un dominio verificado en Resend
+- `CONTACT_RECIPIENT_EMAIL`: email donde llegarán las consultas
+
+El endpoint aplica rate limiting (usa el mismo sistema que `/api/chat`) y validacion de email. Si falta la configuracion, devuelve `503 service_unavailable`.
 
 ## Nota sobre respuestas vacias del modelo
 
