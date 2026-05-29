@@ -90,6 +90,8 @@ _ALLOWED_KEYWORDS = [
     # About / personal
     "acerca de mi", "quien", "quién", "quien es", "quién es",
     "personal", "profesional", "senior",
+    # Mascota
+    "otto", "perro", "bulldog", "mascota", "foto", "fotos", "imagen", "imagenes", "imágenes",
     # Tecnologias
     "backend", "frontend", "front", "api", "http", "cookie", "csrf",
     "python", "fastapi", "uvicorn", "react", "jsx", "html", "css",

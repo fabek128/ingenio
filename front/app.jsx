@@ -353,7 +353,7 @@ function HomeView() {
 
 
 /* ---------- PROYECTOS ---------- */
-function renderMarkdownInline(text) {
+function renderMarkdownInline(text, onImageClick) {
   const parts = [];
   const re = /(!\[([^\]]*)\]\(([^\s)]+)\)|\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)|\*\*([^*]+)\*\*)/g;
   let last = 0;
@@ -363,11 +363,25 @@ function renderMarkdownInline(text) {
     if (m[1] && m[1].startsWith("!")) {
       const thumbSrc = m[3];
       const fullSrc = thumbSrc.replace("/thumbs/", "/");
-      parts.push(
-        <a key={m.index} href={fullSrc} target="_blank" rel="noopener noreferrer">
-          <img src={thumbSrc} alt={m[2] || ""} className="md-image" loading="lazy" />
-        </a>
-      );
+      if (onImageClick) {
+        parts.push(
+          <img
+            key={m.index}
+            src={thumbSrc}
+            alt={m[2] || ""}
+            className="md-image clickable"
+            loading="lazy"
+            onClick={() => onImageClick(fullSrc, m[2] || "")}
+            style={{ cursor: "pointer" }}
+          />
+        );
+      } else {
+        parts.push(
+          <a key={m.index} href={fullSrc} target="_blank" rel="noopener noreferrer">
+            <img src={thumbSrc} alt={m[2] || ""} className="md-image" loading="lazy" />
+          </a>
+        );
+      }
     } else if (m[4] && m[5]) {
       parts.push(
         <a key={m.index} href={m[5]} target="_blank" rel="noopener noreferrer">
@@ -992,7 +1006,7 @@ function AnimatedPending({ text }) {
   return <>{base}{".".repeat(dots)}</>;
 }
 
-function AgentMessage({ message, typing, onTypedDone }) {
+function AgentMessage({ message, typing, onTypedDone, onImageClick }) {
   const rendered = useTyped(message.text || "", typingSpeedMs(), typing);
   const done = rendered.length >= (message.text || "").length;
 
@@ -1011,7 +1025,7 @@ function AgentMessage({ message, typing, onTypedDone }) {
     const flushPara = () => {
       if (!paraLines.length) return;
       const joined = paraLines.join(" ").trim();
-      if (joined) nodes.push(<p key={nodes.length}>{renderMarkdownInline(joined)}</p>);
+      if (joined) nodes.push(<p key={nodes.length}>{renderMarkdownInline(joined, onImageClick)}</p>);
       paraLines = [];
     };
     lines.forEach((line) => {
@@ -1024,9 +1038,14 @@ function AgentMessage({ message, typing, onTypedDone }) {
         const fullSrc = thumbSrc.replace("/thumbs/", "/");
         nodes.push(
           <p key={nodes.length}>
-            <a href={fullSrc} target="_blank" rel="noopener noreferrer">
-              <img src={thumbSrc} alt={imgMatch[1] || ""} className="md-image" loading="lazy" />
-            </a>
+            <img
+              src={thumbSrc}
+              alt={imgMatch[1] || ""}
+              className="md-image clickable"
+              loading="lazy"
+              onClick={() => onImageClick?.(fullSrc, imgMatch[1] || "")}
+              style={{ cursor: "pointer" }}
+            />
           </p>
         );
         return;
@@ -1048,32 +1067,70 @@ function AgentMessage({ message, typing, onTypedDone }) {
   );
 }
 
+/* ---------- IMAGE MODAL ---------- */
+function ImageModal({ src, alt, onClose }) {
+  useEffect(() => {
+    const handleEsc = (e) => {
+      if (e.key === "Escape") onClose();
+    };
+    document.addEventListener("keydown", handleEsc);
+    return () => document.removeEventListener("keydown", handleEsc);
+  }, [onClose]);
+
+  return (
+    <div className="image-modal-backdrop" onClick={onClose}>
+      <div className="image-modal-content" onClick={(e) => e.stopPropagation()}>
+        <button className="image-modal-close" onClick={onClose} title="Cerrar (ESC)">
+          <span>✕</span>
+        </button>
+        <img src={src} alt={alt} className="image-modal-img" />
+        {alt && <div className="image-modal-caption">{alt}</div>}
+      </div>
+    </div>
+  );
+}
+
 function AgentSessionView({ messages, typingMessageId, onTypedDone }) {
   const bottomRef = useRef(null);
+  const [modalImage, setModalImage] = useState(null);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ block: "end" });
   }, [messages.length, typingMessageId]);
 
+  const handleImageClick = (src, alt) => {
+    setModalImage({ src, alt });
+  };
+
   return (
-    <div className="agent-session">
-      {messages.length === 0 ? (
-        <div className="agent-empty">
-          <div className="agent-empty-title">AGENT SESSION READY.</div>
-          <div>ESCRIBI TU PROMPT ABAJO. LA CONVERSACION SE CONSERVA EN ESTA SESION DEL NAVEGADOR MIENTRAS NAVEGAS EL SITIO.</div>
-        </div>
-      ) : (
-        messages.map((message) => (
-          <AgentMessage
-            key={message.id}
-            message={message}
-            typing={message.id === typingMessageId}
-            onTypedDone={onTypedDone}
-          />
-        ))
+    <>
+      <div className="agent-session">
+        {messages.length === 0 ? (
+          <div className="agent-empty">
+            <div className="agent-empty-title">AGENT SESSION READY.</div>
+            <div>ESCRIBI TU PROMPT ABAJO. LA CONVERSACION SE CONSERVA EN ESTA SESION DEL NAVEGADOR MIENTRAS NAVEGAS EL SITIO.</div>
+          </div>
+        ) : (
+          messages.map((message) => (
+            <AgentMessage
+              key={message.id}
+              message={message}
+              typing={message.id === typingMessageId}
+              onTypedDone={onTypedDone}
+              onImageClick={handleImageClick}
+            />
+          ))
+        )}
+        <div ref={bottomRef} />
+      </div>
+      {modalImage && (
+        <ImageModal
+          src={modalImage.src}
+          alt={modalImage.alt}
+          onClose={() => setModalImage(null)}
+        />
       )}
-      <div ref={bottomRef} />
-    </div>
+    </>
   );
 }
 

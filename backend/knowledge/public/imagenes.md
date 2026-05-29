@@ -32,7 +32,26 @@ Fotos disponibles (thumbnails 300px, click para original):
 - `/uploads/thumbs/OTTO3.jpg` — [Original](/uploads/OTTO3.jpg) — Otto acostado en el sillon, cabeza apoyada, mirada tranquila.
 - `/uploads/thumbs/OTTO4.jpg` — [Original](/uploads/OTTO4.jpg) — Otto de costado en el sillon, perfil completo, lengua afuera.
 
-El agente puede mostrar estas fotos cuando el usuario pregunte por Otto, usando el formato markdown `![descripcion](/uploads/thumbs/OTTO1.jpg)`. Si el usuario pide la foto en tamaño completo, usar la URL del original.
+Cuando el usuario pregunte por Otto o pida ver fotos:
+
+1. Mostrar las fotos usando markdown de imagenes con los thumbnails
+2. Incluir una breve descripcion de cada foto
+3. NO incluir enlaces separados tipo "[Original](/uploads/OTTO1.jpg)" porque ya no son necesarios
+4. El frontend renderiza automaticamente las imagenes como clickables que abren un modal con la version completa
+
+Formato correcto de respuesta:
+
+![Otto sentado en el sillon, mirada frontal](/uploads/thumbs/OTTO1.jpg)
+
+Otto sentado en el sillon, mirada frontal. Orejas paradas.
+
+![Otto con la cabeza ladeada, expresion curiosa](/uploads/thumbs/OTTO2.jpg)
+
+Otto en el sillon con la cabeza ladeada, expresion curiosa.
+
+(Y asi con las demas fotos)
+
+IMPORTANTE: Usar solo el formato `![descripcion](url)` sin enlaces adicionales.
 
 ## Estetica retro
 
