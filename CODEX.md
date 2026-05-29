@@ -16,6 +16,7 @@ Mantener y evolucionar INGENIO/64, un sitio personal con UI de terminal retro in
 - `backend/knowledge/public/`: base de conocimiento publica, curada y versionada que el modelo puede usar.
 - `backend/knowledge/policies/`: politicas versionadas de alcance y rechazos.
 - `logs/chat/`: salida runtime de conversaciones del agente; ignorada por Git y nunca debe versionarse.
+- `docs/private/`: documentacion privada; excluida del repo y del contexto de agentes.
 - `docs/`: documentacion del proyecto y notas operativas.
 
 ## Consulta de documentacion

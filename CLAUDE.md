@@ -16,6 +16,7 @@ Frontend estatico con estetica Commodore 64 / terminal CRT. La vision objetivo e
 - `backend/knowledge/public/`: base de conocimiento publica, curada y versionada que el modelo puede usar.
 - `backend/knowledge/policies/`: politicas versionadas de alcance y rechazos.
 - `logs/chat/`: salida runtime de conversaciones del agente; ignorada por Git y nunca debe versionarse.
+- `docs/private/`: documentacion privada; excluida del repo y del contexto de agentes.
 
 ## Consulta de documentacion
 - Antes de implementar, modificar arquitectura o responder sobre el funcionamiento del proyecto, revisar la documentacion relevante en `docs/`.

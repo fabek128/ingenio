@@ -27,6 +27,7 @@ Este archivo aplica a OpenCode y a cualquier agente compatible con `AGENTS.md` t
 - `backend/knowledge/public/`: base de conocimiento publica, curada y versionada que el modelo puede usar.
 - `backend/knowledge/policies/`: politicas versionadas de alcance y rechazos.
 - `logs/chat/`: salida runtime de conversaciones del agente; ignorada por Git y nunca debe versionarse.
+- `docs/private/`: documentacion privada; excluida del repo y del contexto de agentes.
 - `docker-compose.yml`: servicio backend para desarrollo local (modelo cloud, sin Ollama).
 - `.env`: configuracion local y secreto de sesion (ignorado por Git).
 - `.env.example`: plantilla con valores no sensibles (versionado).
