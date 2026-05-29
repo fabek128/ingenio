@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import json
 import logging
 import re
 import uuid
@@ -83,7 +82,8 @@ class ChatLogWriter:
                 record["reply"] = redact_sensitive_text(reply)
 
         # Emitir a traves del logger para que pase por el pipeline de logging configurado
-        chat_logger.info(json.dumps(record, ensure_ascii=False, sort_keys=True))
+        # Usamos extra para pasar los campos estructurados sin pre-formatear como JSON
+        chat_logger.info("chat_interaction", extra={"chat_data": record})
 
 
 def redact_sensitive_text(text: str) -> str:
