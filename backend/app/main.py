@@ -79,22 +79,27 @@ class JSONFormatter(logging.Formatter):
     """Formatea logs como JSON para ingestion via Promtail/Loki."""
 
     def format(self, record: logging.LogRecord) -> str:
-        # Si el record tiene chat_data en extra, usar esos campos directamente
-        if hasattr(record, 'chat_data') and isinstance(record.chat_data, dict):
-            # Log de chat: usar los campos estructurados ya preparados
-            return json.dumps(record.chat_data, ensure_ascii=False, default=str)
-
-        # Log normal: formatear con estructura estándar
-        log_entry = {
-            "timestamp": self.formatTime(record, "%Y-%m-%dT%H:%M:%S.000Z"),
-            "level": record.levelname,
-            "logger": record.name,
-            "service": "ingenio-api",
-            "message": record.getMessage(),
-        }
-        if record.exc_info and record.exc_info[0]:
-            log_entry["exception"] = self.formatException(record.exc_info)
-        return json.dumps(log_entry, ensure_ascii=False, default=str)
+        try:
+            log_entry = {
+                "timestamp": self.formatTime(record, "%Y-%m-%dT%H:%M:%S.000Z"),
+                "level": record.levelname,
+                "logger": record.name,
+                "service": "ingenio-api",
+                "message": record.getMessage(),
+            }
+            if record.exc_info and record.exc_info[0]:
+                log_entry["exception"] = self.formatException(record.exc_info)
+            return json.dumps(log_entry, ensure_ascii=False, default=str)
+        except Exception as e:
+            # Fallback si falla la serialización JSON
+            return json.dumps({
+                "timestamp": self.formatTime(record, "%Y-%m-%dT%H:%M:%S.000Z"),
+                "level": "ERROR",
+                "logger": "JSONFormatter",
+                "service": "ingenio-api",
+                "message": f"Log formatting error: {str(e)}",
+                "original_message": str(record.msg)[:200],
+            })
 
 
 def setup_logging(log_format: str, log_level: str) -> None:
@@ -113,13 +118,6 @@ def setup_logging(log_format: str, log_level: str) -> None:
             logging.getLogger(name).handlers.clear()
             logging.getLogger(name).setLevel(level)
             logging.getLogger(name).addHandler(handler)
-
-        # Chat logger usa el mismo JSONFormatter que detecta chat_data en extra
-        chat_log = logging.getLogger("ingenio.chat")
-        chat_log.handlers.clear()
-        chat_log.setLevel(level)
-        chat_log.addHandler(handler)
-        chat_log.propagate = False  # No propagar al root logger
     else:
         logging.basicConfig(
             level=level,

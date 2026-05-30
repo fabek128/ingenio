@@ -1,13 +1,14 @@
 from __future__ import annotations
 
+import json
 import logging
 import re
+import sys
 import uuid
 from datetime import datetime, timezone
 from typing import Any
 
 logger = logging.getLogger(__name__)
-chat_logger = logging.getLogger("ingenio.chat")
 
 _PRIVATE_KEY_BLOCK_RE = re.compile(
     r"-----BEGIN\s+[^-]*PRIVATE\s+KEY-----.*?-----END\s+[^-]*PRIVATE\s+KEY-----",
@@ -81,9 +82,20 @@ class ChatLogWriter:
             if reply is not None:
                 record["reply"] = redact_sensitive_text(reply)
 
-        # Emitir a traves del logger para que pase por el pipeline de logging configurado
-        # Usamos extra para pasar los campos estructurados sin pre-formatear como JSON
-        chat_logger.info("chat_interaction", extra={"chat_data": record})
+        # Escribir JSON directamente a stdout con flush inmediato
+        # Esto asegura que Promtail capture el log completo sin fragmentacion
+        try:
+            line = json.dumps(record, ensure_ascii=False, sort_keys=True)
+            print(line, file=sys.stdout, flush=True)
+        except Exception as e:
+            # Fallback en caso de error de serializacion
+            error_record = {
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "event": "log_error",
+                "error": f"Failed to serialize chat log: {str(e)}",
+                "session_hash": session_hash,
+            }
+            print(json.dumps(error_record, ensure_ascii=False), file=sys.stdout, flush=True)
 
 
 def redact_sensitive_text(text: str) -> str:
