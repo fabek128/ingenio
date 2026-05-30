@@ -16,6 +16,7 @@ import httpx
 import resend
 from app.chat_logs import ChatLogWriter
 from app.rate_limit import init_rate_limiter, get_rate_limiter
+from app.metrics import record_chat_interaction, record_rate_limit_violation, ingenio_info
 from fastapi import Cookie, Depends, FastAPI, Header, HTTPException, Request, Response, status
 from app.guardrails import (
     build_public_context,
@@ -26,6 +27,7 @@ from app.guardrails import (
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
+from prometheus_client import generate_latest, CONTENT_TYPE_LATEST
 
 logger = logging.getLogger(__name__)
 
@@ -279,6 +281,9 @@ def _check_rate_limit(key: str) -> None:
         # Registrar intento bloqueado para detectar ataques
         limiter.record_blocked_attempt(key)
 
+        # Registrar metrica de violacion
+        record_rate_limit_violation(violation.limit_type)
+
         # Preparar mensaje de error
         if violation.limit_type == "blacklist":
             detail = f"rate_limited_blacklist:{violation.window_seconds}"
@@ -367,18 +372,31 @@ def _write_chat_log(
             message=message or "",
         )
 
+    duration_ms = _duration_ms(start)
+
     chat_log_writer.write_interaction(
         event=event,
         status_code=status_code,
         session_hash=_log_hash(str(session.get("sid", "unknown"))),
         client_hash=_log_hash(_client_identifier(request)),
         model=settings.ingenio_llm_model,
-        duration_ms=_duration_ms(start),
+        duration_ms=duration_ms,
         message=message,
         reply=reply,
         reason=reason,
         usage=usage,
         error=error,
+    )
+
+    # Registrar metricas
+    record_chat_interaction(
+        event=event,
+        status_code=status_code,
+        duration_ms=duration_ms,
+        message_chars=len(message) if message else None,
+        reply_chars=len(reply) if reply else None,
+        reason=reason,
+        usage=usage,
     )
 
 
@@ -472,6 +490,16 @@ def _extract_llm_reply(data: dict[str, Any]) -> str:
     return ""
 
 
+@app.on_event("startup")
+async def _set_service_info() -> None:
+    """Configura informacion del servicio en metricas."""
+    ingenio_info.info({
+        "version": "0.2.0",
+        "model": settings.ingenio_llm_model,
+        "environment": settings.ingenio_env,
+    })
+
+
 @app.get("/health")
 async def health() -> dict[str, str]:
     return {
@@ -479,6 +507,15 @@ async def health() -> dict[str, str]:
         "runtime": "zen",
         "model": settings.ingenio_llm_model,
     }
+
+
+@app.get("/metrics")
+async def metrics() -> Response:
+    """Endpoint de metricas para Prometheus."""
+    return Response(
+        content=generate_latest(),
+        media_type=CONTENT_TYPE_LATEST,
+    )
 
 
 @app.get("/api/session")
